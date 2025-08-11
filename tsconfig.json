@@ -4,8 +4,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"] // ← 여기!
-    },
-    "jsx": "react-jsx"
+      "@/*": ["src/*"]
+    }
   }
 }
