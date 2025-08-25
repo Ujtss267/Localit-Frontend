@@ -18,6 +18,8 @@ import RoomListPage from "@/features/room/pages/RoomListPage";
 import RoomReservePage from "@/features/room/pages/RoomReservePage";
 
 import MyPage from "@/features/my/pages/MyPage";
+import StyleDemo from "@/pages/StyleDemo";
+import MobileFirstDemo from "@/pages/MobileFirstDemo";
 
 export const router = createBrowserRouter([
   {
@@ -34,6 +36,8 @@ export const router = createBrowserRouter([
       {
         element: <ProtectedRoute />,
         children: [
+          { path: "style-demo", element: <StyleDemo /> },
+          { path: "m-demo", element: <MobileFirstDemo /> },
           { path: "events", element: <EventListPage /> },
           { path: "events/:id", element: <EventDetailPage /> },
           { path: "mentoring", element: <MentoringListPage /> },
