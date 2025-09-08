@@ -7,7 +7,7 @@ export default function RootLayout() {
     <div className="min-h-screen flex flex-col">
       <header className="border-b">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <nav className="flex gap-4 text-sm">
+          <nav className="flex gap-4 text-[12px] sm:text-[15px] md:text-[25px]">
             <Link to="/" className="font-semibold">
               Localit
             </Link>
