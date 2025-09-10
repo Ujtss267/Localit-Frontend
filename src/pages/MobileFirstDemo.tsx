@@ -4,6 +4,7 @@
 
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 
 /* ───────────────────── Primitives ───────────────────── */
 export function Button({
@@ -132,6 +133,12 @@ function BottomTab() {
       className="sm:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/90 dark:bg-neutral-950/80 backdrop-blur border-t border-neutral-200 dark:border-neutral-800"
     >
       <div className="flex">
+        <Link to="/events" className={`${item}`}>
+          <svg className={icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M8 2v4M16 2v4M3 10h18M5 8h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2z" />
+          </svg>
+          <span>홈</span>
+        </Link>
         <Link to="/events" className={`${item}`}>
           <svg className={icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M8 2v4M16 2v4M3 10h18M5 8h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2z" />
