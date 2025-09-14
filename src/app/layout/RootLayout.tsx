@@ -87,13 +87,13 @@ function BottomTab() {
       className="sm:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/90 dark:bg-neutral-950/80 backdrop-blur border-t border-neutral-200 dark:border-neutral-800"
     >
       <div className="flex">
-        <NavLink to="/" className={({ isActive }) => `${item} ${isActive ? "text-neutral-900 dark:text-white" : ""}`}>
+        {/* <NavLink to="/" className={({ isActive }) => `${item} ${isActive ? "text-neutral-900 dark:text-white" : ""}`}>
           <svg className={icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M3 11l9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
             <path d="M9 22V12h6v10" />
           </svg>
           <span>홈</span>
-        </NavLink>
+        </NavLink> */}
 
         <NavLink to="/events" className={({ isActive }) => `${item} ${isActive ? "text-neutral-900 dark:text-white" : ""}`}>
           <svg className={icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

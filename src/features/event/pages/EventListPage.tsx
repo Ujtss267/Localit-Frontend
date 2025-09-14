@@ -6,7 +6,6 @@ import Card from "@/components/ui/Card";
 import Empty from "@/components/ui/Empty";
 import SkeletonList from "@/components/patterns/SkeletonList";
 import EventFilter from "../components/EventFilter";
-import EventCard from "../components/EventCard";
 import { useEvents } from "../queries";
 import type { EventDTO, EventListParams } from "../types";
 import EventCardPretty from "../components/EventCardPretty";
