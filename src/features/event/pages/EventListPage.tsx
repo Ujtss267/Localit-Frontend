@@ -9,6 +9,7 @@ import EventFilter from "../components/EventFilter";
 import EventCard from "../components/EventCard";
 import { useEvents } from "../queries";
 import type { EventDTO, EventListParams } from "../types";
+import EventCardPretty from "../components/EventCardPretty";
 
 export default function EventListPage() {
   // .env 플래그: 개발 중 샘플 데이터만 사용하려면 VITE_USE_SAMPLE=true
@@ -130,7 +131,7 @@ export default function EventListPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {items.map((e) => (
-              <EventCard key={e.id} e={e} />
+              <EventCardPretty key={e.id} e={e} />
             ))}
           </div>
         )}
