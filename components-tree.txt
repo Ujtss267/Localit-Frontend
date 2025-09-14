@@ -1,0 +1,60 @@
+src
+├── _command
+│   └── command.txt
+├── app
+│   ├── layout
+│   │   ├── ProtectedRoute.tsx
+│   │   └── RootLayout.tsx
+│   ├── providers
+│   │   ├── AuthProvider.tsx
+│   │   └── QueryProvider.tsx
+│   └── router.tsx
+├── App.css
+├── App.tsx
+├── assets
+│   └── react.svg
+├── components
+│   ├── index.ts
+│   ├── patterns
+│   │   ├── EmptyState.tsx
+│   │   ├── EventCardPretty.tsx
+│   │   ├── index.ts
+│   │   ├── PageHeader.tsx
+│   │   └── SkeletonList.tsx
+│   └── ui
+│       ├── Badge.tsx
+│       ├── Button.tsx
+│       ├── Card.tsx
+│       ├── Empty.tsx
+│       ├── index.ts
+│       ├── Input.tsx
+│       └── Select.tsx
+├── features
+│   ├── auth
+│   │   ├── api.ts
+│   │   └── pages
+│   ├── event
+│   │   ├── api.ts
+│   │   ├── components
+│   │   ├── pages
+│   │   └── queries.ts
+│   ├── eventRegistration
+│   │   └── api.ts
+│   ├── mentoring
+│   │   └── pages
+│   ├── my
+│   │   └── pages
+│   └── room
+│       └── pages
+├── index.css
+├── lib
+│   ├── axios.ts
+│   └── storage.ts
+├── main.tsx
+├── pages
+│   ├── HomePage.tsx
+│   ├── MobileFirstDemo.tsx
+│   └── StyleDemo.tsx
+└── vite-env.d.ts
+
+24 directories, 34 files

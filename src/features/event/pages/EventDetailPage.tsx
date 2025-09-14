@@ -1,3 +1,4 @@
+// /Users/ujtss267/Project/Localit-Frontend/src/features/event/pages/EventDetailPage.tsx
 import { useParams } from "react-router-dom";
 import { useEvent, useEventUsers, useJoinEvent } from "../queries";
 import { useState } from "react";

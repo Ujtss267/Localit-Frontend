@@ -40,6 +40,7 @@ const Input = React.forwardRef<HTMLInputElement, Props>(function Input(
   const defaultSx = {
     "& .MuiInputBase-root": {
       borderRadius: "12px",
+      
     },
   } as const;
 

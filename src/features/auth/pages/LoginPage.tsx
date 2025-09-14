@@ -3,6 +3,8 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/app/providers/AuthProvider";
 import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -53,7 +55,7 @@ export default function LoginPage() {
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         {/* 이메일 */}
         <div className="rounded border px-3 py-2">
-          <input
+          <Input
             className="w-full bg-transparent text-sm outline-none placeholder:text-gray-400"
             placeholder="이메일"
             autoComplete="email"
@@ -65,7 +67,7 @@ export default function LoginPage() {
 
         {/* 비밀번호 + 보이기 토글 */}
         <div className="rounded border px-3 py-2 flex items-center">
-          <input
+          <Input
             className="w-full bg-transparent text-sm outline-none placeholder:text-gray-400"
             type={showPw ? "text" : "password"}
             placeholder="비밀번호"
