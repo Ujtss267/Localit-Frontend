@@ -33,19 +33,31 @@ src
 │   ├── auth
 │   │   ├── api.ts
 │   │   └── pages
+│   │       ├── LoginPage.tsx
+│   │       ├── PhoneVerifyPage.tsx
+│   │       └── SignupPage.tsx
 │   ├── event
 │   │   ├── api.ts
 │   │   ├── components
+│   │   │   ├── EventCard.tsx
+│   │   │   └── EventFilter.tsx
 │   │   ├── pages
+│   │   │   ├── EventDetailPage.tsx
+│   │   │   └── EventListPage.tsx
 │   │   └── queries.ts
 │   ├── eventRegistration
 │   │   └── api.ts
 │   ├── mentoring
 │   │   └── pages
+│   │       ├── MentoringDetailPage.tsx
+│   │       └── MentoringListPage.tsx
 │   ├── my
 │   │   └── pages
+│   │       └── MyPage.tsx
 │   └── room
 │       └── pages
+│           ├── RoomListPage.tsx
+│           └── RoomReservePage.tsx
 ├── index.css
 ├── lib
 │   ├── axios.ts
@@ -57,4 +69,4 @@ src
 │   └── StyleDemo.tsx
 └── vite-env.d.ts
 
-24 directories, 34 files
+24 directories, 46 files
