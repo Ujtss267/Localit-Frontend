@@ -3,6 +3,8 @@ import { Link, NavLink, Outlet } from "react-router-dom";
 import Button from "@/components/ui/Button";
 import { useAuth } from "../providers/AuthProvider";
 import React from "react";
+import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined"; // 또는 다른 아이콘으로 교체 가능
+import MeetingRoomOutlinedIcon from "@mui/icons-material/MeetingRoomOutlined";
 
 export default function RootLayout() {
   const { user, logout } = useAuth();
@@ -31,7 +33,7 @@ function TopNav({ user, onLogout }: TopNavProps) {
     <div className="sticky top-0 z-30 backdrop-blur bg-white/75 dark:bg-neutral-950/60 border-b border-neutral-200 dark:border-neutral-800">
       <div className="max-w-6xl mx-auto px-3 sm:px-4 h-14 flex items-center justify-between">
         <div className="flex items-center gap-5 text-[15px]">
-          <Link to="/" className="font-semibold tracking-tight">
+          <Link to="/events" className="font-semibold tracking-tight">
             Localit
           </Link>
 
@@ -45,10 +47,14 @@ function TopNav({ user, onLogout }: TopNavProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" className="hidden sm:inline-flex">도움말</Button>
+          <Button variant="ghost" className="hidden sm:inline-flex">
+            도움말
+          </Button>
 
           {user ? (
-            <Button size="sm" onClick={onLogout}>로그아웃</Button>
+            <Button size="sm" onClick={onLogout}>
+              로그아웃
+            </Button>
           ) : (
             <Link to="/login">
               <Button size="sm">로그인</Button>
@@ -64,9 +70,7 @@ function TopLink({ to, children }: { to: string; children: React.ReactNode }) {
   return (
     <NavLink
       to={to}
-      className={({ isActive }) =>
-        `hover:text-neutral-900 dark:hover:text-white ${isActive ? "text-neutral-900 dark:text-white font-medium" : ""}`
-      }
+      className={({ isActive }) => `hover:text-neutral-900 dark:hover:text-white ${isActive ? "text-neutral-900 dark:text-white font-medium" : ""}`}
     >
       {children}
     </NavLink>
@@ -76,8 +80,7 @@ function TopLink({ to, children }: { to: string; children: React.ReactNode }) {
 /* ───────────────────── Bottom (Mobile-only) ───────────────────── */
 function BottomTab() {
   const style = { paddingBottom: "max(8px, env(safe-area-inset-bottom))" } as React.CSSProperties;
-  const item =
-    "flex flex-col items-center justify-center gap-1 h-12 flex-1 text-[11px] text-neutral-600 dark:text-neutral-300";
+  const item = "flex flex-col items-center justify-center gap-1 h-12 flex-1 text-[11px] text-neutral-600 dark:text-neutral-300";
   const icon = "w-5 h-5";
 
   return (
@@ -103,10 +106,13 @@ function BottomTab() {
         </NavLink>
 
         <NavLink to="/mentoring" className={({ isActive }) => `${item} ${isActive ? "text-neutral-900 dark:text-white" : ""}`}>
-          <svg className={icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm7 10v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-          </svg>
+          <GroupOutlinedIcon className={`${icon}`} />
           <span>멘토링</span>
+        </NavLink>
+
+        <NavLink to="/rooms" className={({ isActive }) => `${item} ${isActive ? "text-neutral-900 dark:text-white" : ""}`}>
+          <MeetingRoomOutlinedIcon className={`${icon}`} />
+          <span>공간</span>
         </NavLink>
 
         <NavLink to="/my" className={({ isActive }) => `${item} ${isActive ? "text-neutral-900 dark:text-white" : ""}`}>

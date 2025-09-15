@@ -7,7 +7,7 @@ import Empty from "@/components/ui/Empty";
 import SkeletonList from "@/components/patterns/SkeletonList";
 import EventFilter from "../components/EventFilter";
 import { useEvents } from "../queries";
-import type { EventDTO, EventListParams } from "../types";
+import type { EventDTO, EventListParams } from "../api";
 import EventCardPretty from "../components/EventCardPretty";
 
 export default function EventListPage() {

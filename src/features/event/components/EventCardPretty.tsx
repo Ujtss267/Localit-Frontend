@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
-import type { EventDTO } from "../types"; // ← 여기만 변경
+import type { EventDTO } from "../api"; // ← 여기만 변경
 
 type Props = {
   e: EventDTO;

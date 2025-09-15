@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
-import type { EventListParams } from "../types";
+import type { EventListParams } from "../api";
 
 /** datetime-local ⇄ ISO 헬퍼 */
 function isoToLocalInput(iso?: string) {

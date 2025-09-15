@@ -1,3 +1,10 @@
  
-내 소스의 구조를 tree 구조로 보여주는 방법 
- tree src -L 3 -I "node_modules|dist|.git" > components-tree.txt
+
+-- 내 소스의 구조를 tree 구조로 보여주는 방법 
+[MAC OS]
+tree src -L 3 -I "node_modules|dist|.git" > components-tree.txt
+[Window]
+tree src /F /A > components-tree.txt
+
+
+

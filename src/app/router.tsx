@@ -21,6 +21,8 @@ import MyPage from "@/features/my/pages/MyPage";
 import StyleDemo from "@/pages/StyleDemo";
 import MobileFirstDemo from "@/pages/MobileFirstDemo";
 import PhoneVerifyPage from "@/features/auth/pages/PhoneVerifyPage";
+import EventCreatePage from "@/features/event/pages/EventCreatePage";
+import RoomCreatePage from "@/features/room/pages/RoomCreatePage";
 
 // (옵션) 로그인 상태라면 / 로 돌려보내는 공개 전용 라우트
 function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
@@ -43,8 +45,10 @@ export const router = createBrowserRouter([
       { path: "mentoring", element: <MentoringListPage /> },
       { path: "mentoring/:id", element: <MentoringDetailPage /> },
       { path: "rooms", element: <RoomListPage /> },
+      { path: "rooms/new", element: <RoomCreatePage /> },
       { path: "auth/phone-verify", element: <PhoneVerifyPage /> },
       { path: "m-demo", element: <MobileFirstDemo /> },
+      { path: "events/new", element: <EventCreatePage /> },
       // ✅ 로그인/회원가입 (원하면 PublicOnlyRoute로 보호)
       {
         path: "login",
