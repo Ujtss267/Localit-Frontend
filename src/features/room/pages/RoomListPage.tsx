@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import { useRooms } from "../queries";
 import type { RoomDTO } from "../api";
-
+import { sampleRooms } from "../sampleRooms";
 // MUI
 import {
   Container,
@@ -36,6 +36,9 @@ import SortIcon from "@mui/icons-material/Sort";
 type SortKey = "created" | "capacity" | "name";
 
 export default function RoomListPage() {
+  // .env 플래그: 개발 중 샘플 데이터만 사용하려면 VITE_USE_SAMPLE=true
+  const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
+
   const { data, isLoading, isError, error, refetch, isFetching } = useRooms();
 
   // URL 쿼리와 동기화 (선택)
