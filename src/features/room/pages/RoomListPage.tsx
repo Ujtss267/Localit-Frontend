@@ -4,6 +4,8 @@ import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import { useRooms } from "../queries";
 import type { RoomDTO } from "../api";
 import { sampleRooms } from "../sampleRooms";
+import RoomCardPro from "../components/RoomCardPro";
+
 // MUI
 import {
   Container,
@@ -13,7 +15,6 @@ import {
   InputAdornment,
   IconButton,
   Button,
-  Grid,
   Card,
   CardContent,
   CardActions,
@@ -32,6 +33,8 @@ import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import EventBusyIcon from "@mui/icons-material/EventBusy";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import SortIcon from "@mui/icons-material/Sort";
+// ✅ 클래식 Grid 사용하는 방식
+import Grid from "@mui/material/Grid";
 
 type SortKey = "created" | "capacity" | "name";
 
@@ -40,6 +43,12 @@ export default function RoomListPage() {
   const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
 
   const { data, isLoading, isError, error, refetch, isFetching } = useRooms();
+
+  // ✅ 샘플/실데이터 스위치
+  const rawRooms: RoomDTO[] = USE_SAMPLE ? sampleRooms : (data ?? []);
+  // ✅ 샘플 모드에서는 로딩/에러 숨김
+  const showLoading = USE_SAMPLE ? false : isLoading;
+  const showError = USE_SAMPLE ? false : isError;
 
   // URL 쿼리와 동기화 (선택)
   const [sp, setSp] = useSearchParams();
@@ -65,8 +74,7 @@ export default function RoomListPage() {
   }
 
   const filtered = useMemo(() => {
-    const rooms: RoomDTO[] = data ?? [];
-    let out = rooms;
+    let out = rawRooms;
 
     const keyword = q.trim().toLowerCase();
     if (keyword) {
@@ -91,7 +99,7 @@ export default function RoomListPage() {
     }
 
     return out;
-  }, [data, q, onlyAvailable, sortKey]);
+  }, [rawRooms, q, onlyAvailable, sortKey]);
 
   return (
     <Container maxWidth="lg" sx={{ py: 3 }}>
@@ -117,9 +125,11 @@ export default function RoomListPage() {
               공간 등록
             </Button>
           </Tooltip>
-          <Tooltip title="새로고침">
+
+          {/* 샘플 모드에서는 새로고침 비활성화 */}
+          <Tooltip title={USE_SAMPLE ? "샘플 모드에서는 비활성화" : "새로고침"}>
             <span>
-              <IconButton onClick={() => refetch()} disabled={isFetching}>
+              <IconButton onClick={() => refetch()} disabled={USE_SAMPLE || isFetching}>
                 <RefreshIcon />
               </IconButton>
             </span>
@@ -203,14 +213,14 @@ export default function RoomListPage() {
       </Stack>
 
       {/* 상태 */}
-      {isError && (
+      {showError && (
         <Alert severity="error" sx={{ mb: 2 }}>
           공간 목록을 불러오지 못했습니다. {(error as any)?.message ?? ""}
         </Alert>
       )}
 
       {/* 목록 */}
-      {isLoading ? (
+      {showLoading ? (
         <Grid container spacing={2}>
           {Array.from({ length: 9 }).map((_, i) => (
             <Grid item xs={12} sm={6} md={4} key={i}>
@@ -233,7 +243,7 @@ export default function RoomListPage() {
         <Grid container spacing={2}>
           {filtered.map((r) => (
             <Grid item xs={12} sm={6} md={4} key={r.id}>
-              <RoomCard item={r} />
+              <RoomCardPro room={r} />
             </Grid>
           ))}
         </Grid>
