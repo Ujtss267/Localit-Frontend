@@ -2,7 +2,7 @@ import type { EventDTO } from "./api";
 
 const now = Date.now();
 
-export const sampleRooms: EventDTO[] = [
+export const sampleEvents: EventDTO[] = [
   {
     id: 1,
     title: "로컬 스터디 모임",

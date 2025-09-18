@@ -9,15 +9,19 @@ import EventFilter from "../components/EventFilter";
 import { useEvents } from "../queries";
 import type { EventDTO, EventListParams } from "../api";
 import EventCardPretty from "../components/EventCardPretty";
-
+import { sampleEvents } from "../sampleEvents";
 export default function EventListPage() {
   // .env 플래그: 개발 중 샘플 데이터만 사용하려면 VITE_USE_SAMPLE=true
   const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
 
   // react-query 쿼리키가 객체 참조를 쓰는 구조라면 ref를 유지
-  const paramsRef = useMemo(() => ({} as EventListParams), []);
+  const paramsRef = useMemo(() => ({}) as EventListParams, []);
   const { data, isLoading, isFetching, isError, refetch } = useEvents(paramsRef);
 
+  // ✅ 샘플/실데이터 스위치
+  const sample: EventDTO[] = USE_SAMPLE ? sampleEvents : (data ?? []);
+
+  // 필터 변경 콜백
   const onChange = useCallback(
     (p: EventListParams) => {
       // ref 객체를 덮지 말고 병합 → 쿼리키 안정성 유지
@@ -30,48 +34,8 @@ export default function EventListPage() {
     [paramsRef, refetch, USE_SAMPLE]
   );
 
-  // ✅ 샘플 데이터
-  const sample: EventDTO[] = useMemo(
-    () => [
-      {
-        id: 1,
-        title: "로컬 스터디 모임",
-        description: "프론트엔드 입문자를 위한 리액트/TS 기초",
-        location: "서울 마포",
-        startTime: new Date().toISOString(),
-        endTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-        capacity: 20,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: 2,
-        title: "주말 농구 번개",
-        description: "초급~중급 환영, 체육관 대관 완료",
-        location: "부산 진구",
-        startTime: new Date().toISOString(),
-        endTime: new Date(Date.now() + 90 * 60 * 1000).toISOString(),
-        capacity: 12,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: 3,
-        title: "주말 버스킹 공연",
-        description: "지역 아마추어 뮤지션들과 함께하는 소규모 공연",
-        location: "대구 동성로",
-        startTime: new Date().toISOString(),
-        endTime: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
-        capacity: 60,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    ],
-    []
-  );
-
   // ✅ 데이터 폴백: USE_SAMPLE이면 무조건 sample, 아니면 API 데이터
-  const items = USE_SAMPLE ? sample : data ?? [];
+  const items = USE_SAMPLE ? sample : (data ?? []);
   const count = items.length;
 
   // 👉 DB를 죽여둔 동안은 로딩/에러 분기 자체를 무시
@@ -85,9 +49,7 @@ export default function EventListPage() {
         <div className="flex items-start justify-between gap-3">
           <div>
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">이벤트 둘러보기</h1>
-            <p className="text-[13px] sm:text-sm text-neutral-600 dark:text-neutral-400 mt-1">
-              모바일에서도 쾌적하게 찾아보세요.
-            </p>
+            <p className="text-[13px] sm:text-sm text-neutral-600 dark:text-neutral-400 mt-1">모바일에서도 쾌적하게 찾아보세요.</p>
           </div>
           <Button component={Link} to="/events/new" variant="outline" className="hidden sm:inline-flex">
             이벤트 생성
