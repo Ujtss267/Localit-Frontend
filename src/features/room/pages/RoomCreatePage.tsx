@@ -69,7 +69,7 @@ export default function RoomCreatePage() {
         공간 등록
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        모임/이벤트/멘토링이 열릴 공간 정보를 입력해 주세요.
+        모임/이벤트가 열릴 공간 정보를 입력해 주세요.
       </Typography>
 
       <Box component="form" onSubmit={onSubmit}>

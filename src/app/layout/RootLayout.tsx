@@ -40,7 +40,7 @@ function TopNav({ user, onLogout }: TopNavProps) {
           {/* 데스크탑에서만 보이는 상단 네비 */}
           <nav className="hidden sm:flex items-center gap-4 text-neutral-600 dark:text-neutral-300">
             <TopLink to="/events">이벤트</TopLink>
-            <TopLink to="/mentoring">멘토링</TopLink>
+
             <TopLink to="/rooms">공간</TopLink>
             <TopLink to="/my">마이</TopLink>
           </nav>
@@ -103,11 +103,6 @@ function BottomTab() {
             <path d="M8 2v4M16 2v4M3 10h18M5 8h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2z" />
           </svg>
           <span>이벤트</span>
-        </NavLink>
-
-        <NavLink to="/mentoring" className={({ isActive }) => `${item} ${isActive ? "text-neutral-900 dark:text-white" : ""}`}>
-          <GroupOutlinedIcon className={`${icon}`} />
-          <span>멘토링</span>
         </NavLink>
 
         <NavLink to="/rooms" className={({ isActive }) => `${item} ${isActive ? "text-neutral-900 dark:text-white" : ""}`}>

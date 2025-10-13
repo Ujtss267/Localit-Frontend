@@ -107,9 +107,6 @@ function TopNav() {
           <Link to="/events" className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white">
             이벤트
           </Link>
-          <Link to="/mentoring" className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white">
-            멘토링
-          </Link>
           <Link to="/rooms" className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white">
             공간
           </Link>

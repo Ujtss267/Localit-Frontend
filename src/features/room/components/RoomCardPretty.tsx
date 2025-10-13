@@ -21,11 +21,12 @@ function formatDateShort(iso: string) {
 
 type Props = {
   room: RoomDTO;
+  className?: string;
   /** 상세/예약 이동 경로 (푸터 버튼만 이동) */
   to?: string;
 };
 
-export default function RoomCardPro({ room, to = `/rooms/reserve?roomId=${room.id}` }: Props) {
+export default function RoomCardPretty({ room, className = "", to = `/rooms/reserve?roomId=${room.id}` }: Props) {
   // coverUrl 또는 imageUrls[0] → 없으면 SVG 폴백
   const fallback =
     "data:image/svg+xml;utf8," +
@@ -54,7 +55,7 @@ export default function RoomCardPro({ room, to = `/rooms/reserve?roomId=${room.i
   );
 
   return (
-    <Card variant="outlined" className="h-full flex flex-col rounded-2xl shadow-sm hover:shadow-md transition-shadow" sx={{ overflow: "hidden" }}>
+    <Card className={`group relative overflow-hidden rounded-2xl shadow-sm hover:shadow-md transition h-full flex flex-col ${className}`}>
       {/* ✅ 이미지/캐러셀 영역 (클릭 이동 제거) */}
       <div className="relative">
         {images.length > 1 ? (

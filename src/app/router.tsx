@@ -11,9 +11,6 @@ import SignupPage from "@/features/auth/pages/SignupPage";
 import EventListPage from "@/features/event/pages/EventListPage";
 import EventDetailPage from "@/features/event/pages/EventDetailPage";
 
-import MentoringListPage from "@/features/mentoring/pages/MentoringListPage";
-import MentoringDetailPage from "@/features/mentoring/pages/MentoringDetailPage";
-
 import RoomListPage from "@/features/room/pages/RoomListPage";
 import RoomReservePage from "@/features/room/pages/RoomReservePage";
 
@@ -42,8 +39,6 @@ export const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: "events", element: <EventListPage /> },
       { path: "events/:id", element: <EventDetailPage /> },
-      { path: "mentoring", element: <MentoringListPage /> },
-      { path: "mentoring/:id", element: <MentoringDetailPage /> },
       { path: "rooms", element: <RoomListPage /> },
       { path: "rooms/new", element: <RoomCreatePage /> },
       { path: "auth/phone-verify", element: <PhoneVerifyPage /> },

@@ -92,7 +92,7 @@ export default function RoomListPage() {
         <div className="flex items-start justify-between gap-3">
           <div>
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">공간 목록</h1>
-            <p className="text-[13px] sm:text-sm text-neutral-600 dark:text-neutral-400 mt-1">모임/이벤트/멘토링을 위한 공간을 찾아보세요.</p>
+            <p className="text-[13px] sm:text-sm text-neutral-600 dark:text-neutral-400 mt-1">모임/이벤트를 위한 공간을 찾아보세요.</p>
           </div>
 
           <div className="flex items-center gap-2">
