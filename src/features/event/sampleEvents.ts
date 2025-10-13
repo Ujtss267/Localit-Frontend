@@ -13,6 +13,11 @@ export const sampleEvents: EventDTO[] = [
     capacity: 20,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    imageUrls: [
+      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800",
+      "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800",
+      "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800",
+    ],
   },
   {
     id: 2,
@@ -24,6 +29,10 @@ export const sampleEvents: EventDTO[] = [
     capacity: 12,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    imageUrls: [
+      "https://images.unsplash.com/photo-1509223197845-458d87318791?w=800",
+      "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800",
+    ],
   },
   {
     id: 3,
@@ -35,5 +44,10 @@ export const sampleEvents: EventDTO[] = [
     capacity: 60,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    imageUrls: [
+      "https://images.unsplash.com/photo-1487215078519-e21cc028cb29?w=800",
+      "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800",
+      "https://images.unsplash.com/photo-1485988412941-77a35537dae4?w=800",
+    ],
   },
 ];

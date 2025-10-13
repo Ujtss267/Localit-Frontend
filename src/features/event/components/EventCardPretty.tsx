@@ -4,6 +4,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import type { EventDTO } from "../api";
+import EventImageCarousel from "@/components/ui/ImageCarousel";
 
 type Props = {
   e: EventDTO;
@@ -51,13 +52,25 @@ export default function EventCardPretty({
           fill='#334155' font-family='Inter,system-ui' font-size='26'>Localit Event</text>
       </svg>`
     );
-  const cover = (e as any).coverUrl || (e as any).imageUrls?.[0] || fallback;
+
+  const images: string[] = (() => {
+    const urls = (e as any).imageUrls as string[] | undefined;
+    const cover = (e as any).coverUrl as string | undefined;
+    const list = urls && urls.length > 0 ? urls : cover ? [cover] : [fallback];
+    // 중복 제거
+    return Array.from(new Set(list.filter(Boolean)));
+  })();
 
   return (
     <Card className={`group relative overflow-hidden rounded-2xl shadow-sm hover:shadow-md transition h-full flex flex-col ${className}`}>
-      {/* 이미지 영역 */}
+      {/* 이미지/캐러셀 영역 */}
       <div className="relative">
-        <img src={cover} alt={e.title} className="h-40 w-full object-cover" loading="lazy" />
+        {images.length > 1 ? (
+          <EventImageCarousel images={images} autoplayMs={0} fit="cover" className="" alt={e.title} options={{ loop: true }} />
+        ) : (
+          <img src={images[0]} alt={e.title} className="h-40 w-full object-cover" loading="lazy" />
+        )}
+
         {showCapacityBadge && (
           <div className="absolute left-2 bottom-2">
             <Badge tone="blue">정원 {e.capacity}명</Badge>

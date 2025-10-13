@@ -10,6 +10,7 @@ export type RoomDTO = {
   createdAt: string;
   updatedAt: string;
   creatorId?: number | null;
+  imageUrls?: string[];
 };
 
 export type CreateRoomDto = {

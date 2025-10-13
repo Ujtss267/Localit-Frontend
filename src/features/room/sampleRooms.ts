@@ -12,6 +12,11 @@ export const sampleRooms: RoomDTO[] = [
     createdAt: new Date(now - 1 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(now - 1 * 24 * 60 * 60 * 1000).toISOString(),
     creatorId: 1,
+    imageUrls: [
+      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800",
+      "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800",
+      "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800",
+    ],
   },
   {
     id: 102,
@@ -22,6 +27,11 @@ export const sampleRooms: RoomDTO[] = [
     createdAt: new Date(now - 3 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(now - 2 * 24 * 60 * 60 * 1000).toISOString(),
     creatorId: 2,
+    imageUrls: [
+      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800",
+      "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800",
+      "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800",
+    ],
   },
   {
     id: 103,
@@ -32,5 +42,10 @@ export const sampleRooms: RoomDTO[] = [
     createdAt: new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(now - 6 * 24 * 60 * 60 * 1000).toISOString(),
     creatorId: null,
+    imageUrls: [
+      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800",
+      "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800",
+      "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800",
+    ],
   },
 ];

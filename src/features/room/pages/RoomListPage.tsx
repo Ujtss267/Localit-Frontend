@@ -4,39 +4,22 @@ import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import { useRooms } from "../queries";
 import type { RoomDTO } from "../api";
 import { sampleRooms } from "../sampleRooms";
-import RoomCardPro from "../components/RoomCardPro";
+import RoomCardPro from "../components/RoomCardPretty";
+import RoomFilter from "../components/RoomFilter";
+import type { RoomSortKey } from "../components/RoomFilter";
 
-// MUI
-import {
-  Container,
-  Stack,
-  Typography,
-  TextField,
-  InputAdornment,
-  IconButton,
-  Button,
-  Card,
-  CardContent,
-  CardActions,
-  Chip,
-  Box,
-  Alert,
-  Skeleton,
-  ToggleButton,
-  ToggleButtonGroup,
-  Tooltip,
-} from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-import ClearIcon from "@mui/icons-material/Clear";
+// UI (EventListPage와 톤 맞춤)
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
+import Empty from "@/components/ui/Empty";
+import SkeletonList from "@/components/patterns/SkeletonList";
+
+// Icons (필요 시 유지)
 import AddHomeWorkIcon from "@mui/icons-material/AddHomeWork";
-import EventAvailableIcon from "@mui/icons-material/EventAvailable";
-import EventBusyIcon from "@mui/icons-material/EventBusy";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import SortIcon from "@mui/icons-material/Sort";
-// ✅ 클래식 Grid 사용하는 방식
-import Grid from "@mui/material/Grid";
+import RoomCardPretty from "../components/RoomCardPretty";
 
-type SortKey = "created" | "capacity" | "name";
+type SortKey = RoomSortKey;
 
 export default function RoomListPage() {
   // .env 플래그: 개발 중 샘플 데이터만 사용하려면 VITE_USE_SAMPLE=true
@@ -46,11 +29,10 @@ export default function RoomListPage() {
 
   // ✅ 샘플/실데이터 스위치
   const rawRooms: RoomDTO[] = USE_SAMPLE ? sampleRooms : (data ?? []);
-  // ✅ 샘플 모드에서는 로딩/에러 숨김
-  const showLoading = USE_SAMPLE ? false : isLoading;
-  const showError = USE_SAMPLE ? false : isError;
+  const showLoading = !USE_SAMPLE && isLoading;
+  const showError = !USE_SAMPLE && isError;
 
-  // URL 쿼리와 동기화 (선택)
+  // URL 쿼리와 동기화
   const [sp, setSp] = useSearchParams();
   const [q, setQ] = useState(sp.get("q") ?? "");
   const [onlyAvailable, setOnlyAvailable] = useState(sp.get("avail") === "1");
@@ -101,221 +83,90 @@ export default function RoomListPage() {
     return out;
   }, [rawRooms, q, onlyAvailable, sortKey]);
 
+  const count = filtered.length;
+
   return (
-    <Container maxWidth="lg" sx={{ py: 3 }}>
-      {/* 헤더 */}
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        alignItems={{ xs: "flex-start", sm: "center" }}
-        justifyContent="space-between"
-        spacing={1}
-        sx={{ mb: 2 }}
-      >
-        <Box>
-          <Typography variant="h5" fontWeight={700}>
-            공간 목록
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            모임/이벤트/멘토링을 위한 공간을 찾아보세요.
-          </Typography>
-        </Box>
-        <Stack direction="row" spacing={1}>
-          <Tooltip title="새 공간 등록">
-            <Button variant="contained" startIcon={<AddHomeWorkIcon />} component={RouterLink} to="/rooms/new">
+    <div className="min-h-[100svh] bg-gradient-to-b from-neutral-50 to-white dark:from-neutral-950 dark:to-neutral-900 text-neutral-900 dark:text-neutral-100 pb-20">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-6 space-y-5">
+        {/* 헤더 */}
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">공간 목록</h1>
+            <p className="text-[13px] sm:text-sm text-neutral-600 dark:text-neutral-400 mt-1">모임/이벤트/멘토링을 위한 공간을 찾아보세요.</p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button component={RouterLink as any} to="/rooms/new" className="hidden sm:inline-flex" startIcon={<AddHomeWorkIcon fontSize="small" />}>
               공간 등록
             </Button>
-          </Tooltip>
+            <Button variant="ghost" disabled={USE_SAMPLE || isFetching} onClick={() => refetch()} startIcon={<RefreshIcon fontSize="small" />}>
+              새로고침
+            </Button>
+          </div>
+        </div>
 
-          {/* 샘플 모드에서는 새로고침 비활성화 */}
-          <Tooltip title={USE_SAMPLE ? "샘플 모드에서는 비활성화" : "새로고침"}>
-            <span>
-              <IconButton onClick={() => refetch()} disabled={USE_SAMPLE || isFetching}>
-                <RefreshIcon />
-              </IconButton>
-            </span>
-          </Tooltip>
-        </Stack>
-      </Stack>
+        {/* 필터 (RoomFilter는 MUI 기반 그대로 사용) */}
+        <Card className="p-3 sm:p-4">
+          <div className="flex items-center justify-between sm:mb-3">
+            <div className="font-semibold">필터</div>
+          </div>
+          <div className="mt-3">
+            <RoomFilter
+              q={q}
+              onlyAvailable={onlyAvailable}
+              sortKey={sortKey}
+              onQChange={(next, commit) => {
+                setQ(next);
+                if (commit) syncSearchParams({ q: next });
+              }}
+              onOnlyAvailableChange={(next) => {
+                setOnlyAvailable(next);
+                syncSearchParams({ avail: next ? "1" : "" });
+              }}
+              onSortKeyChange={(next) => {
+                setSortKey(next);
+                syncSearchParams({ sort: next });
+              }}
+            />
+          </div>
+        </Card>
 
-      {/* 컨트롤 바: 검색 / 필터 / 정렬 */}
-      <Stack direction={{ xs: "column", md: "row" }} spacing={1.5} sx={{ mb: 2 }}>
-        <TextField
-          placeholder="이름 또는 위치로 검색"
-          value={q}
-          onChange={(e) => {
-            setQ(e.target.value);
-          }}
-          onBlur={() => syncSearchParams({ q })}
-          fullWidth
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon fontSize="small" />
-              </InputAdornment>
-            ),
-            endAdornment: q ? (
-              <InputAdornment position="end">
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setQ("");
-                    syncSearchParams({ q: "" });
-                  }}
-                >
-                  <ClearIcon fontSize="small" />
-                </IconButton>
-              </InputAdornment>
-            ) : null,
-          }}
-        />
-
-        <ToggleButton
-          value="available"
-          selected={onlyAvailable}
-          onChange={() => {
-            const next = !onlyAvailable;
-            setOnlyAvailable(next);
-            syncSearchParams({ avail: next ? "1" : "" });
-          }}
-          sx={{ px: 2, whiteSpace: "nowrap" }}
-        >
-          {onlyAvailable ? (
-            <Stack direction="row" spacing={0.5} alignItems="center">
-              <EventAvailableIcon fontSize="small" />
-              <span>예약 가능만</span>
-            </Stack>
+        {/* 상태 바 */}
+        <div className="flex items-center justify-between pt-1">
+          {showError ? (
+            <span className="text-sm text-red-600">공간 목록을 불러오지 못했습니다. {(error as any)?.message ?? ""}</span>
           ) : (
-            <Stack direction="row" spacing={0.5} alignItems="center">
-              <EventBusyIcon fontSize="small" />
-              <span>모두 보기</span>
-            </Stack>
+            <div className="text-[13px] sm:text-sm text-neutral-600 dark:text-neutral-400">
+              {!USE_SAMPLE && isFetching ? "필터 적용 중…" : <>총 {count}개</>}
+            </div>
           )}
-        </ToggleButton>
+          {/* (선택) 페이지네이션 자리 */}
+          <div className="flex gap-2">
+            <Button variant="ghost" disabled>
+              이전
+            </Button>
+            <Button variant="ghost" disabled>
+              다음
+            </Button>
+          </div>
+        </div>
 
-        <ToggleButtonGroup
-          exclusive
-          value={sortKey}
-          onChange={(_e, val) => {
-            if (!val) return;
-            setSortKey(val);
-            syncSearchParams({ sort: val });
-          }}
-          size="small"
-          sx={{ ml: { md: "auto" }, whiteSpace: "nowrap" }}
-        >
-          <ToggleButton value="created">
-            <SortIcon fontSize="small" style={{ marginRight: 6 }} />
-            최신순
-          </ToggleButton>
-          <ToggleButton value="capacity">정원순</ToggleButton>
-          <ToggleButton value="name">이름순</ToggleButton>
-        </ToggleButtonGroup>
-      </Stack>
-
-      {/* 상태 */}
-      {showError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          공간 목록을 불러오지 못했습니다. {(error as any)?.message ?? ""}
-        </Alert>
-      )}
-
-      {/* 목록 */}
-      {showLoading ? (
-        <Grid container spacing={2}>
-          {Array.from({ length: 9 }).map((_, i) => (
-            <Grid item xs={12} sm={6} md={4} key={i}>
-              <Card variant="outlined">
-                <CardContent>
-                  <Skeleton variant="text" width="60%" />
-                  <Skeleton variant="text" width="40%" />
-                  <Skeleton variant="rectangular" height={80} sx={{ mt: 1 }} />
-                </CardContent>
-                <CardActions>
-                  <Skeleton variant="rectangular" width={120} height={36} />
-                </CardActions>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      ) : filtered.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <Grid container spacing={2}>
-          {filtered.map((r) => (
-            <Grid item xs={12} sm={6} md={4} key={r.id}>
-              <RoomCardPro room={r} />
-            </Grid>
-          ))}
-        </Grid>
-      )}
-    </Container>
-  );
-}
-
-/* ----------------- 하위 컴포넌트 ----------------- */
-
-function RoomCard({ item }: { item: RoomDTO }) {
-  const chip = item.available ? <Chip label="예약 가능" color="success" size="small" /> : <Chip label="예약 불가" variant="outlined" size="small" />;
-
-  return (
-    <Card variant="outlined" sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      <CardContent sx={{ flexGrow: 1 }}>
-        <Stack spacing={0.5}>
-          <Typography variant="h6" fontWeight={700} sx={{ lineHeight: 1.2 }}>
-            {item.name}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {item.location}
-          </Typography>
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
-            {chip}
-            <Chip size="small" label={`정원 ${item.capacity}명`} variant="outlined" />
-          </Stack>
-        </Stack>
-      </CardContent>
-
-      <CardActions sx={{ p: 2, pt: 0 }}>
-        <Stack direction="row" spacing={1} sx={{ width: "100%" }}>
-          <Button
-            variant="outlined"
-            color="inherit"
-            fullWidth
-            component={RouterLink}
-            to={`/rooms/reserve?roomId=${item.id}`}
-            disabled={!item.available}
-          >
-            예약
-          </Button>
-          <Button variant="contained" fullWidth component={RouterLink} to={`/rooms/reserve?roomId=${item.id}`}>
-            상세/예약
-          </Button>
-        </Stack>
-      </CardActions>
-    </Card>
-  );
-}
-
-function EmptyState() {
-  return (
-    <Box
-      sx={{
-        border: "1px dashed",
-        borderColor: "divider",
-        borderRadius: 2,
-        py: 8,
-        textAlign: "center",
-        color: "text.secondary",
-      }}
-    >
-      <Typography variant="subtitle1" fontWeight={700}>
-        등록된 공간이 없습니다
-      </Typography>
-      <Typography variant="body2" sx={{ mt: 0.5, mb: 2 }}>
-        첫 공간을 등록해 보세요.
-      </Typography>
-      <Button variant="contained" component={RouterLink} to="/rooms/new" startIcon={<AddHomeWorkIcon />}>
-        공간 등록
-      </Button>
-    </Box>
+        {/* 목록 */}
+        {showLoading ? (
+          <SkeletonList rows={9} />
+        ) : showError ? (
+          <Empty title="공간 조회 실패" desc="네트워크 상태를 확인한 뒤 다시 시도해주세요." />
+        ) : count === 0 ? (
+          <Empty title="등록된 공간이 없습니다" desc="첫 공간을 등록해 보세요." />
+        ) : (
+          // ✅ Tailwind 기반 레이아웃 (EventListPage와 동일 스타일)
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+            {filtered.map((r) => (
+              <RoomCardPretty key={r.id} room={r} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
