@@ -25,6 +25,7 @@ import {
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DoNotDisturbOnIcon from "@mui/icons-material/DoNotDisturbOn";
+import ImagePickerGrid from "@/components/ui/ImagePickerGrid";
 
 export default function RoomCreatePage() {
   const navigate = useNavigate();
@@ -113,39 +114,14 @@ export default function RoomCreatePage() {
 
                   <Divider sx={{ my: 1 }} />
 
-                  {/* (선택) 이미지 업로드 프리뷰 — 백엔드 연동 전용 UI */}
-                  <Stack spacing={1}>
-                    <Typography variant="subtitle2">이미지 (선택)</Typography>
-                    <Button variant="outlined" component="label" color="inherit">
-                      이미지 선택
-                      <input type="file" accept="image/*" hidden multiple onChange={onPickImages} />
-                    </Button>
-                    {previews.length > 0 && (
-                      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1 }}>
-                        {previews.map((src, idx) => (
-                          <Box
-                            key={idx}
-                            sx={{
-                              position: "relative",
-                              borderRadius: 1,
-                              overflow: "hidden",
-                              border: "1px solid",
-                              borderColor: "divider",
-                              aspectRatio: "1 / 1",
-                            }}
-                          >
-                            {/* eslint-disable-next-line jsx-a11y/alt-text */}
-                            <img src={src} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                          </Box>
-                        ))}
-                      </Box>
-                    )}
-                    {previews.length === 0 && (
-                      <Typography variant="caption" color="text.secondary">
-                        최대 5장까지 업로드 가능합니다. (실제 업로드 연동은 추후 진행)
-                      </Typography>
-                    )}
-                  </Stack>
+                  {/* 🔽 분리한 컴포넌트 사용 */}
+                  <ImagePickerGrid
+                    value={images}
+                    onChange={setImages}
+                    max={5}
+                    columns={3}
+                    helperText="최대 5장까지 업로드 가능합니다. (실제 업로드 연동은 추후 진행)"
+                  />
                 </Stack>
 
                 {createMut.isError && (

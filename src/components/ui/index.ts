@@ -4,3 +4,4 @@ export { default as Input } from "./Input";
 export { default as Select } from "./Select";
 export { default as Empty } from "./Empty";
 export { default as ImageCarousel } from "./ImageCarousel";
+export { default as ImagePickerGrid } from "./ImagePickerGrid";
