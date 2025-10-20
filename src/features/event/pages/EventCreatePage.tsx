@@ -4,19 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { useCreateEvent } from "../queries";
 import type { CreateEventDto } from "../api";
 
-import {
-  Container,
-  Card,
-  CardContent,
-  CardActions,
-  Typography,
-  TextField,
-  Button,
-  Stack,
-  Alert,
-  CircularProgress,
-  Box,
-} from "@mui/material";
+import { Container, Card, CardContent, CardActions, Typography, TextField, Button, Stack, Alert, CircularProgress, Box } from "@mui/material";
+
+import { ImagePickerGrid } from "@/components";
+import TimeRangeBadgePicker from "@/components/ui/TimeRangeBadgePicker";
 
 function toISO(local: string) {
   if (!local) return "";
@@ -95,13 +86,7 @@ export default function EventCreatePage() {
                 minRows={3}
                 fullWidth
               />
-              <TextField
-                label="위치"
-                placeholder="예) 서울 마포"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                fullWidth
-              />
+              <TextField label="위치" placeholder="예) 서울 마포" value={location} onChange={(e) => setLocation(e.target.value)} fullWidth />
 
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                 <TextField
@@ -121,14 +106,8 @@ export default function EventCreatePage() {
                   InputLabelProps={{ shrink: true }}
                   fullWidth
                   required
-                  error={
-                    !!startLocal && !!endLocal && new Date(endLocal) <= new Date(startLocal)
-                  }
-                  helperText={
-                    !!startLocal && !!endLocal && new Date(endLocal) <= new Date(startLocal)
-                      ? "종료 시간은 시작 이후여야 합니다."
-                      : " "
-                  }
+                  error={!!startLocal && !!endLocal && new Date(endLocal) <= new Date(startLocal)}
+                  helperText={!!startLocal && !!endLocal && new Date(endLocal) <= new Date(startLocal) ? "종료 시간은 시작 이후여야 합니다." : " "}
                 />
               </Stack>
 
@@ -137,11 +116,22 @@ export default function EventCreatePage() {
                 type="number"
                 inputProps={{ min: 1, step: 1 }}
                 value={capacity}
-                onChange={(e) =>
-                  setCapacity(e.target.value === "" ? "" : Math.max(0, Number(e.target.value)))
-                }
+                onChange={(e) => setCapacity(e.target.value === "" ? "" : Math.max(0, Number(e.target.value)))}
                 fullWidth
               />
+
+              <ImagePickerGrid
+                value={[]}
+                onChange={() => {}}
+                max={5}
+                columns={3}
+                helperText="최대 5장까지 업로드 가능합니다. (실제 업로드 연동은 추후 진행)"
+              ></ImagePickerGrid>
+
+              <TimeRangeBadgePicker from={"09:00"} to={"23:30"} durationMinutes={120} />
+              <Typography variant="caption" color="text.secondary">
+                이벤트 시간대 뱃지 선택 (추후 구현)
+              </Typography>
             </Stack>
 
             {createMut.isError && (
@@ -153,13 +143,7 @@ export default function EventCreatePage() {
 
           <CardActions sx={{ p: 2 }}>
             <Stack direction="row" spacing={1} sx={{ width: "100%" }}>
-              <Button
-                variant="outlined"
-                color="inherit"
-                fullWidth
-                onClick={() => navigate(-1)}
-                disabled={createMut.isPending}
-              >
+              <Button variant="outlined" color="inherit" fullWidth onClick={() => navigate(-1)} disabled={createMut.isPending}>
                 취소
               </Button>
               <Button
