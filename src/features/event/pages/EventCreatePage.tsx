@@ -146,7 +146,7 @@ export default function EventCreatePage() {
 
               <TimeRangeBadgePicker
                 from="09:00"
-                to="23:30"
+                to="18:30"
                 stepMinutes={30} // 30분 단위 Chip
                 durationMinutes={60} // ✅ 원하는 “선택 유지 시간(2시간)”
                 value={range} // ✅ 부모 상태를 내려줌 (controlled 포인트 1)

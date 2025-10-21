@@ -146,6 +146,11 @@ export default function TimeRangeBadgePicker({
     // ✅ 채우기(fill)는 end까지만 포함 (post-end 미포함)
     slots.forEach((t, i) => {
       const time = t.getTime();
+
+      // console.log("time", time);
+      // console.log("sTime", sTime);
+      // console.log("eTime", eTime);
+
       if (time >= sTime && time <= eTime) set.add(i);
     });
 
@@ -157,7 +162,11 @@ export default function TimeRangeBadgePicker({
 
     const head = i;
     const tail = i + (markersCount - 1);
-    if (tail >= slots.length) return; // out of range
+
+    console.log("markersCount", markersCount - 1);
+    console.log("tail, slots.length", tail, slots.length);
+
+    if (tail > slots.length) return; // out of range
 
     const nextStart = slots[head];
     // Real range end = start + durationMinutes (not the visual boundary)
