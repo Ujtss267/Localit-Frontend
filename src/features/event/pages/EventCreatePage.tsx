@@ -8,6 +8,7 @@ import { Container, Card, CardContent, CardActions, Typography, TextField, Butto
 
 import { ImagePickerGrid } from "@/components";
 import TimeRangeBadgePicker from "@/components/ui/TimeRangeBadgePicker";
+import React from "react";
 
 function toISO(local: string) {
   if (!local) return "";
@@ -55,6 +56,21 @@ export default function EventCreatePage() {
       },
     });
   }
+  //#region TimeRangeBadgePicker 사용 예시
+
+  // ✅ 부모가 상태 보유
+  const [range, setRange] = React.useState<{ start: Date; end: Date } | null>(null);
+
+  // (선택) 비활성화 규칙이 있으면 이렇게 정의
+  const isSlotDisabled = (slotStart: Date) => {
+    // 예: 12:00~13:00 점심 시간 비활성화
+    const h = slotStart.getHours();
+    return h === 12;
+  };
+
+  // (선택) 표기 형식 커스터마이즈
+  const formatLabel = (d: Date) => d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
+  //#endregion
 
   return (
     <Container maxWidth="sm" sx={{ py: 3 }}>
@@ -128,7 +144,23 @@ export default function EventCreatePage() {
                 helperText="최대 5장까지 업로드 가능합니다. (실제 업로드 연동은 추후 진행)"
               ></ImagePickerGrid>
 
-              <TimeRangeBadgePicker from={"09:00"} to={"23:30"} durationMinutes={120} />
+              <TimeRangeBadgePicker
+                from="09:00"
+                to="23:30"
+                stepMinutes={30} // 30분 단위 Chip
+                durationMinutes={60} // ✅ 원하는 “선택 유지 시간(2시간)”
+                value={range} // ✅ 부모 상태를 내려줌 (controlled 포인트 1)
+                onChange={(next) => {
+                  // ✅ 클릭 시 부모 상태 갱신 (controlled 포인트 2)
+                  setRange(next);
+                }}
+                isSlotDisabled={isSlotDisabled} // (선택) 금지 슬롯
+                includePostEndMarker={true} // (선택) 경계 마커 표시
+                formatLabel={formatLabel} // (선택) 시간 라벨 포맷
+                //gridClassName="grid grid-cols-10 gap-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8"
+                badgeHeight={40}
+                helperText="배지를 클릭하면 시작 시각부터 2시간 범위가 선택됩니다. (끝 경계 배지 포함)"
+              />
               <Typography variant="caption" color="text.secondary">
                 이벤트 시간대 뱃지 선택 (추후 구현)
               </Typography>

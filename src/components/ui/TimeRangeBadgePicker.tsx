@@ -94,7 +94,7 @@ export default function TimeRangeBadgePicker({
   isSlotDisabled,
   includePostEndMarker = true, // to match the user's sample (09:00→09:30→10:00→10:30)
   formatLabel = defaultFormat,
-  gridClassName = "grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8",
+  gridClassName = "grid grid-cols-4 gap-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4",
   badgeHeight = 40,
   helperText,
 }: TimeRangeBadgePickerProps) {
@@ -138,19 +138,19 @@ export default function TimeRangeBadgePicker({
     const set = new Set<number>();
     if (!value || !slots.length) return set;
     if (!(value.start instanceof Date) || !(value.end instanceof Date)) return set;
+
     const sTime = value.start.getTime();
     const eTime = value.end.getTime();
     if (!Number.isFinite(sTime) || !Number.isFinite(eTime)) return set;
 
-    const boundary = includePostEndMarker ? addMinutes(value.end, stepMinutes) : value.end;
-    const bTime = boundary.getTime();
-
+    // ✅ 채우기(fill)는 end까지만 포함 (post-end 미포함)
     slots.forEach((t, i) => {
       const time = t.getTime();
-      if (time >= sTime && time <= bTime) set.add(i);
+      if (time >= sTime && time <= eTime) set.add(i);
     });
+
     return set;
-  }, [value, slots, includePostEndMarker, stepMinutes]);
+  }, [value, slots]);
 
   const handlePick = (i: number) => {
     if (!slots.length) return;
