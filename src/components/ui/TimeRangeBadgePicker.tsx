@@ -94,7 +94,7 @@ export default function TimeRangeBadgePicker({
   isSlotDisabled,
   includePostEndMarker = true, // to match the user's sample (09:00→09:30→10:00→10:30)
   formatLabel = defaultFormat,
-  gridClassName = "grid grid-cols-4 gap-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4",
+  gridClassName = "flex gap-2 overflow-x-auto whitespace-nowrap p-1 scrollbar-thin",
   badgeHeight = 40,
   helperText,
 }: TimeRangeBadgePickerProps) {

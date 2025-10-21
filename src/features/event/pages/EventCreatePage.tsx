@@ -27,6 +27,8 @@ export default function EventCreatePage() {
   const [endLocal, setEndLocal] = useState("");
   const [capacity, setCapacity] = useState<number | "">("");
 
+  const neverDisable = React.useCallback(() => false, []);
+
   const valid =
     title.trim().length >= 2 &&
     desc.trim().length >= 5 &&
@@ -154,16 +156,13 @@ export default function EventCreatePage() {
                   // ✅ 클릭 시 부모 상태 갱신 (controlled 포인트 2)
                   setRange(next);
                 }}
-                isSlotDisabled={isSlotDisabled} // (선택) 금지 슬롯
+                isSlotDisabled={neverDisable} // (선택) 금지 슬롯
                 includePostEndMarker={true} // (선택) 경계 마커 표시
                 formatLabel={formatLabel} // (선택) 시간 라벨 포맷
                 //gridClassName="grid grid-cols-10 gap-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8"
                 badgeHeight={40}
                 helperText="배지를 클릭하면 시작 시각부터 2시간 범위가 선택됩니다. (끝 경계 배지 포함)"
               />
-              <Typography variant="caption" color="text.secondary">
-                이벤트 시간대 뱃지 선택 (추후 구현)
-              </Typography>
             </Stack>
 
             {createMut.isError && (
