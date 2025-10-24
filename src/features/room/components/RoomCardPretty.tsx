@@ -12,7 +12,7 @@ import EventBusyIcon from "@mui/icons-material/EventBusy";
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 
 // 캐러셀 (EventCardPretty와 동일 경로/방식)
-import EventImageCarousel from "@/components/ui/ImageCarousel";
+import ImageCarousel from "@/components/ui/ImageCarousel";
 import Card from "@/components/ui/Card";
 function formatDateShort(iso: string) {
   const d = new Date(iso);
@@ -59,7 +59,7 @@ export default function RoomCardPretty({ room, className = "", to = `/rooms/rese
       {/* ✅ 이미지/캐러셀 영역 (클릭 이동 제거) */}
       <div className="relative">
         {images.length > 1 ? (
-          <EventImageCarousel
+          <ImageCarousel
             images={images}
             autoplayMs={0} // 자동 넘김 OFF
             fit="cover"

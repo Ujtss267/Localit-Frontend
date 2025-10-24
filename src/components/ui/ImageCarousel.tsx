@@ -20,7 +20,7 @@ type Props = {
   alt?: string;
 };
 
-export default function EventImageCarousel({
+export default function ImageCarousel({
   images,
   className = "",
   autoplayMs = 0,

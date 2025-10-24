@@ -1,10 +1,10 @@
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import type { EventDTO } from "../api";
-import EventImageCarousel from "@/components/ui/ImageCarousel";
+import ImageCarousel from "@/components/ui/ImageCarousel";
 
 type Props = {
   e: EventDTO;
@@ -37,9 +37,10 @@ export default function EventCardPretty({
   hideMeta = false,
   registerText = "참가하기",
 }: Props) {
+  const navigate = useNavigate();
   const date = useMemo(() => new Date(e.startTime), [e.startTime]);
 
-  // 이벤트 이미지 (없으면 placeholder svg 사용)
+  // ✅ 이미지 처리 (없을 때 placeholder)
   const fallback =
     "data:image/svg+xml;utf8," +
     encodeURIComponent(
@@ -57,16 +58,21 @@ export default function EventCardPretty({
     const urls = (e as any).imageUrls as string[] | undefined;
     const cover = (e as any).coverUrl as string | undefined;
     const list = urls && urls.length > 0 ? urls : cover ? [cover] : [fallback];
-    // 중복 제거
     return Array.from(new Set(list.filter(Boolean)));
   })();
 
+  // ✅ 참가하기 버튼 클릭 시 상세 페이지 이동
+  const handleRegisterClick = async () => {
+    if (onRegister) await onRegister(e);
+    navigate(toBuilder(e));
+  };
+
   return (
     <Card className={`group relative overflow-hidden rounded-2xl shadow-sm hover:shadow-md transition h-full flex flex-col ${className}`}>
-      {/* 이미지/캐러셀 영역 */}
+      {/* 이미지 영역 */}
       <div className="relative">
         {images.length > 1 ? (
-          <EventImageCarousel images={images} autoplayMs={0} fit="cover" className="" alt={e.title} options={{ loop: true }} />
+          <ImageCarousel images={images} autoplayMs={0} fit="cover" alt={e.title} options={{ loop: true }} />
         ) : (
           <img src={images[0]} alt={e.title} className="h-40 w-full object-cover" loading="lazy" />
         )}
@@ -93,12 +99,9 @@ export default function EventCardPretty({
 
         <p className="mt-3 text-[13px] sm:text-sm text-neutral-800 dark:text-neutral-200 line-clamp-2">{e.description}</p>
 
-        {/* 푸터 */}
-        <div className="mt-4 flex items-center justify-between">
-          <Link to={toBuilder(e)} className="text-[13px] sm:text-sm font-medium text-blue-700 hover:underline dark:text-blue-300">
-            자세히 보기 →
-          </Link>
-          <Button size="sm" onClick={() => onRegister?.(e)}>
+        {/* ✅ 푸터 (참가하기 버튼만 남김) */}
+        <div className="mt-4 flex justify-end">
+          <Button size="sm" onClick={handleRegisterClick}>
             {registerText}
           </Button>
         </div>

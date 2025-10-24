@@ -44,6 +44,7 @@ export const router = createBrowserRouter([
       { path: "auth/phone-verify", element: <PhoneVerifyPage /> },
       { path: "m-demo", element: <MobileFirstDemo /> },
       { path: "events/new", element: <EventCreatePage /> },
+      { path: "my", element: <MyPage /> },
       // ✅ 로그인/회원가입 (원하면 PublicOnlyRoute로 보호)
       {
         path: "login",
@@ -70,7 +71,6 @@ export const router = createBrowserRouter([
           { path: "style-demo", element: <StyleDemo /> },
 
           { path: "rooms/reserve", element: <RoomReservePage /> },
-          { path: "my", element: <MyPage /> },
         ],
       },
     ],
