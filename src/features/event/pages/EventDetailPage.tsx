@@ -9,8 +9,12 @@ import ImageCarousel from "@/components/ui/ImageCarousel";
 import EventMeta from "../components/EventMeta";
 import { sampleEvents } from "../sampleEvents";
 import type { EventDTO } from "../api";
-// 선택: 실서버라면
 import { useEvent } from "../queries";
+
+// NEW
+import ReviewSummaryCard from "../components/ReviewSummaryCard";
+import ReviewList from "../components/ReviewList";
+import Badge from "@/components/ui/Badge"; // 너의 커스텀 Badge
 
 export default function EventDetailPage() {
   const { id } = useParams();
@@ -19,17 +23,11 @@ export default function EventDetailPage() {
   const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
   const eventId = Number(id);
 
-  // 실데이터 훅 시도
   const { data: serverEvent, isFetching } = useEvent?.(eventId) ?? { data: undefined, isFetching: false };
-
-  // 샘플 폴백
   const sample = useMemo(() => sampleEvents.find((e) => e.id === eventId), [eventId]);
-
   const e: EventDTO | undefined = USE_SAMPLE ? sample : (serverEvent ?? sample);
 
   const onAttend = () => {
-    // 필요 시 여기서 실제 등록 요청 → 성공 시 마이페이지로 이동
-    // await registerMutation.mutateAsync({ eventId: e!.id })
     navigate("/my");
   };
 
@@ -48,7 +46,7 @@ export default function EventDetailPage() {
     );
   }
 
-  const images = e.imageUrls ?? []; // DTO 폴백
+  const images = e.imageUrls ?? [];
   const mentorName = (e.mentor && ("name" in e.mentor ? (e.mentor as any).name : (e.mentor as any).email)) ?? null;
   const roomName = (e.room && ("name" in e.room ? (e.room as any).name : null)) ?? null;
 
@@ -62,9 +60,21 @@ export default function EventDetailPage() {
 
         {/* 본문 */}
         <div className="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-5">
-          {/* 좌측: 정보/설명 */}
+          {/* 좌측: 정보/설명/리뷰 */}
           <div className="lg:col-span-2 space-y-5">
             <CardUI className="p-5">
+              {/* 상단 라인: 시리즈 뱃지/타이틀 보강 */}
+              <div className="flex items-center gap-2 mb-2">
+                {e.seriesId != null ? (
+                  <>
+                    <Badge tone="blue">{`시리즈 ${e.episodeNo ?? "-"}회차`}</Badge>
+                    {e.seriesTitle ? <Badge tone="blue">{e.seriesTitle}</Badge> : null}
+                  </>
+                ) : (
+                  <Badge tone="neutral">단발형</Badge>
+                )}
+              </div>
+
               <EventMeta
                 title={e.title}
                 type={e.type}
@@ -77,6 +87,7 @@ export default function EventDetailPage() {
                 hostType={e.hostType ?? null}
                 roomName={roomName}
               />
+
               <Typography variant="subtitle1" className="font-semibold mb-2">
                 이벤트 소개
               </Typography>
@@ -85,7 +96,7 @@ export default function EventDetailPage() {
               </Typography>
             </CardUI>
 
-            {/* 세부 정보 섹션 */}
+            {/* 세부 정보 */}
             <CardUI className="p-5">
               <Typography variant="subtitle1" className="font-semibold mb-3">
                 세부 정보
@@ -110,7 +121,13 @@ export default function EventDetailPage() {
               </div>
             </CardUI>
 
-            {/* ✅ 모바일 전용 인라인 CTA: 세부 정보 바로 아래에 배치 */}
+            {/* ✅ 리뷰 요약 + 분포 */}
+            <ReviewSummaryCard avg={e.ratingAvg} count={e.ratingCount} breakdown={e.ratingBreakdown ?? null} className="rounded-2xl shadow-sm" />
+
+            {/* ✅ 리뷰 목록 */}
+            <ReviewList reviews={e.reviews} />
+
+            {/* ✅ 모바일 전용 인라인 CTA */}
             <div className="lg:hidden">
               <CardUI className="p-4">
                 <div className="flex items-center gap-3">
@@ -126,7 +143,7 @@ export default function EventDetailPage() {
             </div>
           </div>
 
-          {/* 우측: 참가 CTA 카드 (데스크톱) */}
+          {/* 우측: 참가 CTA (데스크톱) */}
           <div className="hidden lg:block">
             <CardUI className="p-5 sticky top-6">
               <div className="flex items-center justify-between">
@@ -147,9 +164,6 @@ export default function EventDetailPage() {
           </div>
         </div>
       </div>
-
-      {/* ⛔ 아래 ‘본문 마지막 버튼’ 블록은 삭제 */}
-      {/* (기존) <div className="mt-10 flex justify-center"> ... </div> */}
     </div>
   );
 }

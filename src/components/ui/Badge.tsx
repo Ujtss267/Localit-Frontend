@@ -2,13 +2,26 @@ import * as React from "react";
 import Chip from "@mui/material/Chip";
 import type { SxProps, Theme } from "@mui/material/styles";
 
-type Tone = "blue" | "green" | "rose" | "neutral";
+type Tone =
+  | "blue"
+  | "green"
+  | "rose"
+  | "neutral"
+  // ▼ 추가
+  | "violet"
+  | "slate"
+  | "indigo";
 
 const toneToColor: Record<Tone, "primary" | "success" | "error" | "default"> = {
   blue: "primary",
   green: "success",
   rose: "error",
   neutral: "default",
+
+  // ▼ 추가 매핑 (MUI 팔레트에 맞춰 근사치 매핑)
+  violet: "primary",
+  indigo: "primary",
+  slate: "default",
 };
 
 export interface BadgeProps {
@@ -24,14 +37,7 @@ export interface BadgeProps {
   onClick?: () => void;
 }
 
-export default function Badge({
-  children,
-  tone = "blue",
-  className,
-  sx,
-  icon,
-  onClick,
-}: BadgeProps) {
+export default function Badge({ children, tone = "blue", className, sx, icon, onClick }: BadgeProps) {
   return (
     <Chip
       label={children}

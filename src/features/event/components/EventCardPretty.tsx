@@ -1,3 +1,4 @@
+// src/features/event/components/EventCardPretty.tsx
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Card from "@/components/ui/Card";
@@ -28,6 +29,18 @@ function formatKoreanDate(dt: Date) {
   }).format(dt);
 }
 
+function StarRating({ avg, count }: { avg?: number | null; count?: number | null }) {
+  if (!avg || avg <= 0) return null;
+  const display = Number.isFinite(avg) ? avg.toFixed(1) : "0.0";
+  return (
+    <span className="inline-flex items-center gap-1 text-xs text-amber-600">
+      <span aria-hidden>★</span>
+      <span>{display}</span>
+      {count ? <span className="text-neutral-500">({count})</span> : null}
+    </span>
+  );
+}
+
 export default function EventCardPretty({
   e,
   className = "",
@@ -40,7 +53,6 @@ export default function EventCardPretty({
   const navigate = useNavigate();
   const date = useMemo(() => new Date(e.startTime), [e.startTime]);
 
-  // ✅ 이미지 처리 (없을 때 placeholder)
   const fallback =
     "data:image/svg+xml;utf8," +
     encodeURIComponent(
@@ -55,21 +67,23 @@ export default function EventCardPretty({
     );
 
   const images: string[] = (() => {
-    const urls = (e as any).imageUrls as string[] | undefined;
+    const urls = e.imageUrls;
     const cover = (e as any).coverUrl as string | undefined;
     const list = urls && urls.length > 0 ? urls : cover ? [cover] : [fallback];
     return Array.from(new Set(list.filter(Boolean)));
   })();
 
-  // ✅ 참가하기 버튼 클릭 시 상세 페이지 이동
   const handleRegisterClick = async () => {
     if (onRegister) await onRegister(e);
     navigate(toBuilder(e));
   };
 
+  const isSeries = e.seriesId != null;
+  const headerBadge = isSeries ? `시리즈 ${e.episodeNo ?? "-"}회차` : "단발형";
+
   return (
     <Card className={`group relative overflow-hidden rounded-2xl shadow-sm hover:shadow-md transition h-full flex flex-col ${className}`}>
-      {/* 이미지 영역 */}
+      {/* 이미지 */}
       <div className="relative">
         {images.length > 1 ? (
           <ImageCarousel images={images} autoplayMs={0} fit="cover" alt={e.title} options={{ loop: true }} />
@@ -77,9 +91,15 @@ export default function EventCardPretty({
           <img src={images[0]} alt={e.title} className="h-40 w-full object-cover" loading="lazy" />
         )}
 
+        <div className="absolute left-2 top-2 flex items-center gap-2">
+          <Badge tone={isSeries ? "violet" : "rose"}>{headerBadge}</Badge>
+          {e.seriesTitle && isSeries ? <Badge tone="indigo">{e.seriesTitle}</Badge> : null}
+        </div>
+
         {showCapacityBadge && (
-          <div className="absolute left-2 bottom-2">
+          <div className="absolute left-2 bottom-2 flex gap-2">
             <Badge tone="blue">정원 {e.capacity}명</Badge>
+            {typeof e.registrationsCount === "number" ? <Badge tone="green">신청 {e.registrationsCount}명</Badge> : null}
           </div>
         )}
       </div>
@@ -89,9 +109,12 @@ export default function EventCardPretty({
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="text-[17px] sm:text-lg font-semibold tracking-tight truncate">{e.title}</h3>
+
             {!hideMeta && (
-              <div className="mt-1 text-[13px] sm:text-sm text-neutral-600 dark:text-neutral-400">
-                {formatKoreanDate(date)} · <span className="inline-flex items-center gap-1">📍{e.location}</span>
+              <div className="mt-1 text-[13px] sm:text-sm text-neutral-600 dark:text-neutral-400 flex items-center gap-2 flex-wrap">
+                <span>{formatKoreanDate(date)}</span>
+                <span className="inline-flex items-center gap-1">📍{e.location}</span>
+                <StarRating avg={e.ratingAvg} count={e.ratingCount} />
               </div>
             )}
           </div>
@@ -99,7 +122,7 @@ export default function EventCardPretty({
 
         <p className="mt-3 text-[13px] sm:text-sm text-neutral-800 dark:text-neutral-200 line-clamp-2">{e.description}</p>
 
-        {/* ✅ 푸터 (참가하기 버튼만 남김) */}
+        {/* 푸터 */}
         <div className="mt-4 flex justify-end">
           <Button size="sm" onClick={handleRegisterClick}>
             {registerText}
