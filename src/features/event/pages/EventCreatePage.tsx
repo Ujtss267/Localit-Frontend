@@ -26,7 +26,7 @@ import {
   Switch,
 } from "@mui/material";
 
-import { ImagePickerGrid } from "@/components";
+import { ImagePickerGrid, LocationCard, LocationMap, LocationMapByAddress } from "@/components";
 import TimeRangeBadgePicker from "@/components/ui/TimeRangeBadgePicker";
 import React from "react";
 
@@ -189,6 +189,12 @@ export default function EventCreatePage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, seriesAttachMode, seriesKeyword]);
+
+  // 예시: 서버에서 가져온 이벤트 좌표
+  const lat = 35.2277;
+  const lng = 128.6812;
+
+  const address = "경남 창원시 의창구 사림로 00"; // 예시
 
   return (
     <Container maxWidth="sm" sx={{ py: 3 }}>
@@ -367,13 +373,16 @@ export default function EventCreatePage() {
                 columns={3}
                 helperText="최대 5장까지 업로드 가능합니다. (실제 업로드 연동은 추후 진행)"
               />
+              <LocationMap title="로컬잇 밋업 @ 사림동" lat={lat} lng={lng} zoom={3} height={380} />
+
+              {/* 주소 값을 기준으로 위치 정보 표시하기 예시: */}
+              {/* <LocationMapByAddress title="로컬잇 밋업 장소" address={address} zoom={3} height={380} /> */}
 
               {/* 시간 배지 피커 */}
               <TimeRangeBadgePicker
                 from="09:00"
                 to="18:00"
                 stepMinutes={30}
-                selectionMode="range"
                 value={range}
                 onChange={(r) => setRange(isNaN(r.start.getTime()) ? null : r)}
               />
