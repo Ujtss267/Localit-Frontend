@@ -1,20 +1,67 @@
 // src/features/event/sampleEvents.ts
-import type { EventDTO } from "./api";
+import type { EventDTO, SeriesDTO, SeriesDetailDTO } from "./api";
 
 // src/features/event/sampleEvents.ts
-export const sampleSeries = [
-  { seriesId: 1, title: "영어회화 스터디" },
-  { seriesId: 2, title: "보드게임 정모" },
-  { seriesId: 3, title: "사진 동호회" },
+export const sampleSeries: SeriesDTO[] = [
+  {
+    seriesId: 1000,
+    title: "영어회화 스터디",
+    description: "기초 회화 시리즈",
+    isPublic: true,
+    hostId: 1,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    seriesId: 2000,
+    title: "보드게임 정모",
+    description: "주말 모임 시리즈",
+    isPublic: true,
+    hostId: 2,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    seriesId: 3000,
+    title: "사진 동호회",
+    description: "야외 출사 시리즈",
+    isPublic: false,
+    hostId: 3,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
 ];
 
-export const sampleSeriesDetails = {
-  title: "데모 시리즈",
+export const sampleSeriesDetails: SeriesDetailDTO = {
+  seriesId: 1000,
+  title: "영어회화 스터디",
   description: "최근 회차 미리보기",
   isPublic: true,
+  hostId: 1,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
   recentEpisodes: [
-    { id: 901, title: "1회차: 아이스브레이킹", episodeNo: 1, startTime: new Date().toISOString() },
-    { id: 902, title: "2회차: 패턴 트레이닝", episodeNo: 2, startTime: new Date(Date.now() + 7 * 86400000).toISOString() },
+    {
+      id: 101,
+      title: "1회차: 아이스브레이킹",
+      episodeNo: 1,
+      startTime: new Date().toISOString(),
+      endTime: new Date(Date.now() + 2 * 3600_000).toISOString(),
+    },
+    {
+      id: 102,
+      title: "2회차: 패턴 트레이닝",
+      episodeNo: 2,
+      startTime: new Date(Date.now() + 24 * 3600_000).toISOString(),
+      endTime: new Date(Date.now() + 26 * 3600_000).toISOString(),
+    },
+    {
+      id: 103,
+      title: "3회차: test",
+      episodeNo: 3,
+      startTime: new Date(Date.now() + 24 * 3600_000).toISOString(),
+      endTime: new Date(Date.now() + 26 * 3600_000).toISOString(),
+    },
   ],
 };
 
@@ -122,3 +169,14 @@ export const sampleEvents: EventDTO[] = [
     ],
   },
 ];
+
+export async function searchSampleSeries(q: string): Promise<SeriesDTO[]> {
+  const keyword = q.trim();
+  if (!keyword) return sampleSeries;
+  return sampleSeries.filter((s) => s.title.includes(keyword));
+}
+
+export async function getSampleSeriesById(seriesId: number): Promise<SeriesDetailDTO | null> {
+  if (seriesId === 1000) return sampleSeriesDetails;
+  return null;
+}

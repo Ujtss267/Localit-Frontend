@@ -27,6 +27,51 @@ export type SeriesConnectorProps = {
 };
 
 /* ──────────────────────────────
+ * Prisma Enum unions (TS)
+ * ────────────────────────────── */
+export type EventType = "GENERAL" | "MENTORING" | "WORKSHOP" | "MEETUP";
+export type SlotDuration = "MIN30";
+export type Visibility = "PUBLIC" | "FOLLOWERS" | "PRIVATE";
+export type FeedbackType = "UX" | "CONTENT" | "PRICE" | "HOST" | "FACILITY" | "OTHER";
+export type RegistrationStatus = "PENDING" | "CONFIRMED" | "CANCELLED" | "ATTENDED" | "NO_SHOW";
+
+/* ──────────────────────────────
+ * Series DTOs (프론트 전용)
+ * ────────────────────────────── */
+export type SeriesDTO = {
+  seriesId: number;
+  title: string;
+  description?: string;
+  isPublic: boolean;
+  hostId: number;
+  createdAt: string; // ISO
+  updatedAt: string; // ISO
+};
+
+export type SeriesDetailDTO = SeriesDTO & {
+  recentEpisodes: Array<{
+    id: number;
+    title: string;
+    episodeNo?: number | null;
+    startTime?: string | null; // ISO
+    endTime?: string | null; // ISO
+  }>;
+};
+
+export type CreateSeriesDto = {
+  title: string;
+  description?: string;
+  isPublic?: boolean;
+};
+
+export type UpdateSeriesDto = {
+  seriesId: number;
+  title?: string;
+  description?: string;
+  isPublic?: boolean;
+};
+
+/* ──────────────────────────────
  * Event DTO (프론트 전용)
  * ────────────────────────────── */
 export type EventReviewDTO = {
@@ -91,6 +136,60 @@ export type EventDTO = {
   reviews?: EventReviewDTO[];
 };
 
+/** Server(API) Event shape aligned with Prisma */
+export type ApiEvent = {
+  eventId: number;
+  title: string;
+  description: string;
+  location: string;
+  lat?: number | null;
+  lng?: number | null;
+  startTime: string;
+  endTime: string;
+  capacity: number;
+  createdAt: string;
+  updatedAt: string;
+  type: EventType;
+  mentorId?: number | null;
+  categoryId?: number | null;
+  creatorId?: number | null;
+  roomId?: number | null;
+  price: number;
+  paidToHost: boolean;
+  hostType: string;
+  seriesId?: number | null;
+  episodeNo?: number | null;
+  ratingAvg?: string | number | null; // Prisma Decimal -> string
+  ratingCount?: number | null;
+  visibility: Visibility;
+  imageUrls?: string[];
+};
+
+/** Mapper: ApiEvent -> EventDTO (UI) */
+export function mapApiEventToEventDTO(e: ApiEvent): EventDTO {
+  return {
+    id: e.eventId,
+    title: e.title,
+    description: e.description,
+    location: e.location,
+    startTime: e.startTime,
+    endTime: e.endTime,
+    capacity: e.capacity,
+    createdAt: e.createdAt,
+    updatedAt: e.updatedAt,
+    type: e.type,
+    price: e.price,
+    paidToHost: e.paidToHost,
+    hostType: e.hostType,
+    imageUrls: e.imageUrls,
+    seriesId: e.seriesId ?? null,
+    episodeNo: e.episodeNo ?? null,
+    ratingAvg: e.ratingAvg == null ? null : typeof e.ratingAvg === "string" ? parseFloat(e.ratingAvg) : e.ratingAvg,
+    ratingCount: e.ratingCount ?? null,
+    // Optional relations (creator/mentor/category/room) can be expanded in a richer mapper when API returns joins
+  } as EventDTO;
+}
+
 /* ──────────────────────────────
  * Event 리스트 조회용 파라미터
  * ────────────────────────────── */
@@ -119,13 +218,17 @@ export type CreateEventDto = {
   startTime: string; // ISO
   endTime: string; // ISO
   capacity: number;
+  lat?: number; // 위도
+  lng?: number; // 경도
   price?: number;
-  type?: "GENERAL" | "MENTORING" | "WORKSHOP" | "MEETUP";
+  type?: EventType;
   categoryId?: number;
   roomId?: number;
   mentorId?: number;
+  creatorId?: number;
   hostType?: string;
-
+  paidToHost?: boolean;
+  visibility?: Visibility;
   /** ▼▼▼ NEW: 시리즈 회차 생성 지원 ▼▼▼ */
   seriesId?: number; // 있으면 회차형
   episodeNo?: number; // 선택 (표시/정렬용)
@@ -139,3 +242,14 @@ export const getEvents = (params?: EventListParams) => api.get<EventDTO[]>("/eve
 export const getEventById = (id: number) => api.get<EventDTO>(`/event/${id}`).then((r) => r.data);
 
 export const createEvent = (dto: CreateEventDto) => api.post<EventDTO>("/event/create", dto).then((r) => r.data);
+
+/* ──────────────────────────────
+ * Series API
+ * ────────────────────────────── */
+export const searchSeries = (q: string) => api.get<SeriesDTO[]>("/series/search", { params: { q } }).then((r) => r.data);
+
+export const getSeriesById = (seriesId: number) => api.get<SeriesDetailDTO>(`/series/${seriesId}`).then((r) => r.data);
+
+export const createSeriesApi = (dto: CreateSeriesDto) => api.post<SeriesDTO>("/series", dto).then((r) => r.data);
+
+export const updateSeriesApi = (dto: UpdateSeriesDto) => api.patch<SeriesDTO>(`/series/${dto.seriesId}`, dto).then((r) => r.data);

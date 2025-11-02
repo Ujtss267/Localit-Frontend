@@ -1,6 +1,7 @@
 // src/features/event/hooks.ts
 import { useState, useMemo } from "react";
 import { sampleSeries, sampleSeriesDetails } from "./sampleEvents";
+import type { SeriesDTO, SeriesDetailDTO } from "./api";
 
 export function useSearchSeries() {
   const [options, setOptions] = useState(sampleSeries);
@@ -21,18 +22,22 @@ export function useSearchSeries() {
 
 export function useFetchSeriesDetails(seriesId?: number | null) {
   const [loading, setLoading] = useState(false);
-  const [details, setDetails] = useState<any>(null);
+  const [details, setDetails] = useState<SeriesDetailDTO | null>(null);
 
   useMemo(() => {
     (async () => {
       setLoading(true);
       try {
-        setDetails(seriesId ? sampleSeriesDetails : null);
+        if (!seriesId) {
+          setDetails(null);
+        } else {
+          setDetails(sampleSeriesDetails.seriesId === seriesId ? sampleSeriesDetails : null);
+        }
       } finally {
         setLoading(false);
       }
     })();
   }, [seriesId]);
 
-  return { loading, details };
+  return { loading, details } as { loading: boolean; details: SeriesDetailDTO | null };
 }
