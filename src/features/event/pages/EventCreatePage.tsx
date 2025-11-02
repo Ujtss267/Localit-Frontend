@@ -1,8 +1,9 @@
 // src/features/event/pages/EventCreatePage.tsx
-import { useState, type FormEvent, useMemo } from "react";
+import React, { useState, type FormEvent, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreateEvent } from "../queries";
 import type { CreateEventDto } from "../api";
+import { useFetchSeriesDetails, useSearchSeries } from "../hooks";
 
 import {
   Container,
@@ -19,46 +20,19 @@ import {
   Divider,
   ToggleButtonGroup,
   ToggleButton,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
-  Autocomplete,
-  Switch,
 } from "@mui/material";
 
 import { ImagePickerGrid, LocationCard, LocationMap, LocationMapByAddress } from "@/components";
 import TimeRangeBadgePicker from "@/components/ui/TimeRangeBadgePicker";
-import React from "react";
+
+// 분리한 컴포넌트들
+import SeriesConnector from "../components/SeriesConnector";
+import CreateSeriesDialog from "../components/CreateSeriesDialog";
+import EditSeriesDialog from "../components/EditSeriesDialog";
+import BulkCreateDialog from "../components/BulkCreateDialog";
 
 /** ▼▼▼ 시리즈 API 훅 예시 (네 API에 맞춰 구현/대체) ▼▼▼ */
 type SeriesOption = { seriesId: number; title: string };
-function useSearchSeries() {
-  // 실서비스: debounce + 서버검색
-  const [options, setOptions] = useState<SeriesOption[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const search = async (keyword: string) => {
-    setIsLoading(true);
-    try {
-      // TODO: 서버 검색으로 교체
-      // const res = await api.series.search(keyword);
-      // setOptions(res.data);
-      // Demo
-      const seed = ["영어회화 스터디", "보드게임 정모", "사진 동호회"];
-      const filtered = keyword ? seed.filter((s) => s.includes(keyword)) : seed;
-      setOptions(
-        filtered.map((t, i) => ({
-          seriesId: i + 1,
-          title: t,
-        }))
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return { options, isLoading, search };
-}
 
 function useCreateSeries() {
   const [isPending, setPending] = useState(false);
@@ -69,6 +43,43 @@ function useCreateSeries() {
       // const res = await api.series.create(payload);
       // return res.data; // { seriesId: number, ... }
       return { seriesId: Math.floor(Math.random() * 100000), ...payload };
+    } finally {
+      setPending(false);
+    }
+  };
+  return { mutateAsync, isPending };
+}
+
+function useUpdateSeries() {
+  const [isPending, setPending] = useState(false);
+  const mutateAsync = async (payload: { seriesId: number; title?: string; description?: string; isPublic?: boolean }) => {
+    setPending(true);
+    try {
+      // TODO: 서버 연동
+      return { ok: true };
+    } finally {
+      setPending(false);
+    }
+  };
+  return { mutateAsync, isPending };
+}
+
+function useSeriesPermissions(seriesId?: number | null) {
+  // TODO: 서버에서 내 권한 조회
+  const [canEdit, setCanEdit] = useState(false);
+  useMemo(() => {
+    setCanEdit(!!seriesId); // 데모: 선택되면 편집 가능하다고 가정
+  }, [seriesId]);
+  return { canEdit };
+}
+
+function useBulkCreateEpisodes() {
+  const [isPending, setPending] = useState(false);
+  const mutateAsync = async (payloads: Array<CreateEventDto & { seriesId: number; episodeNo?: number }>) => {
+    setPending(true);
+    try {
+      // TODO: 서버 연동 (배치 생성)
+      return { created: payloads.length };
     } finally {
       setPending(false);
     }
@@ -90,6 +101,10 @@ function toLocalFromDate(d: Date) {
 
 type EventMode = "single" | "series";
 type SeriesAttachMode = "existing" | "create";
+
+// ──────────────────────────────────────────────────────────
+// Local Subcomponents (kept in the same file for now)
+// ──────────────────────────────────────────────────────────
 
 export default function EventCreatePage() {
   const navigate = useNavigate();
@@ -116,9 +131,23 @@ export default function EventCreatePage() {
   const [newSeriesTitle, setNewSeriesTitle] = useState("");
   const [newSeriesDesc, setNewSeriesDesc] = useState("");
   const [newSeriesPublic, setNewSeriesPublic] = useState(true);
+  const [createSeriesOpen, setCreateSeriesOpen] = useState(false);
+
+  const [editSeriesOpen, setEditSeriesOpen] = useState(false);
+  const [editSeriesTitle, setEditSeriesTitle] = useState("");
+  const [editSeriesDesc, setEditSeriesDesc] = useState("");
+  const [editSeriesPublic, setEditSeriesPublic] = useState(true);
+
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkFrequency, setBulkFrequency] = useState<"DAILY" | "WEEKLY">("WEEKLY");
+  const [bulkCount, setBulkCount] = useState<number>(4);
 
   const seriesSearch = useSearchSeries();
   const createSeries = useCreateSeries();
+  const updateSeries = useUpdateSeries();
+  const { canEdit } = useSeriesPermissions(selectedSeries?.seriesId ?? null);
+  const seriesDetails = useFetchSeriesDetails(selectedSeries?.seriesId ?? null);
+  const bulkCreate = useBulkCreateEpisodes();
 
   // 시간 선택/연동 상태
   const [range, setRange] = React.useState<{ start: Date; end: Date } | null>(null);
@@ -136,7 +165,7 @@ export default function EventCreatePage() {
     typeof capacity === "number" &&
     capacity > 0;
 
-  const seriesValid = mode === "single" ? true : seriesAttachMode === "existing" ? !!selectedSeries : newSeriesTitle.trim().length >= 2; // 새 시리즈는 최소 제목 필요
+  const seriesValid = mode === "single" ? true : !!selectedSeries; // 시리즈일 땐 연결된 시리즈가 있어야 유효
 
   const valid = baseValid && seriesValid;
 
@@ -146,20 +175,10 @@ export default function EventCreatePage() {
 
     let seriesId: number | undefined = undefined;
 
-    // 시리즈 회차형이면 시리즈 ID 확보
+    // 시리즈 회차형이면 선택된 시리즈 ID 확보 (생성은 별도 다이얼로그에서 처리)
     if (mode === "series") {
-      if (seriesAttachMode === "existing") {
-        if (!selectedSeries) return;
-        seriesId = selectedSeries.seriesId;
-      } else {
-        // 새 시리즈 먼저 생성
-        const created = await createSeries.mutateAsync({
-          title: newSeriesTitle.trim(),
-          description: newSeriesDesc.trim() || undefined,
-          isPublic: newSeriesPublic,
-        });
-        seriesId = created.seriesId;
-      }
+      if (!selectedSeries) return;
+      seriesId = selectedSeries.seriesId;
     }
 
     const payload: CreateEventDto & { seriesId?: number; episodeNo?: number } = {
@@ -182,13 +201,13 @@ export default function EventCreatePage() {
 
   // 시리즈 검색 트리거 (간단 디바운스 느낌)
   useMemo(() => {
-    if (mode === "series" && seriesAttachMode === "existing") {
+    if (mode === "series") {
       const k = seriesKeyword.trim();
       if (k.length >= 1) seriesSearch.search(k);
       else seriesSearch.search("");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, seriesAttachMode, seriesKeyword]);
+  }, [mode, seriesKeyword]);
 
   // 예시: 서버에서 가져온 이벤트 좌표
   const lat = 35.2277;
@@ -221,72 +240,21 @@ export default function EventCreatePage() {
 
             {/* 시리즈 회차형 옵션 */}
             {mode === "series" && (
-              <Box className="rounded-2xl border p-3 mt-2 bg-neutral-50">
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  시리즈 연결 방식
-                </Typography>
-
-                <RadioGroup row value={seriesAttachMode} onChange={(e) => setSeriesAttachMode(e.target.value as SeriesAttachMode)}>
-                  <FormControlLabel value="existing" control={<Radio />} label="기존 시리즈에 회차 추가" />
-                  <FormControlLabel value="create" control={<Radio />} label="새 시리즈 생성 후 회차 추가" />
-                </RadioGroup>
-
-                {seriesAttachMode === "existing" ? (
-                  <Stack spacing={2} sx={{ mt: 1 }}>
-                    <Autocomplete
-                      value={selectedSeries}
-                      onChange={(_, v) => setSelectedSeries(v)}
-                      options={seriesSearch.options}
-                      loading={seriesSearch.isLoading}
-                      getOptionLabel={(o) => o.title}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="시리즈 검색/선택"
-                          placeholder="예) 영어회화 스터디"
-                          onChange={(e) => setSeriesKeyword(e.target.value)}
-                        />
-                      )}
-                    />
-                    <TextField
-                      label="회차 번호 (선택)"
-                      type="number"
-                      inputProps={{ min: 1, step: 1 }}
-                      value={episodeNo}
-                      onChange={(e) => setEpisodeNo(e.target.value === "" ? "" : Math.max(1, Number(e.target.value)))}
-                    />
-                  </Stack>
-                ) : (
-                  <Stack spacing={2} sx={{ mt: 1 }}>
-                    <TextField
-                      label="새 시리즈 제목"
-                      placeholder="예) 영어회화 스터디"
-                      value={newSeriesTitle}
-                      onChange={(e) => setNewSeriesTitle(e.target.value)}
-                      required
-                    />
-                    <TextField
-                      label="새 시리즈 설명 (선택)"
-                      placeholder="시리즈에 대한 소개"
-                      value={newSeriesDesc}
-                      onChange={(e) => setNewSeriesDesc(e.target.value)}
-                      multiline
-                      minRows={2}
-                    />
-                    <FormControlLabel
-                      control={<Switch checked={newSeriesPublic} onChange={(e) => setNewSeriesPublic(e.target.checked)} />}
-                      label="공개 시리즈"
-                    />
-                    <TextField
-                      label="회차 번호 (선택)"
-                      type="number"
-                      inputProps={{ min: 1, step: 1 }}
-                      value={episodeNo}
-                      onChange={(e) => setEpisodeNo(e.target.value === "" ? "" : Math.max(1, Number(e.target.value)))}
-                    />
-                  </Stack>
-                )}
-              </Box>
+              <SeriesConnector
+                selectedSeries={selectedSeries}
+                setSelectedSeries={setSelectedSeries}
+                canEdit={canEdit}
+                seriesDetails={seriesDetails}
+                setCreateSeriesOpen={setCreateSeriesOpen}
+                setEditSeriesOpen={setEditSeriesOpen}
+                setBulkOpen={setBulkOpen}
+                seriesSearch={seriesSearch}
+                seriesKeyword={seriesKeyword}
+                setSeriesKeyword={setSeriesKeyword}
+                episodeNo={episodeNo}
+                setEpisodeNo={setEpisodeNo}
+                createSeriesOpen={false}
+              />
             )}
 
             <Divider sx={{ my: 2 }} />
@@ -385,6 +353,56 @@ export default function EventCreatePage() {
                 stepMinutes={30}
                 value={range}
                 onChange={(r) => setRange(isNaN(r.start.getTime()) ? null : r)}
+              />
+
+              {/* 새 시리즈 생성 다이얼로그 */}
+              <CreateSeriesDialog
+                open={createSeriesOpen}
+                onClose={() => setCreateSeriesOpen(false)}
+                newSeriesTitle={newSeriesTitle}
+                setNewSeriesTitle={setNewSeriesTitle}
+                newSeriesDesc={newSeriesDesc}
+                setNewSeriesDesc={setNewSeriesDesc}
+                newSeriesPublic={newSeriesPublic}
+                setNewSeriesPublic={setNewSeriesPublic}
+                createSeries={createSeries}
+                setSelectedSeries={setSelectedSeries}
+              />
+
+              {/* 선택된 시리즈 편집 다이얼로그 */}
+              <EditSeriesDialog
+                open={editSeriesOpen}
+                onClose={() => setEditSeriesOpen(false)}
+                selectedSeries={selectedSeries}
+                setSelectedSeries={setSelectedSeries}
+                seriesDetails={seriesDetails}
+                updateSeries={updateSeries}
+                editSeriesTitle={editSeriesTitle}
+                setEditSeriesTitle={setEditSeriesTitle}
+                editSeriesDesc={editSeriesDesc}
+                setEditSeriesDesc={setEditSeriesDesc}
+                editSeriesPublic={editSeriesPublic}
+                setEditSeriesPublic={setEditSeriesPublic}
+              />
+
+              {/* 연속 회차 만들기 다이얼로그 */}
+              <BulkCreateDialog
+                open={bulkOpen}
+                onClose={() => setBulkOpen(false)}
+                bulkFrequency={bulkFrequency}
+                setBulkFrequency={setBulkFrequency}
+                bulkCount={bulkCount}
+                setBulkCount={setBulkCount}
+                bulkCreate={bulkCreate}
+                selectedSeries={selectedSeries}
+                startLocal={startLocal}
+                endLocal={endLocal}
+                baseValid={baseValid}
+                title={title}
+                desc={desc}
+                location={location}
+                capacity={capacity}
+                episodeNo={episodeNo}
               />
             </Stack>
 

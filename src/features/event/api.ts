@@ -1,5 +1,30 @@
 // src/features/event/api.ts
 import { api } from "@/lib/axios";
+import { useMemo, useState } from "react";
+
+export type SeriesOption = { seriesId: number; title: string };
+
+export type SeriesConnectorProps = {
+  selectedSeries: SeriesOption | null;
+  setSelectedSeries: (v: SeriesOption | null) => void;
+  canEdit: boolean;
+  seriesDetails: {
+    details: {
+      description?: string;
+      isPublic?: boolean;
+      recentEpisodes?: { id: number; title: string; episodeNo?: number; startTime?: string }[];
+    } | null;
+  };
+  createSeriesOpen: boolean;
+  setCreateSeriesOpen: (v: boolean) => void;
+  setEditSeriesOpen: (v: boolean) => void;
+  setBulkOpen: (v: boolean) => void;
+  seriesSearch: { options: SeriesOption[]; isLoading: boolean; search: (keyword: string) => Promise<void> };
+  seriesKeyword: string;
+  setSeriesKeyword: (v: string) => void;
+  episodeNo: number | "";
+  setEpisodeNo: (v: number | "") => void;
+};
 
 /* ──────────────────────────────
  * Event DTO (프론트 전용)

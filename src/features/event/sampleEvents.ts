@@ -1,6 +1,23 @@
 // src/features/event/sampleEvents.ts
 import type { EventDTO } from "./api";
 
+// src/features/event/sampleEvents.ts
+export const sampleSeries = [
+  { seriesId: 1, title: "영어회화 스터디" },
+  { seriesId: 2, title: "보드게임 정모" },
+  { seriesId: 3, title: "사진 동호회" },
+];
+
+export const sampleSeriesDetails = {
+  title: "데모 시리즈",
+  description: "최근 회차 미리보기",
+  isPublic: true,
+  recentEpisodes: [
+    { id: 901, title: "1회차: 아이스브레이킹", episodeNo: 1, startTime: new Date().toISOString() },
+    { id: 902, title: "2회차: 패턴 트레이닝", episodeNo: 2, startTime: new Date(Date.now() + 7 * 86400000).toISOString() },
+  ],
+};
+
 export const sampleEvents: EventDTO[] = [
   {
     id: 101,
