@@ -74,8 +74,9 @@ export type EventListParams = {
   startTime?: string; // ISO
   endTime?: string; // ISO
   location?: string;
-  type?: "GENERAL" | "MENTORING" | "WORKSHOP" | "MEETUP";
-
+  type?: "GENERAL" | "MENTORING" | "WORKSHOP" | "MEETUP"; // 이벤트 타입 필터
+  sort?: "latest" | "popular" | "upcoming"; // 정렬 방식
+  page?: number;
   /** ▼▼▼ NEW: 추가 필터 ▼▼▼ */
   seriesId?: number; // 특정 시리즈의 회차만
   minRating?: number; // 최소 평점

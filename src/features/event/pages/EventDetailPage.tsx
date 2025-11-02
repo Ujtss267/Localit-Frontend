@@ -2,7 +2,7 @@
 import * as React from "react";
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Box, Card, CardContent, Chip, Divider, Stack, Typography } from "@mui/material";
+import { Box, Card, CardContent, Chip, Divider, Stack, Typography, Dialog, DialogContent } from "@mui/material";
 import Button from "@/components/ui/Button";
 import CardUI from "@/components/ui/Card";
 import ImageCarousel from "@/components/ui/ImageCarousel";
@@ -23,7 +23,15 @@ export default function EventDetailPage() {
   const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
   const eventId = Number(id);
 
-  const { data: serverEvent, isFetching } = useEvent?.(eventId) ?? { data: undefined, isFetching: false };
+  // Image lightbox state
+  const [imgOpen, setImgOpen] = React.useState(false);
+  const [imgSrc, setImgSrc] = React.useState<string | null>(null);
+  const openImage = (url: string) => {
+    setImgSrc(url);
+    setImgOpen(true);
+  };
+
+  const { data: serverEvent, isFetching } = useEvent(eventId);
   const sample = useMemo(() => sampleEvents.find((e) => e.id === eventId), [eventId]);
   const e: EventDTO | undefined = USE_SAMPLE ? sample : (serverEvent ?? sample);
 
@@ -55,8 +63,60 @@ export default function EventDetailPage() {
       <div className="max-w-5xl mx-auto px-3 sm:px-4 pb-28 sm:pb-16">
         {/* Hero 이미지 */}
         <div className="pt-4 sm:pt-6">
-          <ImageCarousel images={images} autoplayMs={4000} className="mb-4" />
+          <ImageCarousel images={images} autoplayMs={4000} className="mb-2" />
+          {images.length > 0 && (
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const src = images[0];
+                  if (src) openImage(src);
+                }}
+              >
+                원본 크기로 보기
+              </Button>
+            </div>
+          )}
         </div>
+
+        {/* 사진 갤러리 (썸네일 그리드) */}
+        {images.length > 0 && (
+          <CardUI className="p-3 sm:p-4 mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <Typography variant="subtitle1" className="font-semibold">
+                사진 갤러리
+              </Typography>
+              <div className="hidden sm:flex gap-2 text-xs text-neutral-500">{images.length}장</div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+              {images.slice(0, 12).map((src, idx) => (
+                <button
+                  key={src + idx}
+                  className="group relative block w-full overflow-hidden rounded-lg bg-neutral-100 dark:bg-neutral-800"
+                  onClick={() => openImage(src)}
+                  aria-label={`이미지 ${idx + 1} 크게 보기`}
+                >
+                  <div className="pb-[100%]"></div>
+                  <img
+                    src={src}
+                    alt={`이미지 ${idx + 1}`}
+                    loading="lazy"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                    draggable={false}
+                  />
+                </button>
+              ))}
+            </div>
+            {images.length > 12 && (
+              <div className="mt-3 text-right">
+                <Button variant="outline" size="sm" onClick={() => openImage(images[12])}>
+                  더 보기
+                </Button>
+              </div>
+            )}
+          </CardUI>
+        )}
 
         {/* 본문 */}
         <div className="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -163,6 +223,32 @@ export default function EventDetailPage() {
             </CardUI>
           </div>
         </div>
+
+        {/* 원본 이미지 보기 모달 */}
+        <Dialog open={imgOpen} onClose={() => setImgOpen(false)} maxWidth={false} fullWidth={false}>
+          <DialogContent className="p-0 bg-black/80">
+            {imgSrc && (
+              <div className="flex items-center justify-center max-w-[95vw] max-h-[90vh]">
+                <img
+                  src={imgSrc}
+                  alt="원본 이미지"
+                  className="max-w-[95vw] max-h-[90vh] w-auto h-auto object-contain select-none"
+                  draggable={false}
+                />
+              </div>
+            )}
+            <div className="p-3 flex items-center justify-end gap-2 bg-neutral-900/80">
+              <Button variant="outline" onClick={() => setImgOpen(false)}>
+                닫기
+              </Button>
+              {imgSrc && (
+                <a href={imgSrc} target="_blank" rel="noreferrer" className="inline-flex">
+                  <Button variant="outline">새 탭에서 열기</Button>
+                </a>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
