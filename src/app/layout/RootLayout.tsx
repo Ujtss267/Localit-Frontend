@@ -43,6 +43,7 @@ function TopNav({ user, onLogout }: TopNavProps) {
 
             <TopLink to="/rooms">공간</TopLink>
             <TopLink to="/my">마이</TopLink>
+            <TopLink to="/subscription">구독</TopLink>
           </nav>
         </div>
 
