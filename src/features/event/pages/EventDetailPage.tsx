@@ -2,19 +2,17 @@
 import * as React from "react";
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Box, Card, CardContent, Chip, Divider, Stack, Typography, Dialog, DialogContent } from "@mui/material";
+import { Typography, Dialog, DialogContent, Divider, Chip } from "@mui/material";
 import Button from "@/components/ui/Button";
 import CardUI from "@/components/ui/Card";
-import ImageCarousel from "@/components/ui/ImageCarousel";
 import EventMeta from "../components/EventMeta";
 import { sampleEvents } from "../sampleEvents";
 import type { EventDTO } from "../api";
 import { useEvent } from "../queries";
 
-// NEW
 import ReviewSummaryCard from "../components/ReviewSummaryCard";
 import ReviewList from "../components/ReviewList";
-import Badge from "@/components/ui/Badge"; // 너의 커스텀 Badge
+import Badge from "@/components/ui/Badge";
 
 export default function EventDetailPage() {
   const { id } = useParams();
@@ -23,7 +21,7 @@ export default function EventDetailPage() {
   const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
   const eventId = Number(id);
 
-  // Image lightbox state
+  // 이미지 라이트박스
   const [imgOpen, setImgOpen] = React.useState(false);
   const [imgSrc, setImgSrc] = React.useState<string | null>(null);
   const openImage = (url: string) => {
@@ -34,10 +32,6 @@ export default function EventDetailPage() {
   const { data: serverEvent, isFetching } = useEvent(eventId);
   const sample = useMemo(() => sampleEvents.find((e) => e.id === eventId), [eventId]);
   const e: EventDTO | undefined = USE_SAMPLE ? sample : (serverEvent ?? sample);
-
-  const onAttend = () => {
-    navigate("/my");
-  };
 
   if (!e) {
     return (
@@ -58,29 +52,28 @@ export default function EventDetailPage() {
   const mentorName = (e.mentor && ("name" in e.mentor ? (e.mentor as any).name : (e.mentor as any).email)) ?? null;
   const roomName = (e.room && ("name" in e.room ? (e.room as any).name : null)) ?? null;
 
+  // ✅ 이벤트 안에 들어있는 주최자 정보에서 userId 뽑기
+  const hostUserId: number | null = (e as any)?.creator?.id ?? (e as any)?.creator?.userId ?? null;
+
+  // ✅ 호스트 페이지로 보내는 함수
+  const goHostPage = () => {
+    if (hostUserId) {
+      navigate(`/my/${hostUserId}`);
+    } else {
+      // 주최자 정보가 없으면 내 마이페이지로
+      navigate("/my");
+    }
+  };
+
+  // 참가하기도 같은 흐름으로
+  const onAttend = () => {
+    goHostPage();
+  };
+
   return (
     <div className="min-h-[100svh] bg-gradient-to-b from-neutral-50 to-white dark:from-neutral-950 dark:to-neutral-900 text-neutral-900 dark:text-neutral-100">
       <div className="max-w-5xl mx-auto px-3 sm:px-4 pb-28 sm:pb-16">
-        {/* Hero 이미지 */}
-        <div className="pt-4 sm:pt-6">
-          <ImageCarousel images={images} autoplayMs={4000} className="mb-2" />
-          {images.length > 0 && (
-            <div className="flex justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const src = images[0];
-                  if (src) openImage(src);
-                }}
-              >
-                원본 크기로 보기
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {/* 사진 갤러리 (썸네일 그리드) */}
+        {/* 사진 갤러리 */}
         {images.length > 0 && (
           <CardUI className="p-3 sm:p-4 mb-4">
             <div className="flex items-center justify-between mb-2">
@@ -108,22 +101,14 @@ export default function EventDetailPage() {
                 </button>
               ))}
             </div>
-            {images.length > 12 && (
-              <div className="mt-3 text-right">
-                <Button variant="outline" size="sm" onClick={() => openImage(images[12])}>
-                  더 보기
-                </Button>
-              </div>
-            )}
           </CardUI>
         )}
 
         {/* 본문 */}
         <div className="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-5">
-          {/* 좌측: 정보/설명/리뷰 */}
+          {/* 좌측 */}
           <div className="lg:col-span-2 space-y-5">
             <CardUI className="p-5">
-              {/* 상단 라인: 시리즈 뱃지/타이틀 보강 */}
               <div className="flex items-center gap-2 mb-2">
                 {e.seriesId != null ? (
                   <>
@@ -148,7 +133,20 @@ export default function EventDetailPage() {
                 roomName={roomName}
               />
 
-              <Typography variant="subtitle1" className="font-semibold mb-2">
+              {/* ✅ 호스트 정보 블럭 (여기서도 이동 가능) */}
+              <div className="mt-4 flex items-center justify-between rounded-xl bg-neutral-50 dark:bg-neutral-900/40 p-3">
+                <div>
+                  <div className="text-xs text-neutral-500">주최자</div>
+                  <div className="font-semibold">
+                    {(e as any)?.creator?.name ?? (e as any)?.creator?.email ?? (hostUserId ? `User #${hostUserId}` : "주최자")}
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" onClick={goHostPage}>
+                  프로필 보기
+                </Button>
+              </div>
+
+              <Typography variant="subtitle1" className="font-semibold mb-2 mt-4">
                 이벤트 소개
               </Typography>
               <Typography variant="body1" className="leading-7 text-neutral-800 dark:text-neutral-200">
@@ -168,7 +166,9 @@ export default function EventDetailPage() {
                 </div>
                 <div className="space-y-1">
                   <div className="text-neutral-500">주최자</div>
-                  <div className="font-medium">{(e.creator as any)?.name ?? (e.creator as any)?.email ?? "주최자"}</div>
+                  <div className="font-medium">
+                    {(e as any)?.creator?.name ?? (e as any)?.creator?.email ?? (hostUserId ? `User #${hostUserId}` : "주최자")}
+                  </div>
                 </div>
                 <div className="space-y-1">
                   <div className="text-neutral-500">결제 처리</div>
@@ -181,29 +181,12 @@ export default function EventDetailPage() {
               </div>
             </CardUI>
 
-            {/* ✅ 리뷰 요약 + 분포 */}
+            {/* 리뷰 */}
             <ReviewSummaryCard avg={e.ratingAvg} count={e.ratingCount} breakdown={e.ratingBreakdown ?? null} className="rounded-2xl shadow-sm" />
-
-            {/* ✅ 리뷰 목록 */}
             <ReviewList reviews={e.reviews} />
-
-            {/* ✅ 모바일 전용 인라인 CTA */}
-            <div className="lg:hidden">
-              <CardUI className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex-1">
-                    <div className="text-sm text-neutral-600 dark:text-neutral-400">참가비</div>
-                    <div className="font-semibold">{e.price && e.price > 0 ? `${e.price.toLocaleString()}원` : "무료"}</div>
-                  </div>
-                  <Button size="lg" className="flex-[2]" onClick={onAttend} disabled={isFetching}>
-                    {isFetching ? "처리 중…" : "참가하기"}
-                  </Button>
-                </div>
-              </CardUI>
-            </div>
           </div>
 
-          {/* 우측: 참가 CTA (데스크톱) */}
+          {/* 우측 CTA */}
           <div className="hidden lg:block">
             <CardUI className="p-5 sticky top-6">
               <div className="flex items-center justify-between">
@@ -218,13 +201,13 @@ export default function EventDetailPage() {
                 {isFetching ? "처리 중…" : "참가하기"}
               </Button>
               <Typography variant="caption" className="block text-neutral-500 mt-2">
-                버튼을 누르면 마이페이지로 이동합니다.
+                버튼을 누르면 주최자의 마이페이지로 이동합니다.
               </Typography>
             </CardUI>
           </div>
         </div>
 
-        {/* 원본 이미지 보기 모달 */}
+        {/* 원본 이미지 모달 */}
         <Dialog open={imgOpen} onClose={() => setImgOpen(false)} maxWidth={false} fullWidth={false}>
           <DialogContent className="p-0 bg-black/80">
             {imgSrc && (

@@ -279,8 +279,28 @@ export default function EventCreatePage() {
                 fullWidth
               />
               <TextField label="위치" placeholder="예) 서울 마포" value={location} onChange={(e) => setLocation(e.target.value)} fullWidth />
-
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+              <TextField
+                label="이벤트 발생일"
+                type="date"
+                value={startLocal}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setStartLocal(v);
+                  if (v) {
+                    const s = new Date(v);
+                    const newEnd = new Date(s);
+                    newEnd.setMinutes(newEnd.getMinutes() + duration);
+                    setEndLocal(toLocalFromDate(newEnd));
+                    setRange({ start: s, end: newEnd });
+                  } else {
+                    setRange(null);
+                  }
+                }}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+                required
+              />
+              {/* <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                 <TextField
                   label="시작"
                   type="datetime-local"
@@ -323,7 +343,16 @@ export default function EventCreatePage() {
                   error={!!startLocal && !!endLocal && new Date(endLocal) <= new Date(startLocal)}
                   helperText={!!startLocal && !!endLocal && new Date(endLocal) <= new Date(startLocal) ? "종료 시간은 시작 이후여야 합니다." : " "}
                 />
-              </Stack>
+              </Stack> */}
+
+              {/* 시간 배지 피커 */}
+              <TimeRangeBadgePicker
+                from="09:00"
+                to="18:00"
+                stepMinutes={30}
+                value={range}
+                onChange={(r) => setRange(isNaN(r.start.getTime()) ? null : r)}
+              />
 
               <TextField
                 label="정원"
@@ -345,15 +374,6 @@ export default function EventCreatePage() {
 
               {/* 주소 값을 기준으로 위치 정보 표시하기 예시: */}
               {/* <LocationMapByAddress title="로컬잇 밋업 장소" address={address} zoom={3} height={380} /> */}
-
-              {/* 시간 배지 피커 */}
-              <TimeRangeBadgePicker
-                from="09:00"
-                to="18:00"
-                stepMinutes={30}
-                value={range}
-                onChange={(r) => setRange(isNaN(r.start.getTime()) ? null : r)}
-              />
 
               {/* 새 시리즈 생성 다이얼로그 */}
               <CreateSeriesDialog
