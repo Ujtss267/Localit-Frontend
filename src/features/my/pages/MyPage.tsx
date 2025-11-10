@@ -1,12 +1,11 @@
 // src/features/my/pages/MyPage.tsx
 import * as React from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { MyPageDto, Visibility } from "../types";
-import { sampleMyPage } from "../sampleMyPage";
+import { sampleMyPages } from "../sampleMyPage";
 
 // 이미 있는 컴포넌트
 import { EventMyCard } from "../components/EventMyCard";
-
-// 방금 만든 컴포넌트
 import { RoomMyCard } from "../components/RoomMyCard";
 import { ReservationMyCard } from "../components/ReservationMyCard";
 import { FollowersScreen } from "../components/FollowersScreen";
@@ -33,7 +32,17 @@ function EmptyState({ title, hint }: { title: string; hint?: string }) {
   );
 }
 
-function Tabs<T extends string>({ value, onChange, tabs }: { value: T; onChange: (v: T) => void; tabs: { value: T; label: string }[] }) {
+// 이 Tabs 는 네 원래 소스에 있던 구조랑 똑같이 둠
+// 공용 Tabs
+function Tabs<T extends string>({
+  value,
+  onChange,
+  tabs,
+}: {
+  value: T;
+  onChange: React.Dispatch<React.SetStateAction<T>>; // ← 여기!
+  tabs: { value: T; label: string }[];
+}) {
   return (
     <div className="flex gap-2 rounded-2xl border p-1">
       {tabs.map((t) => {
@@ -41,7 +50,7 @@ function Tabs<T extends string>({ value, onChange, tabs }: { value: T; onChange:
         return (
           <button
             key={t.value}
-            onClick={() => onChange(t.value)}
+            onClick={() => onChange(t.value)} // setState에 값 넣는 건 OK
             className={"rounded-xl px-4 py-2 text-sm font-medium transition " + (active ? "bg-black text-white" : "hover:bg-gray-100")}
           >
             {t.label}
@@ -67,11 +76,30 @@ type RoomTab = "MYROOMS" | "RESERVATIONS";
 type ViewMode = "MAIN" | "FOLLOWERS" | "FOLLOWING";
 
 export default function MyPage() {
-  const [data, setData] = React.useState<MyPageDto>(sampleMyPage);
+  const { userId } = useParams<{ userId: string }>();
+  const navigate = useNavigate();
+
+  // URL이 없으면 999번 샘플을 기본으로
+  const targetUserId = userId ? Number(userId) : 999;
+  const initialData = sampleMyPages[targetUserId] ?? sampleMyPages[999];
+
+  const [data, setData] = React.useState<MyPageDto>(initialData);
   const [majorTab, setMajorTab] = React.useState<MajorTab>("EVENTS");
   const [eventTab, setEventTab] = React.useState<EventTab>("HOSTED");
   const [roomTab, setRoomTab] = React.useState<RoomTab>("MYROOMS");
   const [view, setView] = React.useState<ViewMode>("MAIN");
+  const [searchId, setSearchId] = React.useState("");
+
+  // URL 바뀔 때마다 해당 사용자로 갈아끼우기
+  React.useEffect(() => {
+    const next = sampleMyPages[targetUserId] ?? sampleMyPages[999];
+    setData(next);
+    setView("MAIN");
+    setMajorTab("EVENTS");
+    setEventTab("HOSTED");
+    setRoomTab("MYROOMS");
+    setSearchId("");
+  }, [targetUserId]);
 
   const { sections, isOwner, isFollower } = data;
 
@@ -117,7 +145,18 @@ export default function MyPage() {
     }));
   };
 
-  // 팔로워/팔로잉 뷰
+  // 상단에서 userId 입력 → 그 사용자 페이지로 이동
+  const onSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const n = Number(searchId);
+    if (!Number.isNaN(n) && sampleMyPages[n]) {
+      navigate(`/my/${n}`);
+    } else {
+      alert("해당 ID의 사용자 샘플이 없습니다.");
+    }
+  };
+
+  // 팔로워/팔로잉 뷰 (네 컴포넌트는 onOpenProfile 없음)
   if (view === "FOLLOWERS") {
     return <FollowersScreen list={data.followers} onBack={() => setView("MAIN")} onToggleFollow={toggleFollowUserInList} />;
   }
@@ -136,6 +175,20 @@ export default function MyPage() {
             <div className="text-sm opacity-70">{isOwner ? "내 페이지" : data.isFollower ? "팔로잉 중" : "팔로우하여 더 보기"}</div>
           </div>
         </div>
+
+        {/* 아이디로 이동하는 검색폼 */}
+        <form onSubmit={onSearchSubmit} className="flex items-center gap-2">
+          <input
+            value={searchId}
+            onChange={(e) => setSearchId(e.target.value)}
+            placeholder="userId로 열기 (예: 1)"
+            className="w-32 rounded-xl border px-3 py-1 text-sm"
+          />
+          <button type="submit" className="rounded-xl border px-3 py-1 text-sm hover:bg-gray-50">
+            열기
+          </button>
+        </form>
+
         <div className="flex items-center gap-3">
           <button className="rounded-2xl border px-3 py-1 text-sm hover:bg-gray-50" onClick={() => setView("FOLLOWERS")}>
             팔로워 <span className="font-semibold">{data.followers.length}</span>
