@@ -1,6 +1,6 @@
 // src/features/event/components/EventCardPretty.tsx
 import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
@@ -15,6 +15,7 @@ type Props = {
   showCapacityBadge?: boolean;
   hideMeta?: boolean;
   registerText?: string;
+  canEdit?: boolean; // ✅ 이렇게만 하면 됨
 };
 
 function formatKoreanDate(dt: Date) {
@@ -49,6 +50,7 @@ export default function EventCardPretty({
   showCapacityBadge = true,
   hideMeta = false,
   registerText = "참가하기",
+  canEdit = false,
 }: Props) {
   const navigate = useNavigate();
   const date = useMemo(() => new Date(e.startTime), [e.startTime]);
@@ -83,7 +85,7 @@ export default function EventCardPretty({
 
   return (
     <Card className={`group relative overflow-hidden rounded-2xl shadow-sm hover:shadow-md transition h-full flex flex-col ${className}`}>
-      {/* 이미지 */}
+      {/* 이미지 영역 */}
       <div className="relative">
         {images.length > 1 ? (
           <ImageCarousel images={images} autoplayMs={0} fit="cover" alt={e.title} options={{ loop: true }} />
@@ -91,10 +93,21 @@ export default function EventCardPretty({
           <img src={images[0]} alt={e.title} className="h-40 w-full object-cover" loading="lazy" />
         )}
 
+        {/* 상단 배지들 */}
         <div className="absolute left-2 top-2 flex items-center gap-2">
           <Badge tone={isSeries ? "violet" : "rose"}>{headerBadge}</Badge>
           {e.seriesTitle && isSeries ? <Badge tone="indigo">{e.seriesTitle}</Badge> : null}
         </div>
+
+        {/* ✅ 편집 버튼: 내가 만든 이벤트일 때만 */}
+        {canEdit && (
+          <Link
+            to={`/events/${e.id}/edit`}
+            className="absolute right-2 top-2 rounded-md bg-neutral-900/90 px-2 py-1 text-xs text-white shadow-sm hover:bg-neutral-900"
+          >
+            편집
+          </Link>
+        )}
 
         {showCapacityBadge && (
           <div className="absolute left-2 bottom-2 flex gap-2">
@@ -122,7 +135,7 @@ export default function EventCardPretty({
 
         <p className="mt-3 text-[13px] sm:text-sm text-neutral-800 dark:text-neutral-200 line-clamp-2">{e.description}</p>
 
-        {/* 푸터 */}
+        {/* 하단 버튼 */}
         <div className="mt-4 flex justify-end">
           <Button size="sm" onClick={handleRegisterClick}>
             {registerText}

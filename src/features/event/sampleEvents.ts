@@ -110,6 +110,11 @@ export const sampleEvents: EventDTO[] = [
         createdAt: new Date(Date.now() - 2 * 86400_000).toISOString(),
       },
     ],
+    creator: {
+      id: 1,
+      email: "host1@example.com",
+      name: "욱진",
+    },
   },
   {
     id: 102,
@@ -133,6 +138,11 @@ export const sampleEvents: EventDTO[] = [
     ratingCount: 9,
     ratingBreakdown: { 5: 6, 4: 2, 3: 1 },
     reviews: [],
+    creator: {
+      id: 1,
+      email: "host1@example.com",
+      name: "욱진",
+    },
   },
   {
     id: 201,
@@ -167,6 +177,11 @@ export const sampleEvents: EventDTO[] = [
         createdAt: new Date(Date.now() - 3 * 86400_000).toISOString(),
       },
     ],
+    creator: {
+      id: 1,
+      email: "host1@example.com",
+      name: "욱진",
+    },
   },
 ];
 

@@ -134,6 +134,16 @@ export type EventDTO = {
   ratingCount?: number | null; // 예: 12
   ratingBreakdown?: Partial<RatingBreakdown>;
   reviews?: EventReviewDTO[];
+  genderControl?: GenderControlDto;
+};
+
+/* ──────────────────────────────
+ * gender control dto (옵션)
+ * ────────────────────────────── */
+export type GenderControlDto = {
+  maleLimit?: boolean;
+  femaleLimit?: boolean;
+  balanceRequired?: boolean;
 };
 
 /** Server(API) Event shape aligned with Prisma */
@@ -163,6 +173,7 @@ export type ApiEvent = {
   ratingCount?: number | null;
   visibility: Visibility;
   imageUrls?: string[];
+  genderControl?: GenderControlDto;
 };
 
 /** Mapper: ApiEvent -> EventDTO (UI) */
@@ -187,6 +198,7 @@ export function mapApiEventToEventDTO(e: ApiEvent): EventDTO {
     ratingAvg: e.ratingAvg == null ? null : typeof e.ratingAvg === "string" ? parseFloat(e.ratingAvg) : e.ratingAvg,
     ratingCount: e.ratingCount ?? null,
     // Optional relations (creator/mentor/category/room) can be expanded in a richer mapper when API returns joins
+    genderControl: e.genderControl ?? null,
   } as EventDTO;
 }
 
@@ -232,7 +244,10 @@ export type CreateEventDto = {
   /** ▼▼▼ NEW: 시리즈 회차 생성 지원 ▼▼▼ */
   seriesId?: number; // 있으면 회차형
   episodeNo?: number; // 선택 (표시/정렬용)
+  genderControl?: GenderControlDto;
 };
+
+export type UpdateEventDto = Partial<CreateEventDto>;
 
 /* ──────────────────────────────
  * API
@@ -242,6 +257,9 @@ export const getEvents = (params?: EventListParams) => api.get<EventDTO[]>("/eve
 export const getEventById = (id: number) => api.get<EventDTO>(`/event/${id}`).then((r) => r.data);
 
 export const createEvent = (dto: CreateEventDto) => api.post<EventDTO>("/event/create", dto).then((r) => r.data);
+
+/** ✅ 이벤트 수정 API */
+export const updateEvent = (id: number, dto: UpdateEventDto) => api.put<EventDTO>(`/event/${id}`, dto).then((r) => r.data);
 
 /* ──────────────────────────────
  * Series API

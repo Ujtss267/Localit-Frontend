@@ -4,9 +4,11 @@ import {
   getEvents,
   getEventById,
   createEvent,
+  updateEvent, // ✅ 방금 만든 거 임포트
   type EventListParams,
   type CreateEventDto,
   type EventDTO,
+  type UpdateEventDto,
 } from "./api";
 import { getEventUsers, joinEvent } from "../eventRegistration/api";
 
@@ -73,6 +75,23 @@ export function useCreateEvent() {
       if (created?.id) {
         qc.setQueryData(qk.event(created.id), created);
       }
+    },
+  });
+}
+
+export function useEventById(id: number) {
+  return useEvent(id); // 이미 있는 훅을 재사용
+}
+
+/** 이벤트 수정 */
+// ✅ 업데이트 훅
+export function useUpdateEvent(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (dto: UpdateEventDto) => updateEvent(id, dto),
+    onSuccess: (updated) => {
+      qc.setQueryData(qk.event(id), updated);
+      qc.invalidateQueries({ queryKey: ["events"] });
     },
   });
 }

@@ -1,5 +1,5 @@
 // src/features/my/pages/MyPage.tsx
-import * as React from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MyPageDto, Visibility } from "../types";
 import { sampleMyPages } from "../sampleMyPage";
@@ -83,15 +83,15 @@ export default function MyPage() {
   const targetUserId = userId ? Number(userId) : 999;
   const initialData = sampleMyPages[targetUserId] ?? sampleMyPages[999];
 
-  const [data, setData] = React.useState<MyPageDto>(initialData);
-  const [majorTab, setMajorTab] = React.useState<MajorTab>("EVENTS");
-  const [eventTab, setEventTab] = React.useState<EventTab>("HOSTED");
-  const [roomTab, setRoomTab] = React.useState<RoomTab>("MYROOMS");
-  const [view, setView] = React.useState<ViewMode>("MAIN");
-  const [searchId, setSearchId] = React.useState("");
+  const [data, setData] = useState<MyPageDto>(initialData);
+  const [majorTab, setMajorTab] = useState<MajorTab>("EVENTS");
+  const [eventTab, setEventTab] = useState<EventTab>("HOSTED");
+  const [roomTab, setRoomTab] = useState<RoomTab>("MYROOMS");
+  const [view, setView] = useState<ViewMode>("MAIN");
+  const [searchId, setSearchId] = useState("");
 
   // URL 바뀔 때마다 해당 사용자로 갈아끼우기
-  React.useEffect(() => {
+  useEffect(() => {
     const next = sampleMyPages[targetUserId] ?? sampleMyPages[999];
     setData(next);
     setView("MAIN");

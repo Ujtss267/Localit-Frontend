@@ -13,6 +13,9 @@ import { sampleEvents } from "../sampleEvents";
 
 export default function EventListPage() {
   const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
+  // 🔸 EventListPage 상단
+  // TODO: 나중에 AuthContext나 useAuth()로 교체 예정
+  const me = { userId: 1 }; // 로그인한 사용자 id
 
   // 쿼리 파라미터 ref (react-query의 키 안정성)
   const paramsRef = useMemo(() => ({}) as EventListParams, []);
@@ -141,7 +144,7 @@ export default function EventListPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {items.map((e) => (
-              <EventCardPretty key={e.id} e={e} />
+              <EventCardPretty key={e.id} e={e} canEdit={e.creator.id === me.userId} />
             ))}
           </div>
         )}

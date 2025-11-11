@@ -20,9 +20,12 @@ import {
   Divider,
   ToggleButtonGroup,
   ToggleButton,
+  FormGroup,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 
-import { ImagePickerGrid, LocationCard, LocationMap, LocationMapByAddress } from "@/components";
+import { ImagePickerGrid, LocationMap } from "@/components";
 import TimeRangeBadgePicker from "@/components/ui/TimeRangeBadgePicker";
 
 // 분리한 컴포넌트들
@@ -40,8 +43,6 @@ function useCreateSeries() {
     setPending(true);
     try {
       // TODO: 서버 연동
-      // const res = await api.series.create(payload);
-      // return res.data; // { seriesId: number, ... }
       return { seriesId: Math.floor(Math.random() * 100000), ...payload };
     } finally {
       setPending(false);
@@ -65,10 +66,9 @@ function useUpdateSeries() {
 }
 
 function useSeriesPermissions(seriesId?: number | null) {
-  // TODO: 서버에서 내 권한 조회
   const [canEdit, setCanEdit] = useState(false);
   useMemo(() => {
-    setCanEdit(!!seriesId); // 데모: 선택되면 편집 가능하다고 가정
+    setCanEdit(!!seriesId);
   }, [seriesId]);
   return { canEdit };
 }
@@ -78,7 +78,7 @@ function useBulkCreateEpisodes() {
   const mutateAsync = async (payloads: Array<CreateEventDto & { seriesId: number; episodeNo?: number }>) => {
     setPending(true);
     try {
-      // TODO: 서버 연동 (배치 생성)
+      // TODO: 서버 연동
       return { created: payloads.length };
     } finally {
       setPending(false);
@@ -100,11 +100,6 @@ function toLocalFromDate(d: Date) {
 }
 
 type EventMode = "single" | "series";
-type SeriesAttachMode = "existing" | "create";
-
-// ──────────────────────────────────────────────────────────
-// Local Subcomponents (kept in the same file for now)
-// ──────────────────────────────────────────────────────────
 
 export default function EventCreatePage() {
   const navigate = useNavigate();
@@ -117,12 +112,16 @@ export default function EventCreatePage() {
   const [startLocal, setStartLocal] = useState("");
   const [endLocal, setEndLocal] = useState("");
   const [capacity, setCapacity] = useState<number | "">("");
+  const [genderControl, setGenderControl] = useState({
+    maleLimit: false,
+    femaleLimit: false,
+    balanceRequired: false,
+  });
 
   // 이벤트 유형
   const [mode, setMode] = useState<EventMode>("single");
 
-  // 시리즈 부가 상태
-  const [seriesAttachMode, setSeriesAttachMode] = useState<SeriesAttachMode>("existing");
+  // 시리즈
   const [episodeNo, setEpisodeNo] = useState<number | "">("");
   const [seriesKeyword, setSeriesKeyword] = useState("");
   const [selectedSeries, setSelectedSeries] = useState<SeriesOption | null>(null);
@@ -151,9 +150,12 @@ export default function EventCreatePage() {
 
   // 시간 선택/연동 상태
   const [range, setRange] = React.useState<{ start: Date; end: Date } | null>(null);
-  const [duration, setDuration] = useState(60); // 분 단위 (기본 60)
+  const [duration, setDuration] = useState(60);
 
-  const formatLabel = (d: Date) => d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
+  const handleGenderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setGenderControl((prev) => ({ ...prev, [name]: checked }));
+  };
 
   const baseValid =
     title.trim().length >= 2 &&
@@ -165,8 +167,7 @@ export default function EventCreatePage() {
     typeof capacity === "number" &&
     capacity > 0;
 
-  const seriesValid = mode === "single" ? true : !!selectedSeries; // 시리즈일 땐 연결된 시리즈가 있어야 유효
-
+  const seriesValid = mode === "single" ? true : !!selectedSeries;
   const valid = baseValid && seriesValid;
 
   async function onSubmit(e: FormEvent) {
@@ -174,8 +175,6 @@ export default function EventCreatePage() {
     if (!valid) return;
 
     let seriesId: number | undefined = undefined;
-
-    // 시리즈 회차형이면 선택된 시리즈 ID 확보 (생성은 별도 다이얼로그에서 처리)
     if (mode === "series") {
       if (!selectedSeries) return;
       seriesId = selectedSeries.seriesId;
@@ -199,7 +198,7 @@ export default function EventCreatePage() {
     });
   }
 
-  // 시리즈 검색 트리거 (간단 디바운스 느낌)
+  // 시리즈 검색
   useMemo(() => {
     if (mode === "series") {
       const k = seriesKeyword.trim();
@@ -209,101 +208,96 @@ export default function EventCreatePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, seriesKeyword]);
 
-  // 예시: 서버에서 가져온 이벤트 좌표
+  // 지도용 예시
   const lat = 35.2277;
   const lng = 128.6812;
 
-  const address = "경남 창원시 의창구 사림로 00"; // 예시
-
   return (
-    <Container maxWidth="sm" sx={{ py: 3 }}>
-      <Typography variant="h5" fontWeight={700} gutterBottom>
-        새 이벤트 만들기
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        단발형 또는 시리즈의 회차로 등록할 수 있습니다.
-      </Typography>
+    <Container maxWidth="md" sx={{ py: 4 }}>
+      <Stack spacing={1} sx={{ mb: 3 }}>
+        <Typography variant="h4" fontWeight={700}>
+          새 이벤트 만들기
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          기본 정보부터 일정, 모집 조건, 위치까지 순서대로 입력해 주세요.
+        </Typography>
+      </Stack>
 
       <Box component="form" onSubmit={onSubmit}>
-        <Card variant="outlined">
-          <CardContent>
-            {/* 이벤트 유형 토글 */}
-            <Stack spacing={1} sx={{ mb: 1 }}>
-              <Typography variant="subtitle2" color="text.secondary">
+        <Card variant="outlined" sx={{ overflow: "hidden" }}>
+          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+            {/* 1. 이벤트 유형 */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
                 이벤트 유형
               </Typography>
-              <ToggleButtonGroup value={mode} exclusive onChange={(_, v) => v && setMode(v)} size="small" sx={{ alignSelf: "flex-start" }}>
+              <ToggleButtonGroup value={mode} exclusive onChange={(_, v) => v && setMode(v)} size="small" sx={{ borderRadius: 3 }}>
                 <ToggleButton value="single">단발형</ToggleButton>
                 <ToggleButton value="series">시리즈 회차형</ToggleButton>
               </ToggleButtonGroup>
-            </Stack>
+            </Box>
 
-            {/* 시리즈 회차형 옵션 */}
+            {/* 시리즈 옵션 */}
             {mode === "series" && (
-              <SeriesConnector
-                selectedSeries={selectedSeries}
-                setSelectedSeries={setSelectedSeries}
-                canEdit={canEdit}
-                seriesDetails={seriesDetails}
-                setCreateSeriesOpen={setCreateSeriesOpen}
-                setEditSeriesOpen={setEditSeriesOpen}
-                setBulkOpen={setBulkOpen}
-                seriesSearch={seriesSearch}
-                seriesKeyword={seriesKeyword}
-                setSeriesKeyword={setSeriesKeyword}
-                episodeNo={episodeNo}
-                setEpisodeNo={setEpisodeNo}
-                createSeriesOpen={false}
-              />
+              <Box sx={{ mb: 3, border: "1px solid", borderColor: "divider", borderRadius: 2, p: 2, backgroundColor: "background.default" }}>
+                <SeriesConnector
+                  selectedSeries={selectedSeries}
+                  setSelectedSeries={setSelectedSeries}
+                  canEdit={canEdit}
+                  seriesDetails={seriesDetails}
+                  setCreateSeriesOpen={setCreateSeriesOpen}
+                  setEditSeriesOpen={setEditSeriesOpen}
+                  setBulkOpen={setBulkOpen}
+                  seriesSearch={seriesSearch}
+                  seriesKeyword={seriesKeyword}
+                  setSeriesKeyword={setSeriesKeyword}
+                  episodeNo={episodeNo}
+                  setEpisodeNo={setEpisodeNo}
+                  createSeriesOpen={false}
+                />
+              </Box>
             )}
 
-            <Divider sx={{ my: 2 }} />
+            <Divider sx={{ my: 3 }} />
 
-            {/* 기본 입력 */}
-            <Stack spacing={2}>
-              <TextField
-                label="제목"
-                placeholder="예) 로컬 스터디 모임"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                fullWidth
-              />
-              <TextField
-                label="설명"
-                placeholder="모임/공연에 대한 소개"
-                value={desc}
-                onChange={(e) => setDesc(e.target.value)}
-                multiline
-                minRows={3}
-                fullWidth
-              />
-              <TextField label="위치" placeholder="예) 서울 마포" value={location} onChange={(e) => setLocation(e.target.value)} fullWidth />
-              <TextField
-                label="이벤트 발생일"
-                type="date"
-                value={startLocal}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setStartLocal(v);
-                  if (v) {
-                    const s = new Date(v);
-                    const newEnd = new Date(s);
-                    newEnd.setMinutes(newEnd.getMinutes() + duration);
-                    setEndLocal(toLocalFromDate(newEnd));
-                    setRange({ start: s, end: newEnd });
-                  } else {
-                    setRange(null);
-                  }
-                }}
-                InputLabelProps={{ shrink: true }}
-                fullWidth
-                required
-              />
-              {/* <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            {/* 2. 기본 정보 */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h6" sx={{ mb: 1.5 }}>
+                기본 정보
+              </Typography>
+              <Stack spacing={2}>
                 <TextField
-                  label="시작"
-                  type="datetime-local"
+                  label="제목"
+                  placeholder="예) 로컬 스터디 모임"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                  fullWidth
+                />
+                <TextField
+                  label="설명"
+                  placeholder="모임/공연에 대한 소개를 입력해 주세요."
+                  value={desc}
+                  onChange={(e) => setDesc(e.target.value)}
+                  multiline
+                  minRows={3}
+                  fullWidth
+                />
+                <TextField label="위치" placeholder="예) 서울 마포" value={location} onChange={(e) => setLocation(e.target.value)} fullWidth />
+              </Stack>
+            </Box>
+
+            <Divider sx={{ my: 3 }} />
+
+            {/* 3. 일정/시간 */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h6" sx={{ mb: 1.5 }}>
+                일정
+              </Typography>
+              <Stack spacing={2}>
+                <TextField
+                  label="이벤트 발생일"
+                  type="date"
                   value={startLocal}
                   onChange={(e) => {
                     const v = e.target.value;
@@ -322,109 +316,117 @@ export default function EventCreatePage() {
                   fullWidth
                   required
                 />
-                <TextField
-                  label="종료"
-                  type="datetime-local"
-                  value={endLocal}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setEndLocal(v);
-                    // 종료를 직접 바꿀땐 range만 맞추고 duration은 유지(슬라이더 기준)
-                    if (startLocal && v) {
-                      const s = new Date(startLocal);
-                      const ed = new Date(v);
-                      if (ed > s) setRange({ start: s, end: ed });
-                      else setRange(null);
-                    }
-                  }}
-                  InputLabelProps={{ shrink: true }}
-                  fullWidth
-                  required
-                  error={!!startLocal && !!endLocal && new Date(endLocal) <= new Date(startLocal)}
-                  helperText={!!startLocal && !!endLocal && new Date(endLocal) <= new Date(startLocal) ? "종료 시간은 시작 이후여야 합니다." : " "}
+
+                <TimeRangeBadgePicker
+                  from="09:00"
+                  to="18:00"
+                  stepMinutes={30}
+                  value={range}
+                  onChange={(r) => setRange(isNaN(r.start.getTime()) ? null : r)}
                 />
-              </Stack> */}
+              </Stack>
+            </Box>
 
-              {/* 시간 배지 피커 */}
-              <TimeRangeBadgePicker
-                from="09:00"
-                to="18:00"
-                stepMinutes={30}
-                value={range}
-                onChange={(r) => setRange(isNaN(r.start.getTime()) ? null : r)}
-              />
+            <Divider sx={{ my: 3 }} />
 
-              <TextField
-                label="정원"
-                type="number"
-                inputProps={{ min: 1, step: 1 }}
-                value={capacity}
-                onChange={(e) => setCapacity(e.target.value === "" ? "" : Math.max(0, Number(e.target.value)))}
-                fullWidth
-              />
+            {/* 4. 모집/참가 조건 */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h6" sx={{ mb: 1.5 }}>
+                모집 조건
+              </Typography>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ xs: "flex-start", sm: "center" }}>
+                <FormGroup row>
+                  <FormControlLabel
+                    control={<Checkbox name="maleLimit" checked={genderControl.maleLimit} onChange={handleGenderChange} />}
+                    label="남자 제한"
+                  />
+                  <FormControlLabel
+                    control={<Checkbox name="femaleLimit" checked={genderControl.femaleLimit} onChange={handleGenderChange} />}
+                    label="여자 제한"
+                  />
+                  <FormControlLabel
+                    control={<Checkbox name="balanceRequired" checked={genderControl.balanceRequired} onChange={handleGenderChange} />}
+                    label="성비 균형 맞추기"
+                  />
+                </FormGroup>
 
-              <ImagePickerGrid
-                value={[]}
-                onChange={() => {}}
-                max={5}
-                columns={3}
-                helperText="최대 5장까지 업로드 가능합니다. (실제 업로드 연동은 추후 진행)"
-              />
-              <LocationMap title="로컬잇 밋업 @ 사림동" lat={lat} lng={lng} zoom={3} height={380} />
+                <TextField
+                  label="정원"
+                  type="number"
+                  inputProps={{ min: 1, step: 1 }}
+                  value={capacity}
+                  onChange={(e) => setCapacity(e.target.value === "" ? "" : Math.max(0, Number(e.target.value)))}
+                  sx={{ minWidth: 140 }}
+                />
+              </Stack>
+            </Box>
 
-              {/* 주소 값을 기준으로 위치 정보 표시하기 예시: */}
-              {/* <LocationMapByAddress title="로컬잇 밋업 장소" address={address} zoom={3} height={380} /> */}
+            <Divider sx={{ my: 3 }} />
 
-              {/* 새 시리즈 생성 다이얼로그 */}
-              <CreateSeriesDialog
-                open={createSeriesOpen}
-                onClose={() => setCreateSeriesOpen(false)}
-                newSeriesTitle={newSeriesTitle}
-                setNewSeriesTitle={setNewSeriesTitle}
-                newSeriesDesc={newSeriesDesc}
-                setNewSeriesDesc={setNewSeriesDesc}
-                newSeriesPublic={newSeriesPublic}
-                setNewSeriesPublic={setNewSeriesPublic}
-                createSeries={createSeries}
-                setSelectedSeries={setSelectedSeries}
-              />
+            {/* 5. 이미지 & 위치 */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h6" sx={{ mb: 1.5 }}>
+                이미지 / 위치
+              </Typography>
+              <Stack spacing={2}>
+                <ImagePickerGrid
+                  value={[]}
+                  onChange={() => {}}
+                  max={5}
+                  columns={3}
+                  helperText="최대 5장까지 업로드 가능합니다. (실제 업로드 연동은 추후 진행)"
+                />
+                <LocationMap title="로컬잇 밋업 @ 사림동" lat={lat} lng={lng} zoom={3} height={380} />
+              </Stack>
+            </Box>
 
-              {/* 선택된 시리즈 편집 다이얼로그 */}
-              <EditSeriesDialog
-                open={editSeriesOpen}
-                onClose={() => setEditSeriesOpen(false)}
-                selectedSeries={selectedSeries}
-                setSelectedSeries={setSelectedSeries}
-                seriesDetails={seriesDetails}
-                updateSeries={updateSeries}
-                editSeriesTitle={editSeriesTitle}
-                setEditSeriesTitle={setEditSeriesTitle}
-                editSeriesDesc={editSeriesDesc}
-                setEditSeriesDesc={setEditSeriesDesc}
-                editSeriesPublic={editSeriesPublic}
-                setEditSeriesPublic={setEditSeriesPublic}
-              />
+            {/* 다이얼로그들 */}
+            <CreateSeriesDialog
+              open={createSeriesOpen}
+              onClose={() => setCreateSeriesOpen(false)}
+              newSeriesTitle={newSeriesTitle}
+              setNewSeriesTitle={setNewSeriesTitle}
+              newSeriesDesc={newSeriesDesc}
+              setNewSeriesDesc={setNewSeriesDesc}
+              newSeriesPublic={newSeriesPublic}
+              setNewSeriesPublic={setNewSeriesPublic}
+              createSeries={createSeries}
+              setSelectedSeries={setSelectedSeries}
+            />
 
-              {/* 연속 회차 만들기 다이얼로그 */}
-              <BulkCreateDialog
-                open={bulkOpen}
-                onClose={() => setBulkOpen(false)}
-                bulkFrequency={bulkFrequency}
-                setBulkFrequency={setBulkFrequency}
-                bulkCount={bulkCount}
-                setBulkCount={setBulkCount}
-                bulkCreate={bulkCreate}
-                selectedSeries={selectedSeries}
-                startLocal={startLocal}
-                endLocal={endLocal}
-                baseValid={baseValid}
-                title={title}
-                desc={desc}
-                location={location}
-                capacity={capacity}
-                episodeNo={episodeNo}
-              />
-            </Stack>
+            <EditSeriesDialog
+              open={editSeriesOpen}
+              onClose={() => setEditSeriesOpen(false)}
+              selectedSeries={selectedSeries}
+              setSelectedSeries={setSelectedSeries}
+              seriesDetails={seriesDetails}
+              updateSeries={updateSeries}
+              editSeriesTitle={editSeriesTitle}
+              setEditSeriesTitle={setEditSeriesTitle}
+              editSeriesDesc={editSeriesDesc}
+              setEditSeriesDesc={setEditSeriesDesc}
+              editSeriesPublic={editSeriesPublic}
+              setEditSeriesPublic={setEditSeriesPublic}
+            />
+
+            <BulkCreateDialog
+              open={bulkOpen}
+              onClose={() => setBulkOpen(false)}
+              bulkFrequency={bulkFrequency}
+              setBulkFrequency={setBulkFrequency}
+              bulkCount={bulkCount}
+              setBulkCount={setBulkCount}
+              bulkCreate={bulkCreate}
+              selectedSeries={selectedSeries}
+              startLocal={startLocal}
+              endLocal={endLocal}
+              baseValid={baseValid}
+              title={title}
+              desc={desc}
+              location={location}
+              capacity={capacity}
+              episodeNo={episodeNo}
+            />
 
             {(createMut.isError || createSeries.isPending) && (
               <Alert severity="error" sx={{ mt: 2 }}>
@@ -433,7 +435,7 @@ export default function EventCreatePage() {
             )}
           </CardContent>
 
-          <CardActions sx={{ p: 2 }}>
+          <CardActions sx={{ p: 2, borderTop: "1px solid", borderColor: "divider" }}>
             <Stack direction="row" spacing={1} sx={{ width: "100%" }}>
               <MUIButton
                 variant="outlined"
