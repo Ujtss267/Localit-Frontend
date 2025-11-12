@@ -218,6 +218,7 @@ export type EventListParams = {
   minRating?: number; // 최소 평점
   onlySeries?: boolean; // true면 seriesId != null 인 것만
   onlyOneOff?: boolean; // true면 seriesId == null 인 것만 (단발형)
+  creatorId?: number;
 };
 
 /* ──────────────────────────────

@@ -178,7 +178,7 @@ export const sampleEvents: EventDTO[] = [
       },
     ],
     creator: {
-      id: 1,
+      id: 2,
       email: "host1@example.com",
       name: "욱진",
     },

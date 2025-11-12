@@ -1,5 +1,5 @@
 // src/features/event/pages/EventListPage.tsx
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -13,25 +13,24 @@ import { sampleEvents } from "../sampleEvents";
 
 export default function EventListPage() {
   const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
-  // 🔸 EventListPage 상단
   // TODO: 나중에 AuthContext나 useAuth()로 교체 예정
   const me = { userId: 1 }; // 로그인한 사용자 id
 
   // 쿼리 파라미터 ref (react-query의 키 안정성)
   const paramsRef = useMemo(() => ({}) as EventListParams, []);
 
-  // 👉 툴바용 로컬 상태 (가벼운 필터)
+  // 👉 툴바용 로컬 상태
   const [keyword, setKeyword] = useState("");
   const [sort, setSort] = useState<"latest" | "popular" | "upcoming">("upcoming");
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [myOnly, setMyOnly] = useState(false); // ✅ 내 이벤트만
 
   const { data, isLoading, isFetching, isError, refetch } = useEvents(paramsRef);
-  const sample: EventDTO[] = USE_SAMPLE ? sampleEvents : (data ?? []);
+  const baseItems: EventDTO[] = USE_SAMPLE ? sampleEvents : (data ?? []);
 
   // 공통 병합 유틸
   const mergeParamsAndRefetch = useCallback(
     (p: Partial<EventListParams>) => {
-      // ref 객체 내용만 교체(얕은 병합) → 참조 유지
       Object.keys(paramsRef).forEach((k) => delete (paramsRef as any)[k]);
       Object.assign(paramsRef, p);
       if (!USE_SAMPLE) refetch();
@@ -43,10 +42,22 @@ export default function EventListPage() {
   const applyToolbar = useCallback(() => {
     mergeParamsAndRefetch({
       ...(keyword.trim() ? { q: keyword.trim() } : { q: undefined }),
-      sort, // 서버가 인식 못해도 무해, 인식하면 바로 활용
-      page: 1, // 필터 바꾸면 1페이지로
+      sort,
+      page: 1,
+      // ✅ 서버 모드에선 creatorId 파라미터로 필터링
+      ...(myOnly ? { creatorId: me.userId } : { creatorId: undefined }),
     });
-  }, [keyword, sort, mergeParamsAndRefetch]);
+  }, [keyword, sort, myOnly, mergeParamsAndRefetch, me.userId]);
+
+  // ✅ "내 이벤트만" 토글 시 즉시 적용 (서버 모드)
+  useEffect(() => {
+    if (!USE_SAMPLE) {
+      mergeParamsAndRefetch({
+        ...(myOnly ? { creatorId: me.userId } : { creatorId: undefined }),
+        page: 1,
+      });
+    }
+  }, [myOnly, USE_SAMPLE, me.userId, mergeParamsAndRefetch]);
 
   // 고급 필터(기존 EventFilter) 변경 콜백
   const onChangeAdvanced = useCallback(
@@ -56,7 +67,8 @@ export default function EventListPage() {
     [mergeParamsAndRefetch]
   );
 
-  const items = USE_SAMPLE ? sample : (data ?? []);
+  // ✅ 최종 리스트 (샘플 모드에선 클라 사이드에서만 필터)
+  const items = USE_SAMPLE ? baseItems.filter((e) => !myOnly || e.creator?.id === me.userId) : baseItems;
   const count = items.length;
 
   const showLoading = !USE_SAMPLE && isLoading;
@@ -76,7 +88,7 @@ export default function EventListPage() {
           </Button>
         </div>
 
-        {/* ✅ 슬림 툴바 (키워드 + 정렬 + 고급필터 토글) */}
+        {/* ✅ 슬림 툴바 (키워드 + 정렬 + 고급필터 토글 + 내 이벤트만) */}
         <Card className="p-2 sm:p-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             {/* 좌측: 검색/정렬 */}
@@ -103,15 +115,26 @@ export default function EventListPage() {
               </Button>
             </div>
 
-            {/* 우측: 고급필터 토글 */}
-            <div className="flex items-center justify-end">
+            {/* 우측: 내 이벤트만 + 고급필터 토글 */}
+            <div className="flex items-center justify-end gap-3">
+              {/* ✅ 내 이벤트만 토글 */}
+              <label className="inline-flex items-center gap-2 text-[13px] sm:text-sm cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={myOnly}
+                  onChange={(e) => setMyOnly(e.target.checked)}
+                  className="h-4 w-4 accent-neutral-900 dark:accent-neutral-100"
+                />
+                내 이벤트만
+              </label>
+
               <Button variant="ghost" size="sm" onClick={() => setShowAdvanced((v) => !v)} className="text-[13px]">
                 {showAdvanced ? "고급 필터 닫기" : "고급 필터 열기"}
               </Button>
             </div>
           </div>
 
-          {/* 👉 필요 시에만 기존 EventFilter 표시 (접힘) */}
+          {/* 기존 EventFilter (접힘) */}
           {showAdvanced && (
             <div className="mt-3 border-t border-neutral-200 dark:border-neutral-800 pt-3">
               <EventFilter onChange={onChangeAdvanced} />
@@ -149,11 +172,6 @@ export default function EventListPage() {
           </div>
         )}
       </div>
-
-      {/* (선택) 모바일 플로팅 액션 */}
-      {/* <div className="sm:hidden fixed right-4 bottom-24">
-        <Button size="lg" className="shadow-xl">+ 새 이벤트</Button>
-      </div> */}
     </div>
   );
 }
