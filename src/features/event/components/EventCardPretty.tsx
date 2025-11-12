@@ -103,7 +103,7 @@ export default function EventCardPretty({
         {canEdit && (
           <Link
             to={`/events/${e.id}/edit`}
-            className="absolute right-2 top-2 rounded-md bg-neutral-900/90 px-2 py-1 text-xs text-white shadow-sm hover:bg-neutral-900"
+            className="absolute right-2 top-2 rounded-md bg-amber-50 px-2 py-1 text-xs text-black shadow-sm hover:bg-neutral-900"
           >
             편집
           </Link>
