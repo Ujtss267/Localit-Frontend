@@ -101,6 +101,8 @@ export type EventDTO = {
   title: string;
   description: string;
   location: string;
+  lat?: number | null; // 위도
+  lng?: number | null; // 경도
   startTime: string; // ISO
   endTime: string; // ISO
   capacity: number;
