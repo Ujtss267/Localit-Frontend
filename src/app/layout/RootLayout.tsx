@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet } from "react-router-dom";
 import Button from "@/components/ui/Button";
 import { useAuth } from "../providers/AuthProvider";
 import React from "react";
-import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined"; // 또는 다른 아이콘으로 교체 가능
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import MeetingRoomOutlinedIcon from "@mui/icons-material/MeetingRoomOutlined";
 
 export default function RootLayout() {
@@ -118,6 +118,11 @@ function BottomTab() {
             <path d="M4 15l8 4 8-4" />
           </svg>
           <span>마이</span>
+        </NavLink>
+
+        <NavLink to="/subscription" className={({ isActive }) => `${item} ${isActive ? "text-neutral-900 dark:text-white" : ""}`}>
+          <AccountBalanceWalletIcon className={`${icon}`} />
+          <span>구독</span>
         </NavLink>
       </div>
     </nav>

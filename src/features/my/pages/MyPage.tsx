@@ -85,8 +85,6 @@ export default function MyPage() {
   // 2순위: 로그인 사용자
   // 3순위: 샘플 999
   const targetUserId = userId ? Number(userId) : (user?.id ?? 999);
-
-  console.log("targetUserId", targetUserId);
   const initialData = sampleMyPages[targetUserId] ?? sampleMyPages[999];
 
   const [data, setData] = useState<MyPageDto>(initialData);
