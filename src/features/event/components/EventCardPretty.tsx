@@ -1,10 +1,10 @@
 // src/features/event/components/EventCardPretty.tsx
 import { useMemo } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
-import type { EventDTO } from "../api";
+import type { EventDTO, MyRegistrationDTO } from "../api";
 import ImageCarousel from "@/components/ui/ImageCarousel";
 
 type Props = {
@@ -14,8 +14,8 @@ type Props = {
   onRegister?: (e: EventDTO) => void | Promise<void>;
   showCapacityBadge?: boolean;
   hideMeta?: boolean;
-  registerText?: string;
-  canEdit?: boolean; // ✅ 이렇게만 하면 됨
+  registerText?: string; // 기본 텍스트, 상태에 따라 override
+  canEdit?: boolean;
 };
 
 function formatKoreanDate(dt: Date) {
@@ -40,6 +40,100 @@ function StarRating({ avg, count }: { avg?: number | null; count?: number | null
       {count ? <span className="text-neutral-500">({count})</span> : null}
     </span>
   );
+}
+
+/** 신청/참석 상태에 따른 UI 텍스트/뱃지/버튼 정보 계산 */
+function getRegistrationUI(
+  e: EventDTO,
+  defaultButtonText: string
+): {
+  badgeLabel: string | null;
+  badgeTone: string | null;
+  buttonText: string;
+  buttonDisabled: boolean;
+} {
+  const r: MyRegistrationDTO | undefined = e.myRegistration ?? undefined;
+
+  // 아직 신청 안 한 상태
+  if (!r || !r.applicationStatus) {
+    return {
+      badgeLabel: null,
+      badgeTone: null,
+      buttonText: defaultButtonText || "참가하기",
+      buttonDisabled: false,
+    };
+  }
+
+  const app = r.applicationStatus;
+  const reg = r.registrationStatus ?? null;
+
+  // 기본값
+  let badgeLabel: string | null = null;
+  let badgeTone: string | null = null;
+  let buttonText = defaultButtonText || "참가하기";
+  let buttonDisabled = false;
+
+  switch (app) {
+    case "SUBMITTED":
+      badgeLabel = "승인 대기중";
+      badgeTone = "amber";
+      buttonText = "승인 대기중";
+      buttonDisabled = true;
+      break;
+
+    case "WAITLIST":
+      badgeLabel = "대기열";
+      badgeTone = "amber";
+      buttonText = "대기 중";
+      buttonDisabled = true;
+      break;
+
+    case "REJECTED":
+      badgeLabel = "신청 거절됨";
+      badgeTone = "rose";
+      buttonText = "신청 거절됨";
+      buttonDisabled = true;
+      break;
+
+    case "APPROVED":
+      // 승인 이후에는 registrationStatus 기준으로 세분화
+      switch (reg) {
+        case "CONFIRMED":
+          badgeLabel = "참석 예정";
+          badgeTone = "green";
+          buttonText = "자세히 보기";
+          buttonDisabled = false;
+          break;
+        case "ATTENDED":
+          badgeLabel = "참석 완료";
+          badgeTone = "blue";
+          buttonText = "후기 남기기";
+          buttonDisabled = false;
+          break;
+        case "CANCELLED":
+          badgeLabel = "취소됨";
+          badgeTone = "slate";
+          buttonText = "다시 신청";
+          buttonDisabled = false;
+          break;
+        case "NO_SHOW":
+          badgeLabel = "불참(노쇼)";
+          badgeTone = "slate";
+          buttonText = "상세 보기";
+          buttonDisabled = false;
+          break;
+        case "PENDING":
+        default:
+          badgeLabel = "승인 완료";
+          badgeTone = "green";
+          buttonText = "참여 확정하기";
+          buttonDisabled = false;
+          break;
+      }
+      break;
+  }
+
+  return { badgeLabel, badgeTone, buttonText, buttonDisabled };
 }
 
 export default function EventCardPretty({
@@ -68,23 +162,39 @@ export default function EventCardPretty({
       </svg>`
     );
 
-  const images: string[] = (() => {
+  const images: string[] = useMemo(() => {
     const urls = e.imageUrls;
     const cover = (e as any).coverUrl as string | undefined;
     const list = urls && urls.length > 0 ? urls : cover ? [cover] : [fallback];
     return Array.from(new Set(list.filter(Boolean)));
-  })();
-
-  const handleRegisterClick = async () => {
-    if (onRegister) await onRegister(e);
-    navigate(toBuilder(e));
-  };
+  }, [e.imageUrls]);
 
   const isSeries = e.seriesId != null;
   const headerBadge = isSeries ? `시리즈 ${e.episodeNo ?? "-"}회차` : "단발형";
 
+  const { badgeLabel, badgeTone, buttonText, buttonDisabled } = useMemo(() => getRegistrationUI(e, registerText), [e, registerText]);
+
+  const handleRegisterClick = async () => {
+    if (buttonDisabled) return;
+    if (onRegister) await onRegister(e);
+    navigate(toBuilder(e));
+  };
+
+  const handleEditClick = (ev: React.MouseEvent) => {
+    ev.stopPropagation();
+    navigate(`/events/${e.id}/edit`);
+  };
+
+  const statusBadge = badgeLabel ? (
+    <Badge tone={badgeTone as any} className="text-[11px] px-2 py-0.5">
+      {badgeLabel}
+    </Badge>
+  ) : (
+    <span className="text-[11px] text-neutral-400">신청 가능</span>
+  );
+
   return (
-    <Card className={`group relative overflow-hidden rounded-2xl shadow-sm hover:shadow-md transition h-full flex flex-col ${className}`}>
+    <Card className={`group relative flex h-full flex-col overflow-hidden rounded-2xl shadow-sm transition hover:shadow-md ${className}`}>
       {/* 이미지 영역 */}
       <div className="relative">
         {images.length > 1 ? (
@@ -93,24 +203,19 @@ export default function EventCardPretty({
           <img src={images[0]} alt={e.title} className="h-40 w-full object-cover" loading="lazy" />
         )}
 
-        {/* 상단 배지들 */}
+        {/* 상단 배지들 (시리즈 / 타이틀 등) */}
         <div className="absolute left-2 top-2 flex items-center gap-2">
           <Badge tone={isSeries ? "violet" : "rose"}>{headerBadge}</Badge>
-          {e.seriesTitle && isSeries ? <Badge tone="indigo">{e.seriesTitle}</Badge> : null}
+          {e.seriesTitle && isSeries ? (
+            <Badge tone="indigo" className="max-w-[140px] truncate">
+              {e.seriesTitle}
+            </Badge>
+          ) : null}
         </div>
 
-        {/* ✅ 편집 버튼: 내가 만든 이벤트일 때만 */}
-        {canEdit && (
-          <Link
-            to={`/events/${e.id}/edit`}
-            className="absolute right-2 top-2 rounded-md bg-amber-50 px-2 py-1 text-xs text-black shadow-sm hover:bg-neutral-900"
-          >
-            편집
-          </Link>
-        )}
-
+        {/* 하단 좌측: 정원/신청 현황 */}
         {showCapacityBadge && (
-          <div className="absolute left-2 bottom-2 flex gap-2">
+          <div className="absolute left-2 bottom-2 flex flex-wrap gap-2">
             <Badge tone="blue">정원 {e.capacity}명</Badge>
             {typeof e.registrationsCount === "number" ? <Badge tone="green">신청 {e.registrationsCount}명</Badge> : null}
           </div>
@@ -118,13 +223,13 @@ export default function EventCardPretty({
       </div>
 
       {/* 본문 */}
-      <div className="flex-1 flex flex-col p-4">
+      <div className="flex flex-1 flex-col p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="text-[17px] sm:text-lg font-semibold tracking-tight truncate">{e.title}</h3>
+            <h3 className="truncate text-[17px] font-semibold tracking-tight sm:text-lg">{e.title}</h3>
 
             {!hideMeta && (
-              <div className="mt-1 text-[13px] sm:text-sm text-neutral-600 dark:text-neutral-400 flex items-center gap-2 flex-wrap">
+              <div className="mt-1 flex flex-wrap items-center gap-2 text-[13px] text-neutral-600 dark:text-neutral-400 sm:text-sm">
                 <span>{formatKoreanDate(date)}</span>
                 <span className="inline-flex items-center gap-1">📍{e.location}</span>
                 <StarRating avg={e.ratingAvg} count={e.ratingCount} />
@@ -133,13 +238,24 @@ export default function EventCardPretty({
           </div>
         </div>
 
-        <p className="mt-3 text-[13px] sm:text-sm text-neutral-800 dark:text-neutral-200 line-clamp-2">{e.description}</p>
+        <p className="mt-3 line-clamp-2 text-[13px] text-neutral-800 dark:text-neutral-200 sm:text-sm">{e.description}</p>
 
-        {/* 하단 버튼 */}
-        <div className="mt-4 flex justify-end">
-          <Button size="sm" onClick={handleRegisterClick}>
-            {registerText}
-          </Button>
+        {/* 하단 상태/버튼 영역 */}
+        <div className="mt-4 flex items-center justify-between gap-2">
+          {/* 왼쪽: 상태 뱃지 */}
+          <div className="flex items-center gap-2">{statusBadge}</div>
+
+          {/* 오른쪽: 편집 + 액션 버튼 */}
+          <div className="flex items-center gap-2">
+            {canEdit && (
+              <Button size="sm" onClick={handleEditClick} className="hidden text-[12px] sm:inline-flex">
+                편집
+              </Button>
+            )}
+            <Button size="sm" onClick={handleRegisterClick} disabled={buttonDisabled}>
+              {buttonText}
+            </Button>
+          </div>
         </div>
       </div>
     </Card>

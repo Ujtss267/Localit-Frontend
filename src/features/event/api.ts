@@ -33,7 +33,18 @@ export type EventType = "GENERAL" | "MENTORING" | "WORKSHOP" | "MEETUP";
 export type SlotDuration = "MIN30";
 export type Visibility = "PUBLIC" | "FOLLOWERS" | "PRIVATE";
 export type FeedbackType = "UX" | "CONTENT" | "PRICE" | "HOST" | "FACILITY" | "OTHER";
+/** 신청이후 프로세스 상태 */
 export type RegistrationStatus = "PENDING" | "CONFIRMED" | "CANCELLED" | "ATTENDED" | "NO_SHOW";
+/** 신청/심사 프로세스 상태 (신청서 관점) */
+export type ApplicationStatus = "SUBMITTED" | "APPROVED" | "REJECTED" | "WAITLIST";
+
+/** 현재 로그인 사용자의 신청/등록 상태 DTO */
+export type MyRegistrationDTO = {
+  applicationStatus: ApplicationStatus | null; // 신청/심사 상태
+  registrationStatus?: RegistrationStatus | null; // 실제 참석 상태(승인 이후)
+  checkInAt?: string | null; // QR 체크인 시각
+  cancelAt?: string | null; // 취소 시각
+};
 
 /* ──────────────────────────────
  * Series DTOs (프론트 전용)
@@ -137,6 +148,9 @@ export type EventDTO = {
   ratingBreakdown?: Partial<RatingBreakdown>;
   reviews?: EventReviewDTO[];
   genderControl?: GenderControlDto;
+
+  /** ▼▼▼ NEW: 현재 로그인 사용자의 신청/참석 상태 ▼▼▼ */
+  myRegistration?: MyRegistrationDTO;
 };
 
 /* ──────────────────────────────

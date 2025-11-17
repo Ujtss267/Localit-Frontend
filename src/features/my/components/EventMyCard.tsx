@@ -28,16 +28,35 @@ interface EventMyCardProps {
   event: EventItemDto;
   editable?: boolean;
   onVisibilityChange?: (v: Visibility) => void;
-  onOpen?: () => void;
+  onOpen?: () => void; // 카드 전체 클릭
+  onOpenManage?: () => void; // 승인/참여자 관리
+  onOpenChat?: () => void; // 이벤트 채팅
 }
 
-export function EventMyCard({ event, editable, onVisibilityChange, onOpen }: EventMyCardProps) {
+export function EventMyCard({ event, editable, onVisibilityChange, onOpen, onOpenManage, onOpenChat }: EventMyCardProps) {
+  const clickable = Boolean(onOpen);
+
+  const handleCardClick = () => {
+    if (onOpen) onOpen();
+  };
+
+  const handleManageClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+    e.stopPropagation();
+    onOpenManage?.();
+  };
+
+  const handleChatClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+    e.stopPropagation();
+    onOpenChat?.();
+  };
+
   return (
     <div
-      role={onOpen ? "button" : undefined}
-      onClick={onOpen}
-      className="cursor-pointer overflow-hidden rounded-2xl border shadow-sm transition hover:shadow-md"
+      role={clickable ? "button" : undefined}
+      onClick={clickable ? handleCardClick : undefined}
+      className={`overflow-hidden rounded-2xl border shadow-sm transition hover:shadow-md ${clickable ? "cursor-pointer" : ""}`}
     >
+      {/* 이미지 영역 */}
       <div className="relative h-40 w-full bg-gray-100">
         {/* eslint-disable-next-line jsx-a11y/alt-text */}
         {event.imageUrl ? (
@@ -45,12 +64,15 @@ export function EventMyCard({ event, editable, onVisibilityChange, onOpen }: Eve
         ) : (
           <div className="flex h-full items-center justify-center text-sm opacity-60">No image</div>
         )}
+
         {editable && (
           <div className="absolute right-2 top-2">
             <VisibilitySelect value={event.visibility} onChange={(v) => onVisibilityChange?.(v)} />
           </div>
         )}
       </div>
+
+      {/* 본문 */}
       <div className="p-4">
         <div className="mb-1 flex items-center">
           <span className="text-sm uppercase tracking-wide opacity-70">{event.type ? EVENT_TYPE_LABEL[event.type] : "Event"}</span>
@@ -59,6 +81,26 @@ export function EventMyCard({ event, editable, onVisibilityChange, onOpen }: Eve
         <div className="text-base font-semibold">{event.title}</div>
         <div className="mt-1 text-sm opacity-80">{formatRange(event.startTime, event.endTime)}</div>
         {event.location && <div className="mt-0.5 text-sm opacity-80">📍 {event.location}</div>}
+
+        {/* 하단 액션 영역: 승인/참여자 + 채팅 */}
+        {(onOpenManage || onOpenChat) && (
+          <div className="mt-3 flex items-center justify-end gap-2">
+            {onOpenManage && (
+              <button type="button" onClick={handleManageClick} className="rounded-xl border px-3 py-1 text-xs font-medium hover:bg-gray-50">
+                승인/참여자
+              </button>
+            )}
+            {onOpenChat && (
+              <button
+                type="button"
+                onClick={handleChatClick}
+                className="rounded-xl bg-black px-3 py-1 text-xs font-medium text-white hover:bg-gray-900"
+              >
+                채팅
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

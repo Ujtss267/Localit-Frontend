@@ -1,7 +1,6 @@
 // src/features/event/sampleEvents.ts
-import type { EventDTO, SeriesDTO, SeriesDetailDTO } from "./api";
+import type { EventDTO, SeriesDTO, SeriesDetailDTO, ApplicationStatus, RegistrationStatus } from "./api";
 
-// src/features/event/sampleEvents.ts
 export const sampleSeries: SeriesDTO[] = [
   {
     seriesId: 1000,
@@ -65,6 +64,7 @@ export const sampleSeriesDetails: SeriesDetailDTO = {
   ],
 };
 
+// 현재 로그인 유저를 id=1로 가정
 export const sampleEvents: EventDTO[] = [
   {
     id: 101,
@@ -115,6 +115,13 @@ export const sampleEvents: EventDTO[] = [
       email: "host1@example.com",
       name: "욱진",
     },
+    // ✅ 신청 승인 + 참석 예정 상태
+    myRegistration: {
+      applicationStatus: "APPROVED", // 심사 승인 완료
+      registrationStatus: "CONFIRMED", // 실제 등록도 확정(참석 예정)
+      checkInAt: null,
+      cancelAt: null,
+    },
   },
   {
     id: 102,
@@ -142,6 +149,13 @@ export const sampleEvents: EventDTO[] = [
       id: 1,
       email: "host1@example.com",
       name: "욱진",
+    },
+    // ✅ 신청 완료(심사/승인 대기 상태)
+    myRegistration: {
+      applicationStatus: "SUBMITTED", // 신청서 제출만 된 상태
+      registrationStatus: null, // 아직 등록(참석 확정) 전
+      checkInAt: null,
+      cancelAt: null,
     },
   },
   {
@@ -181,6 +195,13 @@ export const sampleEvents: EventDTO[] = [
       id: 2,
       email: "host1@example.com",
       name: "욱진",
+    },
+    // ✅ 정원/조건 때문에 대기열로 간 상태 예시
+    myRegistration: {
+      applicationStatus: "WAITLIST", // 대기열
+      registrationStatus: null, // 아직 실제 등록은 안 됨
+      checkInAt: null,
+      cancelAt: null,
     },
   },
 ];

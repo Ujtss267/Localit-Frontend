@@ -12,3 +12,4 @@ export { default as LocationMap } from "./LocationMap";
 export type { LocationMapProps } from "./LocationMap";
 export { default as LocationMapByAddress } from "./LocationMapByAddress";
 export type { LocationMapByAddressProps } from "./LocationMapByAddress";
+export { default as Tabs } from "./Tabs";

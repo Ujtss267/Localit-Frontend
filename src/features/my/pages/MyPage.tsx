@@ -10,6 +10,7 @@ import { RoomMyCard } from "../components/RoomMyCard";
 import { ReservationMyCard } from "../components/ReservationMyCard";
 import { FollowersScreen } from "../components/FollowersScreen";
 import { FollowingScreen } from "../components/FollowingScreen";
+import { useAuth } from "@/app/providers/AuthProvider";
 
 // ───────────────────────────
 // 작은 공용 UI
@@ -76,11 +77,16 @@ type RoomTab = "MYROOMS" | "RESERVATIONS";
 type ViewMode = "MAIN" | "FOLLOWERS" | "FOLLOWING";
 
 export default function MyPage() {
+  const { user } = useAuth(); // { id: number, ... } 라고 가정
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
 
-  // URL이 없으면 999번 샘플을 기본으로
-  const targetUserId = userId ? Number(userId) : 999;
+  // 1순위: URL 파라미터
+  // 2순위: 로그인 사용자
+  // 3순위: 샘플 999
+  const targetUserId = userId ? Number(userId) : (user?.id ?? 999);
+
+  console.log("targetUserId", targetUserId);
   const initialData = sampleMyPages[targetUserId] ?? sampleMyPages[999];
 
   const [data, setData] = useState<MyPageDto>(initialData);
@@ -238,7 +244,14 @@ export default function MyPage() {
             hostedEvents.length ? (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {hostedEvents.map((e) => (
-                  <EventMyCard key={e.eventId} event={e} editable={isOwner} onVisibilityChange={(v) => updateEventVisibility(e.eventId, v)} />
+                  <EventMyCard
+                    key={e.eventId}
+                    event={e}
+                    editable={isOwner}
+                    onVisibilityChange={(v) => updateEventVisibility(e.eventId, v)}
+                    onOpenManage={() => navigate(`/events/${e.eventId}/manage`)}
+                    onOpenChat={() => navigate(`/chat/events/${e.eventId}`)}
+                  />
                 ))}
               </div>
             ) : (
