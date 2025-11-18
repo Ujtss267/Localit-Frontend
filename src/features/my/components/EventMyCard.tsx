@@ -31,6 +31,7 @@ interface EventMyCardProps {
   onOpen?: () => void; // 카드 전체 클릭
   onOpenManage?: () => void; // 승인/참여자 관리
   onOpenChat?: () => void; // 이벤트 채팅
+  onOpenTicket?: () => void; // 티켓 보기
 }
 
 export function EventMyCard({ event, editable, onVisibilityChange, onOpen, onOpenManage, onOpenChat }: EventMyCardProps) {
