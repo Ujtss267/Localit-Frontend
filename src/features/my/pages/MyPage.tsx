@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MyPageDto, Visibility } from "../types";
 import { sampleMyPages } from "../sampleMyPage";
+import { useChat } from "@/app/providers/ChatProvider";
 
 // 이미 있는 컴포넌트
 import { EventMyCard } from "../components/EventMyCard";
@@ -80,7 +81,7 @@ export default function MyPage() {
   const { user } = useAuth(); // { id: number, ... } 라고 가정
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
-
+  const { openEventChat } = useChat();
   // 1순위: URL 파라미터
   // 2순위: 로그인 사용자
   // 3순위: 샘플 999
@@ -248,7 +249,12 @@ export default function MyPage() {
                     editable={isOwner}
                     onVisibilityChange={(v) => updateEventVisibility(e.eventId, v)}
                     onOpenManage={() => navigate(`/events/${e.eventId}/manage`)}
-                    onOpenChat={() => navigate(`/chat/events/${e.eventId}`)}
+                    onOpenChat={() => {
+                      // 열린 채팅 목록에 등록
+                      openEventChat({ eventId: e.eventId, title: e.title });
+                      // 채팅 상세 페이지로 이동
+                      navigate(`/chat/events/${e.eventId}`);
+                    }}
                   />
                 ))}
               </div>
@@ -258,7 +264,16 @@ export default function MyPage() {
           ) : participatingEvents.length ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {participatingEvents.map((e) => (
-                <EventMyCard key={e.eventId} event={e} />
+                <EventMyCard
+                  key={e.eventId}
+                  event={e}
+                  onOpenChat={() => {
+                    // 열린 채팅 목록에 등록
+                    openEventChat({ eventId: e.eventId, title: e.title });
+                    // 채팅 상세 페이지로 이동
+                    navigate(`/chat/events/${e.eventId}`);
+                  }}
+                />
               ))}
             </div>
           ) : (

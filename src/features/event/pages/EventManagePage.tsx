@@ -5,11 +5,12 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { Tabs } from "@/components/ui/Tabs"; // 없으면 MyPage 처럼 로컬 탭 컴포넌트 써도 됨
+import { useChat } from "@/app/providers/ChatProvider";
 
 // TODO: 실제 API 훅으로 교체
 // import { useEventApplications, useEventParticipants } from "../queries";
 
-type ManageTab = "APPLICATIONS" | "PARTICIPANTS" | "CHAT";
+type ManageTab = "APPLICATIONS" | "PARTICIPANTS";
 
 export default function EventManagePage() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -53,7 +54,6 @@ export default function EventManagePage() {
           {[
             { value: "APPLICATIONS", label: "신청/심사" },
             { value: "PARTICIPANTS", label: "참여자" },
-            { value: "CHAT", label: "채팅" },
           ].map((t) => {
             const active = tab === t.value;
             return (
@@ -72,7 +72,6 @@ export default function EventManagePage() {
       {/* 내용 */}
       {tab === "APPLICATIONS" && <ApplicationsPanel eventId={id} />}
       {tab === "PARTICIPANTS" && <ParticipantsPanel eventId={id} />}
-      {tab === "CHAT" && <ChatPanel eventId={id} />}
     </div>
   );
 }

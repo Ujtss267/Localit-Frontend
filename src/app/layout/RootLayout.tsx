@@ -5,6 +5,7 @@ import { useAuth } from "../providers/AuthProvider";
 import React from "react";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import MeetingRoomOutlinedIcon from "@mui/icons-material/MeetingRoomOutlined";
+import ChatIcon from "@mui/icons-material/Chat";
 
 export default function RootLayout() {
   const { user, logout } = useAuth();
@@ -40,9 +41,9 @@ function TopNav({ user, onLogout }: TopNavProps) {
           {/* 데스크탑에서만 보이는 상단 네비 */}
           <nav className="hidden sm:flex items-center gap-4 text-neutral-600 dark:text-neutral-300">
             <TopLink to="/events">이벤트</TopLink>
-
             <TopLink to="/rooms">공간</TopLink>
             <TopLink to="/my">마이</TopLink>
+            <TopLink to="/chat">체팅</TopLink>
             <TopLink to="/subscription">구독</TopLink>
           </nav>
         </div>
@@ -118,6 +119,11 @@ function BottomTab() {
             <path d="M4 15l8 4 8-4" />
           </svg>
           <span>마이</span>
+        </NavLink>
+
+        <NavLink to="/chat" className={({ isActive }) => `${item} ${isActive ? "text-neutral-900 dark:text-white" : ""}`}>
+          <ChatIcon className={`${icon}`} />
+          <span>체팅</span>
         </NavLink>
 
         <NavLink to="/subscription" className={({ isActive }) => `${item} ${isActive ? "text-neutral-900 dark:text-white" : ""}`}>
