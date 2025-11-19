@@ -36,7 +36,7 @@ export default function EventDetailPage() {
   if (!e) {
     return (
       <div className="max-w-3xl mx-auto px-3 sm:px-4 py-10">
-        <CardUI className="p-6">
+        <CardUI className="p-6 bg-white/95 dark:bg-neutral-900/95 border border-neutral-200 dark:border-neutral-800 shadow-sm">
           <Typography variant="h6" className="text-neutral-900 dark:text-neutral-50">
             이벤트를 찾을 수 없습니다.
           </Typography>
@@ -78,11 +78,11 @@ export default function EventDetailPage() {
   const startLabel = new Date(e.startTime).toLocaleString("ko-KR");
 
   return (
-    <div className="min-h-[100svh] bg-gradient-to-b from-neutral-50 to-white dark:from-neutral-950 dark:to-neutral-900 text-neutral-900 dark:text-neutral-100">
+    <div className="min-h-[100svh] bg-gradient-to-b from-neutral-50 to-white dark:from-neutral-950 dark:via-neutral-950 dark:to-neutral-900 text-neutral-900 dark:text-neutral-100">
       <div className="max-w-5xl mx-auto px-3 sm:px-4 pb-28 sm:pb-16">
         {/* 사진 갤러리 */}
         {images.length > 0 && (
-          <CardUI className="p-3 sm:p-4 mb-4 bg-white/90 dark:bg-neutral-900/80 backdrop-blur">
+          <CardUI className="p-3 sm:p-4 mb-4 bg-white/90 dark:bg-neutral-900/90 border border-neutral-200/80 dark:border-neutral-800/80 shadow-sm backdrop-blur">
             <div className="flex items-center justify-between mb-2">
               <Typography variant="subtitle1" className="font-semibold text-neutral-900 dark:text-neutral-50">
                 사진 갤러리
@@ -115,7 +115,7 @@ export default function EventDetailPage() {
         <div className="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-5">
           {/* 좌측 */}
           <div className="lg:col-span-2 space-y-5">
-            <CardUI className="p-5 bg-white/95 dark:bg-neutral-900/90 backdrop-blur">
+            <CardUI className="p-5 bg-white/95 dark:bg-neutral-900/95 border border-neutral-200/80 dark:border-neutral-800/80 shadow-sm backdrop-blur">
               <div className="flex items-center gap-2 mb-2">
                 {e.seriesId != null ? (
                   <>
@@ -141,7 +141,7 @@ export default function EventDetailPage() {
               />
 
               {/* ✅ 호스트 정보 블럭 */}
-              <div className="mt-4 flex items-center justify-between rounded-xl bg-neutral-50 dark:bg-neutral-900/60 px-3 py-2.5">
+              <div className="mt-4 flex items-center justify-between rounded-xl bg-neutral-50/80 dark:bg-neutral-900/60 px-3 py-2.5 border border-neutral-200/70 dark:border-neutral-800/80">
                 <div>
                   <div className="text-xs text-neutral-500 dark:text-neutral-400">주최자</div>
                   <div className="font-semibold text-neutral-900 dark:text-neutral-50">
@@ -162,7 +162,7 @@ export default function EventDetailPage() {
             </CardUI>
 
             {/* 세부 정보 */}
-            <CardUI className="p-5 bg-white/95 dark:bg-neutral-900/90 backdrop-blur">
+            <CardUI className="p-5 bg-white/95 dark:bg-neutral-900/95 border border-neutral-200/80 dark:border-neutral-800/80 shadow-sm backdrop-blur">
               <Typography variant="subtitle1" className="font-semibold mb-3 text-neutral-900 dark:text-neutral-50">
                 세부 정보
               </Typography>
@@ -193,14 +193,14 @@ export default function EventDetailPage() {
               avg={e.ratingAvg}
               count={e.ratingCount}
               breakdown={e.ratingBreakdown ?? null}
-              className="rounded-2xl shadow-sm bg-white/95 dark:bg-neutral-900/90 backdrop-blur"
+              className="rounded-2xl shadow-sm bg-white/95 dark:bg-neutral-900/95 border border-neutral-200/80 dark:border-neutral-800/80 backdrop-blur"
             />
             <ReviewList reviews={e.reviews} />
           </div>
 
           {/* 우측 CTA (데스크탑용) */}
           <div className="hidden lg:block">
-            <CardUI className="p-5 sticky top-6 bg-white/95 dark:bg-neutral-900/90 backdrop-blur">
+            <CardUI className="p-5 sticky top-6 bg-white/95 dark:bg-neutral-900/95 border border-neutral-200/80 dark:border-neutral-800/80 shadow-sm backdrop-blur">
               <div className="flex items-center justify-between">
                 <div className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">{priceLabel}</div>
                 {e.type && <Chip size="small" label={e.type} variant="outlined" />}
@@ -221,7 +221,7 @@ export default function EventDetailPage() {
 
         {/* 원본 이미지 모달 */}
         <Dialog open={imgOpen} onClose={() => setImgOpen(false)} maxWidth={false} fullWidth={false}>
-          <DialogContent className="p-0 bg-black/80">
+          <DialogContent className="p-0 bg-black/85 dark:bg-black/90">
             {imgSrc && (
               <div className="flex items-center justify-center max-w-[95vw] max-h-[90vh]">
                 <img
@@ -232,7 +232,7 @@ export default function EventDetailPage() {
                 />
               </div>
             )}
-            <div className="p-3 flex items-center justify-end gap-2 bg-neutral-900/80">
+            <div className="p-3 flex items-center justify-end gap-2 bg-neutral-900/90 border-t border-neutral-800">
               <Button variant="outline" onClick={() => setImgOpen(false)}>
                 닫기
               </Button>
@@ -246,8 +246,8 @@ export default function EventDetailPage() {
         </Dialog>
       </div>
 
-      {/* ✅ 모바일 하단 CTA 바 */}
-      <div className="lg:hidden fixed inset-x-0 bottom-0 z-20 border-t border-neutral-200 dark:border-neutral-800 bg-white/95 dark:bg-neutral-900/95 backdrop-blur">
+      {/* ✅ 모바일 하단 CTA 바 (BottomTab 위에 떠 있게 수정) */}
+      <div className="lg:hidden fixed inset-x-0 bottom-14 z-40 border-t border-neutral-200 dark:border-neutral-800 bg-white/95 dark:bg-neutral-900/95 backdrop-blur">
         <div className="max-w-5xl mx-auto px-3 py-2 flex items-center justify-between gap-3">
           <div className="flex flex-col">
             <span className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">{priceLabel}</span>
