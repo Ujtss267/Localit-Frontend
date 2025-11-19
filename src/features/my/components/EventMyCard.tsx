@@ -29,12 +29,12 @@ interface EventMyCardProps {
   editable?: boolean;
   onVisibilityChange?: (v: Visibility) => void;
   onOpen?: () => void; // 카드 전체 클릭
-  onOpenManage?: () => void; // 승인/참여자 관리
+  onOpenManage?: () => void; // 승인/참여자 관리 (Host)
   onOpenChat?: () => void; // 이벤트 채팅
-  onOpenTicket?: () => void; // 티켓 보기
+  onOpenTicket?: () => void; // 티켓/입장 QR 보기 (참석자)
 }
 
-export function EventMyCard({ event, editable, onVisibilityChange, onOpen, onOpenManage, onOpenChat }: EventMyCardProps) {
+export function EventMyCard({ event, editable, onVisibilityChange, onOpen, onOpenManage, onOpenChat, onOpenTicket }: EventMyCardProps) {
   const clickable = Boolean(onOpen);
 
   const handleCardClick = () => {
@@ -49,6 +49,11 @@ export function EventMyCard({ event, editable, onVisibilityChange, onOpen, onOpe
   const handleChatClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
     e.stopPropagation();
     onOpenChat?.();
+  };
+
+  const handleTicketClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+    e.stopPropagation();
+    onOpenTicket?.();
   };
 
   return (
@@ -83,14 +88,21 @@ export function EventMyCard({ event, editable, onVisibilityChange, onOpen, onOpe
         <div className="mt-1 text-sm opacity-80">{formatRange(event.startTime, event.endTime)}</div>
         {event.location && <div className="mt-0.5 text-sm opacity-80">📍 {event.location}</div>}
 
-        {/* 하단 액션 영역: 승인/참여자 + 채팅 */}
-        {(onOpenManage || onOpenChat) && (
+        {/* 하단 액션 영역: 승인/참여자 + 티켓 + 채팅 */}
+        {(onOpenManage || onOpenTicket || onOpenChat) && (
           <div className="mt-3 flex items-center justify-end gap-2">
             {onOpenManage && (
               <button type="button" onClick={handleManageClick} className="rounded-xl border px-3 py-1 text-xs font-medium hover:bg-gray-50">
                 승인/참여자
               </button>
             )}
+
+            {onOpenTicket && (
+              <button type="button" onClick={handleTicketClick} className="rounded-xl border px-3 py-1 text-xs font-medium hover:bg-gray-50">
+                입장 QR
+              </button>
+            )}
+
             {onOpenChat && (
               <button
                 type="button"

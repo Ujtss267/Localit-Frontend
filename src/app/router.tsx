@@ -27,6 +27,7 @@ import ChatListPage from "@/features/chat/pages/ChatListPage";
 import EventChatPage from "@/features/chat/pages/EventChatPage";
 
 import { ChatProvider } from "./providers/ChatProvider";
+import EventTicketPage from "@/features/ticket/pages/EventTicketPage";
 
 // (옵션) 로그인 상태라면 / 로 돌려보내는 공개 전용 라우트
 function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
@@ -58,8 +59,9 @@ export const router = createBrowserRouter([
       { path: "my/:userId", element: <MyPage /> },
       { path: "subscription", element: <SubscriptionPage /> },
       { path: "events/:eventId/manage", element: <EventManagePage /> },
-      { path: "/chat", element: <ChatListPage /> },
-      { path: "/chat/events/:eventId", element: <EventChatPage /> },
+      { path: "chat", element: <ChatListPage /> },
+      { path: "chat/events/:eventId", element: <EventChatPage /> },
+      { path: "ticket/events/:eventId", element: <EventTicketPage /> },
       // ✅ 로그인/회원가입 (원하면 PublicOnlyRoute로 보호)
       {
         path: "login",

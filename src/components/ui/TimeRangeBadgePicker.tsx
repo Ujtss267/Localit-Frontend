@@ -278,20 +278,21 @@ export default function TimeRangeBadgePicker({
                         borderRadius: "12px",
                         fontWeight: 600,
                         ...(isPendingStart && !selected ? { borderWidth: 2, borderColor: "primary.main" } : {}),
-                        // ✅ filled에도 테두리 보이게
+                        // ⭐ 다크 모드 대응: theme 기반 색상 사용
                         "&.MuiChip-filled": {
-                          border: "2px solid rgba(0,0,0,0.2)",
+                          borderWidth: 1,
+                          borderStyle: "solid",
+                          borderColor: "divider",
                         },
-                        // ✅ outlined는 검정 테두리/텍스트
                         "&.MuiChip-outlined": {
-                          borderColor: "#000",
-                          color: "#000",
+                          borderColor: "divider",
+                          color: "text.primary",
                         },
                       }}
                       className={[
                         "!justify-center !font-medium",
                         disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
-                        selected ? "shadow-md" : "",
+                        selected ? "shadow-md dark:shadow-neutral-900/60" : "",
                       ].join(" ")}
                     />
                   </div>
@@ -346,10 +347,11 @@ export function Demo() {
         }}
         helperText="첫 클릭: 시작, 두 번째 클릭: 종료(선택 칩 시각 그대로). 같은 칩 다시 클릭 시 선택 초기화."
       />
-      <div className="text-sm text-gray-600">
+      <div className="text-sm text-gray-600 dark:text-gray-300">
         {range ? (
           <>
-            선택: {time(range.start)} ~ {time(range.end)} <span className="text-neutral-600">(기간: {durationOf(range)}분)</span>
+            선택: {time(range.start)} ~ {time(range.end)}{" "}
+            <span className="text-neutral-600 dark:text-neutral-400">(기간: {durationOf(range)}분)</span>
           </>
         ) : (
           <>선택 없음</>

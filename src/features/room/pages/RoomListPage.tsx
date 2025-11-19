@@ -97,13 +97,13 @@ export default function RoomListPage() {
   const count = filtered.length;
 
   return (
-    <div className="min-h-[100svh] bg-gradient-to-b from-neutral-50 to-white dark:from-neutral-950 dark:to-neutral-900 text-neutral-900 dark:text-neutral-100 pb-20">
+    <div className="min-h-[100svh] bg-gradient-to-b pb-20">
       <div className="max-w-6xl mx-auto px-3 sm:px-4 py-6 space-y-5">
         {/* 헤더 */}
         <div className="flex items-start justify-between gap-3">
           <div>
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">공간 목록</h1>
-            <p className="text-[13px] sm:text-sm text-neutral-600 dark:text-neutral-400 mt-1">필요한 것만 빠르게 필터링하세요.</p>
+            <p className="text-[13px] sm:text-sm mt-1">필요한 것만 빠르게 필터링하세요.</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -127,23 +127,18 @@ export default function RoomListPage() {
                 onChange={(e) => setQ(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && applyToolbar()}
                 placeholder="공간명/위치로 검색"
-                className="flex-1 h-9 rounded-md border border-neutral-300 dark:border-neutral-700 bg-white/70 dark:bg-neutral-900/70 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-300 dark:focus:ring-neutral-700"
+                className="flex-1 h-9 rounded-md border px-3 text-sm focus:outline-none focus:ring-2"
               />
               {/* 사용 가능만 */}
-              <label className="flex select-none items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
-                <input
-                  type="checkbox"
-                  checked={onlyAvailable}
-                  onChange={(e) => setOnlyAvailable(e.target.checked)}
-                  className="h-4 w-4 accent-neutral-700 dark:accent-neutral-300"
-                />
+              <label className="flex select-none items-center gap-2 text-sm">
+                <input type="checkbox" checked={onlyAvailable} onChange={(e) => setOnlyAvailable(e.target.checked)} className="h-4 w-4 " />
                 사용 가능만
               </label>
               {/* 정렬 */}
               <select
                 value={sortKey}
                 onChange={(e) => setSortKey(e.target.value as SortKey)}
-                className="h-9 rounded-md border border-neutral-300 dark:border-neutral-700 bg-white/70 dark:bg-neutral-900/70 px-2 text-sm"
+                className="h-9 rounded-md border px-2 text-sm"
                 title="정렬"
               >
                 <option value="created">최신 등록순</option>
@@ -166,7 +161,7 @@ export default function RoomListPage() {
 
           {/* 👉 필요 시에만 기존 RoomFilter 표시 */}
           {showAdvanced && (
-            <div className="mt-3 border-t border-neutral-200 dark:border-neutral-800 pt-3">
+            <div className="mt-3 border-t pt-3">
               <RoomFilter
                 q={q}
                 onlyAvailable={onlyAvailable}
@@ -193,9 +188,7 @@ export default function RoomListPage() {
           {showError ? (
             <span className="text-sm text-red-600">공간 목록을 불러오지 못했습니다. {(error as any)?.message ?? ""}</span>
           ) : (
-            <div className="text-[13px] sm:text-sm text-neutral-600 dark:text-neutral-400">
-              {!USE_SAMPLE && isFetching ? "필터 적용 중…" : <>총 {count}개</>}
-            </div>
+            <div className="text-[13px] sm:text-sm">{!USE_SAMPLE && isFetching ? "필터 적용 중…" : <>총 {count}개</>}</div>
           )}
           <div className="flex gap-2">
             <Button variant="ghost" disabled>

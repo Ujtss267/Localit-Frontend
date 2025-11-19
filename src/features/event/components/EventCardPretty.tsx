@@ -14,10 +14,11 @@ type Props = {
   onRegister?: (e: EventDTO) => void | Promise<void>;
   showCapacityBadge?: boolean;
   hideMeta?: boolean;
-  registerText?: string; // 기본 텍스트, 상태에 따라 override
+  registerText?: string;
   canEdit?: boolean;
 };
 
+// 한국형 날짜 출력
 function formatKoreanDate(dt: Date) {
   return new Intl.DateTimeFormat("ko-KR", {
     year: "numeric",
@@ -34,7 +35,7 @@ function StarRating({ avg, count }: { avg?: number | null; count?: number | null
   if (!avg || avg <= 0) return null;
   const display = Number.isFinite(avg) ? avg.toFixed(1) : "0.0";
   return (
-    <span className="inline-flex items-center gap-1 text-xs text-amber-600">
+    <span className="inline-flex items-center gap-1 text-xs text-amber-500">
       <span aria-hidden>★</span>
       <span>{display}</span>
       {count ? <span className="text-neutral-500">({count})</span> : null}
@@ -42,7 +43,7 @@ function StarRating({ avg, count }: { avg?: number | null; count?: number | null
   );
 }
 
-/** 신청/참석 상태에 따른 UI 텍스트/뱃지/버튼 정보 계산 */
+/** 신청/참석 상태에 따른 UI 텍스트 계산 */
 function getRegistrationUI(
   e: EventDTO,
   defaultButtonText: string
@@ -54,7 +55,6 @@ function getRegistrationUI(
 } {
   const r: MyRegistrationDTO | undefined = e.myRegistration ?? undefined;
 
-  // 아직 신청 안 한 상태
   if (!r || !r.applicationStatus) {
     return {
       badgeLabel: null,
@@ -67,7 +67,6 @@ function getRegistrationUI(
   const app = r.applicationStatus;
   const reg = r.registrationStatus ?? null;
 
-  // 기본값
   let badgeLabel: string | null = null;
   let badgeTone: string | null = null;
   let buttonText = defaultButtonText || "참가하기";
@@ -80,14 +79,12 @@ function getRegistrationUI(
       buttonText = "승인 대기중";
       buttonDisabled = true;
       break;
-
     case "WAITLIST":
       badgeLabel = "대기열";
       badgeTone = "amber";
       buttonText = "대기 중";
       buttonDisabled = true;
       break;
-
     case "REJECTED":
       badgeLabel = "신청 거절됨";
       badgeTone = "rose";
@@ -96,7 +93,6 @@ function getRegistrationUI(
       break;
 
     case "APPROVED":
-      // 승인 이후에는 registrationStatus 기준으로 세분화
       switch (reg) {
         case "CONFIRMED":
           badgeLabel = "참석 예정";
@@ -122,7 +118,6 @@ function getRegistrationUI(
           buttonText = "상세 보기";
           buttonDisabled = false;
           break;
-        case "PENDING":
         default:
           badgeLabel = "승인 완료";
           badgeTone = "green";
@@ -149,16 +144,17 @@ export default function EventCardPretty({
   const navigate = useNavigate();
   const date = useMemo(() => new Date(e.startTime), [e.startTime]);
 
+  // fallback 이미지
   const fallback =
     "data:image/svg+xml;utf8," +
     encodeURIComponent(
       `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='420'>
         <defs><linearGradient id='g' x1='0' x2='1'>
-          <stop stop-color='#dbeafe'/><stop offset='1' stop-color='#f0f9ff'/>
+          <stop stop-color='#1e293b'/><stop offset='1' stop-color='#0f172a'/>
         </linearGradient></defs>
         <rect fill='url(#g)' width='100%' height='100%'/>
         <text x='50%' y='52%' dominant-baseline='middle' text-anchor='middle'
-          fill='#334155' font-family='Inter,system-ui' font-size='26'>Localit Event</text>
+          fill='#e2e8f0' font-family='Inter,system-ui' font-size='26'>Localit Event</text>
       </svg>`
     );
 
@@ -194,7 +190,9 @@ export default function EventCardPretty({
   );
 
   return (
-    <Card className={`group relative flex h-full flex-col overflow-hidden rounded-2xl shadow-sm transition hover:shadow-md ${className}`}>
+    <Card
+      className={`group relative flex h-full flex-col overflow-hidden rounded-2xl shadow-sm bg-neutral-900 border border-neutral-800 transition hover:border-neutral-700 hover:shadow-md ${className}`}
+    >
       {/* 이미지 영역 */}
       <div className="relative">
         {images.length > 1 ? (
@@ -203,7 +201,7 @@ export default function EventCardPretty({
           <img src={images[0]} alt={e.title} className="h-40 w-full object-cover" loading="lazy" />
         )}
 
-        {/* 상단 배지들 (시리즈 / 타이틀 등) */}
+        {/* 상단 배지 (시리즈 / 타이틀 등) */}
         <div className="absolute left-2 top-2 flex items-center gap-2">
           <Badge tone={isSeries ? "violet" : "rose"}>{headerBadge}</Badge>
           {e.seriesTitle && isSeries ? (
@@ -223,13 +221,13 @@ export default function EventCardPretty({
       </div>
 
       {/* 본문 */}
-      <div className="flex flex-1 flex-col p-4">
+      <div className="flex flex-1 flex-col p-4 text-neutral-100">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="truncate text-[17px] font-semibold tracking-tight sm:text-lg">{e.title}</h3>
 
             {!hideMeta && (
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-[13px] text-neutral-600 dark:text-neutral-400 sm:text-sm">
+              <div className="mt-1 flex flex-wrap items-center gap-2 text-[13px] text-neutral-400 sm:text-sm">
                 <span>{formatKoreanDate(date)}</span>
                 <span className="inline-flex items-center gap-1">📍{e.location}</span>
                 <StarRating avg={e.ratingAvg} count={e.ratingCount} />
@@ -238,17 +236,16 @@ export default function EventCardPretty({
           </div>
         </div>
 
-        <p className="mt-3 line-clamp-2 text-[13px] text-neutral-800 dark:text-neutral-200 sm:text-sm">{e.description}</p>
+        <p className="mt-3 line-clamp-2 text-[13px] text-neutral-300 sm:text-sm">{e.description}</p>
 
-        {/* 하단 상태/버튼 영역 */}
+        {/* 하단 상태/버튼 */}
         <div className="mt-4 flex items-center justify-between gap-2">
-          {/* 왼쪽: 상태 뱃지 */}
           <div className="flex items-center gap-2">{statusBadge}</div>
 
-          {/* 오른쪽: 편집 + 액션 버튼 */}
+          {/* 편집 + 액션 버튼 */}
           <div className="flex items-center gap-2">
             {canEdit && (
-              <Button size="sm" onClick={handleEditClick} className="hidden text-[12px] sm:inline-flex">
+              <Button size="sm" onClick={handleEditClick} className="hidden sm:inline-flex text-[12px]">
                 편집
               </Button>
             )}

@@ -37,7 +37,9 @@ export default function EventDetailPage() {
     return (
       <div className="max-w-3xl mx-auto px-3 sm:px-4 py-10">
         <CardUI className="p-6">
-          <Typography variant="h6">이벤트를 찾을 수 없습니다.</Typography>
+          <Typography variant="h6" className="text-neutral-900 dark:text-neutral-50">
+            이벤트를 찾을 수 없습니다.
+          </Typography>
           <div className="mt-3">
             <Button onClick={() => navigate(-1)} variant="outline">
               뒤로가기
@@ -65,22 +67,27 @@ export default function EventDetailPage() {
     }
   };
 
-  // 참가하기도 같은 흐름으로
+  // 참가요청 버튼
   const onAttend = () => {
+    // TODO: 실제로는 신청 API / 신청 폼으로 연결하고,
+    // 승인 프로세스는 EventApplication 기반으로 구현 예정
     goHostPage();
   };
+
+  const priceLabel = e.price && e.price > 0 ? `${e.price.toLocaleString()}원` : "무료";
+  const startLabel = new Date(e.startTime).toLocaleString("ko-KR");
 
   return (
     <div className="min-h-[100svh] bg-gradient-to-b from-neutral-50 to-white dark:from-neutral-950 dark:to-neutral-900 text-neutral-900 dark:text-neutral-100">
       <div className="max-w-5xl mx-auto px-3 sm:px-4 pb-28 sm:pb-16">
         {/* 사진 갤러리 */}
         {images.length > 0 && (
-          <CardUI className="p-3 sm:p-4 mb-4">
+          <CardUI className="p-3 sm:p-4 mb-4 bg-white/90 dark:bg-neutral-900/80 backdrop-blur">
             <div className="flex items-center justify-between mb-2">
-              <Typography variant="subtitle1" className="font-semibold">
+              <Typography variant="subtitle1" className="font-semibold text-neutral-900 dark:text-neutral-50">
                 사진 갤러리
               </Typography>
-              <div className="hidden sm:flex gap-2 text-xs text-neutral-500">{images.length}장</div>
+              <div className="hidden sm:flex gap-2 text-xs text-neutral-500 dark:text-neutral-400">{images.length}장</div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
               {images.slice(0, 12).map((src, idx) => (
@@ -108,7 +115,7 @@ export default function EventDetailPage() {
         <div className="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-5">
           {/* 좌측 */}
           <div className="lg:col-span-2 space-y-5">
-            <CardUI className="p-5">
+            <CardUI className="p-5 bg-white/95 dark:bg-neutral-900/90 backdrop-blur">
               <div className="flex items-center gap-2 mb-2">
                 {e.seriesId != null ? (
                   <>
@@ -133,11 +140,11 @@ export default function EventDetailPage() {
                 roomName={roomName}
               />
 
-              {/* ✅ 호스트 정보 블럭 (여기서도 이동 가능) */}
-              <div className="mt-4 flex items-center justify-between rounded-xl bg-neutral-50 dark:bg-neutral-900/40 p-3">
+              {/* ✅ 호스트 정보 블럭 */}
+              <div className="mt-4 flex items-center justify-between rounded-xl bg-neutral-50 dark:bg-neutral-900/60 px-3 py-2.5">
                 <div>
-                  <div className="text-xs text-neutral-500">주최자</div>
-                  <div className="font-semibold">
+                  <div className="text-xs text-neutral-500 dark:text-neutral-400">주최자</div>
+                  <div className="font-semibold text-neutral-900 dark:text-neutral-50">
                     {(e as any)?.creator?.name ?? (e as any)?.creator?.email ?? (hostUserId ? `User #${hostUserId}` : "주최자")}
                   </div>
                 </div>
@@ -146,7 +153,7 @@ export default function EventDetailPage() {
                 </Button>
               </div>
 
-              <Typography variant="subtitle1" className="font-semibold mb-2 mt-4">
+              <Typography variant="subtitle1" className="font-semibold mb-2 mt-4 text-neutral-900 dark:text-neutral-50">
                 이벤트 소개
               </Typography>
               <Typography variant="body1" className="leading-7 text-neutral-800 dark:text-neutral-200">
@@ -155,53 +162,58 @@ export default function EventDetailPage() {
             </CardUI>
 
             {/* 세부 정보 */}
-            <CardUI className="p-5">
-              <Typography variant="subtitle1" className="font-semibold mb-3">
+            <CardUI className="p-5 bg-white/95 dark:bg-neutral-900/90 backdrop-blur">
+              <Typography variant="subtitle1" className="font-semibold mb-3 text-neutral-900 dark:text-neutral-50">
                 세부 정보
               </Typography>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div className="space-y-1">
-                  <div className="text-neutral-500">이벤트 유형</div>
-                  <div className="font-medium">{e.type ?? "GENERAL"}</div>
+                  <div className="text-neutral-500 dark:text-neutral-400">이벤트 유형</div>
+                  <div className="font-medium text-neutral-900 dark:text-neutral-50">{e.type ?? "GENERAL"}</div>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-neutral-500">주최자</div>
-                  <div className="font-medium">
+                  <div className="text-neutral-500 dark:text-neutral-400">주최자</div>
+                  <div className="font-medium text-neutral-900 dark:text-neutral-50">
                     {(e as any)?.creator?.name ?? (e as any)?.creator?.email ?? (hostUserId ? `User #${hostUserId}` : "주최자")}
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-neutral-500">결제 처리</div>
-                  <div className="font-medium">{e.paidToHost ? "주최자 수령" : "공유 정산"}</div>
+                  <div className="text-neutral-500 dark:text-neutral-400">결제 처리</div>
+                  <div className="font-medium text-neutral-900 dark:text-neutral-50">{e.paidToHost ? "주최자 수령" : "공유 정산"}</div>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-neutral-500">호스트 형태</div>
-                  <div className="font-medium">{e.hostType ?? "creator"}</div>
+                  <div className="text-neutral-500 dark:text-neutral-400">호스트 형태</div>
+                  <div className="font-medium text-neutral-900 dark:text-neutral-50">{e.hostType ?? "creator"}</div>
                 </div>
               </div>
             </CardUI>
 
             {/* 리뷰 */}
-            <ReviewSummaryCard avg={e.ratingAvg} count={e.ratingCount} breakdown={e.ratingBreakdown ?? null} className="rounded-2xl shadow-sm" />
+            <ReviewSummaryCard
+              avg={e.ratingAvg}
+              count={e.ratingCount}
+              breakdown={e.ratingBreakdown ?? null}
+              className="rounded-2xl shadow-sm bg-white/95 dark:bg-neutral-900/90 backdrop-blur"
+            />
             <ReviewList reviews={e.reviews} />
           </div>
 
-          {/* 우측 CTA */}
+          {/* 우측 CTA (데스크탑용) */}
           <div className="hidden lg:block">
-            <CardUI className="p-5 sticky top-6">
+            <CardUI className="p-5 sticky top-6 bg-white/95 dark:bg-neutral-900/90 backdrop-blur">
               <div className="flex items-center justify-between">
-                <div className="text-lg font-semibold">{e.price && e.price > 0 ? `${e.price.toLocaleString()}원` : "무료"}</div>
+                <div className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">{priceLabel}</div>
                 {e.type && <Chip size="small" label={e.type} variant="outlined" />}
               </div>
               <Typography variant="body2" className="text-neutral-600 dark:text-neutral-400 mt-1">
-                {new Date(e.startTime).toLocaleString("ko-KR")}
+                {startLabel}
               </Typography>
-              <Divider className="!my-4" />
+              <Divider className="!my-4 border-neutral-200 dark:border-neutral-800" />
               <Button size="lg" className="w-full" onClick={onAttend} disabled={isFetching}>
-                {isFetching ? "처리 중…" : "참가하기"}
+                {isFetching ? "처리 중…" : "참가요청"}
               </Button>
-              <Typography variant="caption" className="block text-neutral-500 mt-2">
-                버튼을 누르면 주최자의 마이페이지로 이동합니다.
+              <Typography variant="caption" className="block text-neutral-500 dark:text-neutral-400 mt-2">
+                지금은 테스트로 주최자의 마이페이지로 이동하지만, 실제로는 참가요청 → 호스트 승인 플로우로 동작할 예정입니다.
               </Typography>
             </CardUI>
           </div>
@@ -232,6 +244,19 @@ export default function EventDetailPage() {
             </div>
           </DialogContent>
         </Dialog>
+      </div>
+
+      {/* ✅ 모바일 하단 CTA 바 */}
+      <div className="lg:hidden fixed inset-x-0 bottom-0 z-20 border-t border-neutral-200 dark:border-neutral-800 bg-white/95 dark:bg-neutral-900/95 backdrop-blur">
+        <div className="max-w-5xl mx-auto px-3 py-2 flex items-center justify-between gap-3">
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">{priceLabel}</span>
+            <span className="text-[11px] text-neutral-600 dark:text-neutral-400">{startLabel}</span>
+          </div>
+          <Button size="md" className="flex-1 max-w-[180px]" onClick={onAttend} disabled={isFetching}>
+            {isFetching ? "처리 중…" : "참가요청"}
+          </Button>
+        </div>
       </div>
     </div>
   );

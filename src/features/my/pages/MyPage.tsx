@@ -12,6 +12,7 @@ import { ReservationMyCard } from "../components/ReservationMyCard";
 import { FollowersScreen } from "../components/FollowersScreen";
 import { FollowingScreen } from "../components/FollowingScreen";
 import { useAuth } from "@/app/providers/AuthProvider";
+import { Tabs } from "@/components/ui";
 
 // ───────────────────────────
 // 작은 공용 UI
@@ -30,35 +31,6 @@ function EmptyState({ title, hint }: { title: string; hint?: string }) {
     <div className="w-full rounded-2xl border p-6 text-center">
       <div className="text-base font-medium">{title}</div>
       {hint && <div className="mt-1 text-sm opacity-75">{hint}</div>}
-    </div>
-  );
-}
-
-// 이 Tabs 는 네 원래 소스에 있던 구조랑 똑같이 둠
-// 공용 Tabs
-function Tabs<T extends string>({
-  value,
-  onChange,
-  tabs,
-}: {
-  value: T;
-  onChange: React.Dispatch<React.SetStateAction<T>>; // ← 여기!
-  tabs: { value: T; label: string }[];
-}) {
-  return (
-    <div className="flex gap-2 rounded-2xl border p-1">
-      {tabs.map((t) => {
-        const active = t.value === value;
-        return (
-          <button
-            key={t.value}
-            onClick={() => onChange(t.value)} // setState에 값 넣는 건 OK
-            className={"rounded-xl px-4 py-2 text-sm font-medium transition " + (active ? "bg-black text-white" : "hover:bg-gray-100")}
-          >
-            {t.label}
-          </button>
-        );
-      })}
     </div>
   );
 }
@@ -273,6 +245,7 @@ export default function MyPage() {
                     // 채팅 상세 페이지로 이동
                     navigate(`/chat/events/${e.eventId}`);
                   }}
+                  onOpenTicket={() => navigate(`/ticket/events/${e.eventId}`)} // 내 참가권/입장 QR
                 />
               ))}
             </div>

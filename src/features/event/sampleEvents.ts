@@ -204,6 +204,52 @@ export const sampleEvents: EventDTO[] = [
       cancelAt: null,
     },
   },
+  {
+    id: 202,
+    title: "블라인드 소개팅",
+    description: "당신의 단짝을 만나게 도와드립니다.",
+    location: "서울 강남",
+    startTime: new Date().toISOString(),
+    endTime: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
+    capacity: 60,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    type: "GENERAL",
+    price: 0,
+    paidToHost: true,
+    hostType: "creator",
+    imageUrls: [
+      "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=800",
+      "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=800",
+      "https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?w=800",
+    ],
+    ratingAvg: 4.2,
+    ratingCount: 5,
+    ratingBreakdown: { 5: 2, 4: 2, 3: 1 },
+    reviews: [
+      {
+        id: 3,
+        eventId: 201,
+        user: { id: 3, name: "JH", email: "jh@example.com" },
+        rating: 4,
+        title: "감사합니다",
+        content: "여기서 정말 좋은 인연 만나갑니다",
+        createdAt: new Date(Date.now() - 3 * 86400_000).toISOString(),
+      },
+    ],
+    creator: {
+      id: 2,
+      email: "host1@example.com",
+      name: "욱진",
+    },
+    // ✅ 정원/조건 때문에 대기열로 간 상태 예시
+    myRegistration: {
+      applicationStatus: null, // 참가하기
+      registrationStatus: null, // 아직 실제 등록은 안 됨
+      checkInAt: null,
+      cancelAt: null,
+    },
+  },
 ];
 
 export async function searchSampleSeries(q: string): Promise<SeriesDTO[]> {
