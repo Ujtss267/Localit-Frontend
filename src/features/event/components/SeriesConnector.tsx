@@ -19,7 +19,7 @@ export default function SeriesConnector(props: SeriesConnectorProps) {
   } = props;
 
   return (
-    <Box className="rounded-2xl border p-3 mt-2 bg-neutral-50">
+    <Box className="rounded-2xl border p-3 mt-2">
       <Typography variant="subtitle2" sx={{ mb: 1 }}>
         시리즈 연결
       </Typography>

@@ -36,7 +36,7 @@ export default function EventDetailPage() {
   if (!e) {
     return (
       <div className="max-w-3xl mx-auto px-3 sm:px-4 py-10">
-        <CardUI className="p-6 bg-white/95 dark:bg-neutral-900/95 border border-neutral-200 dark:border-neutral-800 shadow-sm">
+        <CardUI className="p-6 border-neutral-200 dark:border-neutral-800 shadow-sm">
           <Typography variant="h6" className="text-neutral-900 dark:text-neutral-50">
             이벤트를 찾을 수 없습니다.
           </Typography>
@@ -78,7 +78,7 @@ export default function EventDetailPage() {
   const startLabel = new Date(e.startTime).toLocaleString("ko-KR");
 
   return (
-    <div className="min-h-[100svh] bg-gradient-to-b from-neutral-50 to-white dark:from-neutral-950 dark:via-neutral-950 dark:to-neutral-900 text-neutral-900 dark:text-neutral-100">
+    <div className="min-h-[100svh] ">
       <div className="max-w-5xl mx-auto px-3 sm:px-4 pb-28 sm:pb-16">
         {/* 사진 갤러리 */}
         {images.length > 0 && (
@@ -141,10 +141,10 @@ export default function EventDetailPage() {
               />
 
               {/* ✅ 호스트 정보 블럭 */}
-              <div className="mt-4 flex items-center justify-between rounded-xl bg-neutral-50/80 dark:bg-neutral-900/60 px-3 py-2.5 border border-neutral-200/70 dark:border-neutral-800/80">
+              <div className="mt-4 flex items-center justify-between rounded-xl  px-3 py-2.5 border border-neutral-200/70">
                 <div>
-                  <div className="text-xs text-neutral-500 dark:text-neutral-400">주최자</div>
-                  <div className="font-semibold text-neutral-900 dark:text-neutral-50">
+                  <div className="text-xs">주최자</div>
+                  <div className="font-semibold">
                     {(e as any)?.creator?.name ?? (e as any)?.creator?.email ?? (hostUserId ? `User #${hostUserId}` : "주최자")}
                   </div>
                 </div>
@@ -153,37 +153,37 @@ export default function EventDetailPage() {
                 </Button>
               </div>
 
-              <Typography variant="subtitle1" className="font-semibold mb-2 mt-4 text-neutral-900 dark:text-neutral-50">
+              <Typography variant="subtitle1" className="font-semibold mb-2 mt-4">
                 이벤트 소개
               </Typography>
-              <Typography variant="body1" className="leading-7 text-neutral-800 dark:text-neutral-200">
+              <Typography variant="body1" className="leading-7">
                 {e.description}
               </Typography>
             </CardUI>
 
             {/* 세부 정보 */}
-            <CardUI className="p-5 bg-white/95 dark:bg-neutral-900/95 border border-neutral-200/80 dark:border-neutral-800/80 shadow-sm backdrop-blur">
-              <Typography variant="subtitle1" className="font-semibold mb-3 text-neutral-900 dark:text-neutral-50">
+            <CardUI className="p-5 shadow-smbg-white/95 dark:bg-neutral-900/95 border border-neutral-200/80 dark:border-neutral-800/80 shadow-sm backdrop-blur">
+              <Typography variant="subtitle1" className="font-semibold mb-3 border-neutral-200/70">
                 세부 정보
               </Typography>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm border-neutral-200/70">
                 <div className="space-y-1">
-                  <div className="text-neutral-500 dark:text-neutral-400">이벤트 유형</div>
-                  <div className="font-medium text-neutral-900 dark:text-neutral-50">{e.type ?? "GENERAL"}</div>
+                  <div>이벤트 유형</div>
+                  <div className="font-medium">{e.type ?? "GENERAL"}</div>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-neutral-500 dark:text-neutral-400">주최자</div>
-                  <div className="font-medium text-neutral-900 dark:text-neutral-50">
+                  <div>주최자</div>
+                  <div className="font-medium">
                     {(e as any)?.creator?.name ?? (e as any)?.creator?.email ?? (hostUserId ? `User #${hostUserId}` : "주최자")}
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-neutral-500 dark:text-neutral-400">결제 처리</div>
-                  <div className="font-medium text-neutral-900 dark:text-neutral-50">{e.paidToHost ? "주최자 수령" : "공유 정산"}</div>
+                  <div>결제 처리</div>
+                  <div className="font-medium ">{e.paidToHost ? "주최자 수령" : "공유 정산"}</div>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-neutral-500 dark:text-neutral-400">호스트 형태</div>
-                  <div className="font-medium text-neutral-900 dark:text-neutral-50">{e.hostType ?? "creator"}</div>
+                  <div>호스트 형태</div>
+                  <div className="font-medium ">{e.hostType ?? "creator"}</div>
                 </div>
               </div>
             </CardUI>
@@ -200,19 +200,19 @@ export default function EventDetailPage() {
 
           {/* 우측 CTA (데스크탑용) */}
           <div className="hidden lg:block">
-            <CardUI className="p-5 sticky top-6 bg-white/95 dark:bg-neutral-900/95 border border-neutral-200/80 dark:border-neutral-800/80 shadow-sm backdrop-blur">
+            <CardUI className="p-5 sticky top-6shadow-sm backdrop-blur">
               <div className="flex items-center justify-between">
-                <div className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">{priceLabel}</div>
+                <div className="text-lg font-semibold">{priceLabel}</div>
                 {e.type && <Chip size="small" label={e.type} variant="outlined" />}
               </div>
-              <Typography variant="body2" className="text-neutral-600 dark:text-neutral-400 mt-1">
+              <Typography variant="body2" className="mt-1">
                 {startLabel}
               </Typography>
-              <Divider className="!my-4 border-neutral-200 dark:border-neutral-800" />
+              <Divider className="!my-4" />
               <Button size="lg" className="w-full" onClick={onAttend} disabled={isFetching}>
                 {isFetching ? "처리 중…" : "참가요청"}
               </Button>
-              <Typography variant="caption" className="block text-neutral-500 dark:text-neutral-400 mt-2">
+              <Typography variant="caption" className="block mt-2">
                 지금은 테스트로 주최자의 마이페이지로 이동하지만, 실제로는 참가요청 → 호스트 승인 플로우로 동작할 예정입니다.
               </Typography>
             </CardUI>
@@ -221,7 +221,7 @@ export default function EventDetailPage() {
 
         {/* 원본 이미지 모달 */}
         <Dialog open={imgOpen} onClose={() => setImgOpen(false)} maxWidth={false} fullWidth={false}>
-          <DialogContent className="p-0 bg-black/85 dark:bg-black/90">
+          <DialogContent className="p-0 ">
             {imgSrc && (
               <div className="flex items-center justify-center max-w-[95vw] max-h-[90vh]">
                 <img
@@ -232,7 +232,7 @@ export default function EventDetailPage() {
                 />
               </div>
             )}
-            <div className="p-3 flex items-center justify-end gap-2 bg-neutral-900/90 border-t border-neutral-800">
+            <div className="p-3 flex items-center justify-end gap-2">
               <Button variant="outline" onClick={() => setImgOpen(false)}>
                 닫기
               </Button>
@@ -247,11 +247,11 @@ export default function EventDetailPage() {
       </div>
 
       {/* ✅ 모바일 하단 CTA 바 (BottomTab 위에 떠 있게 수정) */}
-      <div className="lg:hidden fixed inset-x-0 bottom-14 z-40 border-t border-neutral-200 dark:border-neutral-800 bg-white/95 dark:bg-neutral-900/95 backdrop-blur">
+      <div className="lg:hidden fixed inset-x-0 bottom-14 z-40 border-t  backdrop-blur">
         <div className="max-w-5xl mx-auto px-3 py-2 flex items-center justify-between gap-3">
           <div className="flex flex-col">
-            <span className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">{priceLabel}</span>
-            <span className="text-[11px] text-neutral-600 dark:text-neutral-400">{startLabel}</span>
+            <span className="text-sm font-semibold">{priceLabel}</span>
+            <span className="text-[11px] ">{startLabel}</span>
           </div>
           <Button size="md" className="flex-1 max-w-[180px]" onClick={onAttend} disabled={isFetching}>
             {isFetching ? "처리 중…" : "참가요청"}

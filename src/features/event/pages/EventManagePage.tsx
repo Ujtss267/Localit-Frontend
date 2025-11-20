@@ -5,6 +5,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { useChat } from "@/app/providers/ChatProvider";
+import Tabs from "@/components/ui/Tabs";
 
 // 채팅 탭은 별도 페이지로 빼므로 CHAT 제거
 type ManageTab = "APPLICATIONS" | "PARTICIPANTS";
@@ -66,23 +67,26 @@ export default function EventManagePage() {
 
       {/* 탭 영역 */}
       <div className="mb-4">
-        <div className="flex gap-2 rounded-2xl border p-1">
-          {[
-            { value: "APPLICATIONS", label: "신청/심사" },
-            { value: "PARTICIPANTS", label: "참여자" },
-          ].map((t) => {
-            const active = tab === t.value;
-            return (
-              <button
-                key={t.value}
-                onClick={() => setTab(t.value as ManageTab)}
-                className={"rounded-xl px-4 py-2 text-sm font-medium transition " + (active ? "bg-black text-white" : "hover:bg-gray-100")}
-              >
-                {t.label}
-              </button>
-            );
-          })}
-        </div>
+        <Tabs<ManageTab>
+          value={tab}
+          onChange={setTab}
+          size="sm"
+          fullWidth
+          tabs={[
+            {
+              value: "APPLICATIONS",
+              label: "신청/심사",
+              // 뱃지로 대기 인원 수 노출
+              //badge: <>대기 {summary.pendingApplications}</>,
+            },
+            {
+              value: "PARTICIPANTS",
+              label: "참여자",
+              // 뱃지로 확정 인원 수 노출
+              //badge: <>참여 {summary.confirmed}</>,
+            },
+          ]}
+        />
       </div>
 
       {/* 내용 */}

@@ -46,7 +46,7 @@ export const router = createBrowserRouter([
     ),
     children: [
       // ✅ 공개 경로
-      { index: true, element: <HomePage /> },
+      { index: true, element: <EventListPage /> },
       { path: "events", element: <EventListPage /> },
       { path: "events/:id", element: <EventDetailPage /> },
       { path: "events/new", element: <EventCreatePage /> },

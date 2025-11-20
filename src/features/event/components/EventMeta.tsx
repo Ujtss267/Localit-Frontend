@@ -38,13 +38,13 @@ export default function EventMeta({ title, type, location, startTime, endTime, c
           {type && <Chip size="small" label={type} color="primary" variant="outlined" />}
         </div>
         {mentorName && (
-          <Typography variant="body2" className="text-neutral-600 dark:text-neutral-400 mt-1">
+          <Typography variant="body2" className="mt-1">
             멘토: <span className="font-medium">{mentorName}</span>
           </Typography>
         )}
       </div>
 
-      <Stack spacing={1.2} className="text-sm text-neutral-700 dark:text-neutral-300">
+      <Stack spacing={1.2} className="text-sm">
         {when && (
           <div>
             일시: <span className="font-medium">{when}</span>
