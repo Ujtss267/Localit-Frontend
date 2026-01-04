@@ -82,7 +82,7 @@ export default function ImageCarousel({
               className="pointer-events-auto !bg-white/80 hover:!bg-white shadow-sm !p-1"
               size="small"
             >
-              <ChevronLeftIcon />
+              <ChevronLeftIcon htmlColor="#111827" />
             </IconButton>
             <IconButton
               aria-label="next image"
@@ -90,7 +90,7 @@ export default function ImageCarousel({
               className="pointer-events-auto !bg-white/80 hover:!bg-white shadow-sm !p-1"
               size="small"
             >
-              <ChevronRightIcon />
+              <ChevronRightIcon htmlColor="#111827" />
             </IconButton>
           </div>
 
