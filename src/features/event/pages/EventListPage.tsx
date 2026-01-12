@@ -119,12 +119,12 @@ export default function EventListPage() {
             <div className="flex items-center justify-end gap-3">
               {/* ✅ 내 이벤트만 토글 */}
               <label className="inline-flex items-center gap-2 text-[13px] sm:text-sm cursor-pointer select-none text-neutral-200">
-                <input type="checkbox" checked={myOnly} onChange={(e) => setMyOnly(e.target.checked)} className="h-4 w-4 accent-neutral-100" />내
-                이벤트만
+                <input type="checkbox" checked={myOnly} onChange={(e) => setMyOnly(e.target.checked)} className="h-4 w-4 accent-neutral-100" />
+                MY
               </label>
 
-              <Button variant="ghost" size="sm" onClick={() => setShowAdvanced((v) => !v)} className="text-[13px]">
-                {showAdvanced ? "고급 필터 닫기" : "고급 필터 열기"}
+              <Button variant="ghost" size="sm" onClick={() => setShowAdvanced((v) => !v)} className="text-[12px]">
+                {showAdvanced ? "닫기" : "필터"}
               </Button>
             </div>
           </div>
