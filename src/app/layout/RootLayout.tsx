@@ -1,6 +1,6 @@
 // src/layouts/RootLayout.tsx
 import React from "react";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import Button from "@/components/ui/Button";
 import { useAuth } from "../providers/AuthProvider";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
@@ -9,19 +9,21 @@ import ChatIcon from "@mui/icons-material/Chat";
 
 export default function RootLayout() {
   const { user, logout } = useAuth();
+  const location = useLocation();
+  const hideBottomTab = /^\/events\/[^/]+$/.test(location.pathname);
 
   return (
     <div className="min-h-[100svh] flex flex-col bg-background text-foreground">
       <TopNav user={user} onLogout={logout} />
 
-      <main className="flex-1 pb-20 sm:pb-0">
+      <main className={`flex-1 ${hideBottomTab ? "pb-0" : "pb-20"} sm:pb-0`}>
         {/* 모바일 하단탭 높이만큼 여백 확보: pb-20 */}
         <div className="max-w-6xl mx-auto px-3 sm:px-4 py-6">
           <Outlet />
         </div>
       </main>
 
-      <BottomTab />
+      {!hideBottomTab && <BottomTab />}
     </div>
   );
 }

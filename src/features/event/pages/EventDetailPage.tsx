@@ -2,7 +2,8 @@
 import * as React from "react";
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Typography, Dialog, DialogContent, Divider, Chip } from "@mui/material";
+import { Typography, Dialog, DialogContent, Divider, Chip, IconButton } from "@mui/material";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import Button from "@/components/ui/Button";
 import CardUI from "@/components/ui/Card";
 import EventMeta from "../components/EventMeta";
@@ -80,6 +81,13 @@ export default function EventDetailPage() {
   return (
     <div className="min-h-[100svh] ">
       <div className="max-w-5xl mx-auto px-3 sm:px-4 pb-28 sm:pb-16">
+        <div className="flex items-center gap-2 mb-4">
+          <IconButton aria-label="뒤로가기" onClick={() => navigate(-1)} size="small">
+            <ArrowBackIosNewIcon fontSize="small" />
+          </IconButton>
+          <span className="text-sm text-neutral-200">이벤트 목록으로</span>
+        </div>
+
         {/* 사진 갤러리 */}
         {images.length > 0 && (
           <CardUI className="p-3 sm:p-4 mb-4 bg-white/90 dark:bg-neutral-900/90 border border-neutral-200/80 dark:border-neutral-800/80 shadow-sm backdrop-blur">
@@ -247,7 +255,7 @@ export default function EventDetailPage() {
       </div>
 
       {/* ✅ 모바일 하단 CTA 바 (BottomTab 위에 떠 있게 수정) */}
-      <div className="lg:hidden fixed inset-x-0 bottom-14 z-40 border-t  backdrop-blur">
+      <div className="lg:hidden fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur">
         <div className="max-w-5xl mx-auto px-3 py-2 flex items-center justify-between gap-3">
           <div className="flex flex-col">
             <span className="text-sm font-semibold">{priceLabel}</span>
