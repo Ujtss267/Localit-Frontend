@@ -160,7 +160,7 @@ export default function EventListPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {items.map((e) => (
-              <EventCardPretty key={e.id} e={e} canEdit={e.creator.id === me.userId} />
+              <EventCardPretty key={e.id} e={e} canEdit={e.creator?.id === me.userId} />
             ))}
           </div>
         )}

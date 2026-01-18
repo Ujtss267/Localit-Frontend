@@ -21,6 +21,7 @@ export default function EventDetailPage() {
 
   const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
   const eventId = Number(id);
+  const safeEventId = Number.isNaN(eventId) ? 0 : eventId;
 
   // 이미지 라이트박스
   const [imgOpen, setImgOpen] = React.useState(false);
@@ -30,9 +31,26 @@ export default function EventDetailPage() {
     setImgOpen(true);
   };
 
-  const { data: serverEvent, isFetching } = useEvent(eventId);
+  const { data: serverEvent, isFetching } = useEvent(safeEventId);
   const sample = useMemo(() => sampleEvents.find((e) => e.id === eventId), [eventId]);
   const e: EventDTO | undefined = USE_SAMPLE ? sample : (serverEvent ?? sample);
+
+  if (Number.isNaN(eventId)) {
+    return (
+      <div className="max-w-3xl mx-auto px-3 sm:px-4 py-10">
+        <CardUI className="p-6 border-neutral-200 dark:border-neutral-800 shadow-sm">
+          <Typography variant="h6" className="text-neutral-900 dark:text-neutral-50">
+            잘못된 이벤트 ID입니다.
+          </Typography>
+          <div className="mt-3">
+            <Button onClick={() => navigate(-1)} variant="outline">
+              뒤로가기
+            </Button>
+          </div>
+        </CardUI>
+      </div>
+    );
+  }
 
   if (!e) {
     return (
@@ -77,12 +95,13 @@ export default function EventDetailPage() {
 
   const priceLabel = e.price && e.price > 0 ? `${e.price.toLocaleString()}원` : "무료";
   const startLabel = new Date(e.startTime).toLocaleString("ko-KR");
+  const mobileCtaStyle = { paddingBottom: "max(10px, env(safe-area-inset-bottom))" } as React.CSSProperties;
 
   return (
-    <div className="min-h-[100svh] ">
+    <div className="min-h-[100svh] bg-neutral-950 text-neutral-100">
       <div className="max-w-5xl mx-auto px-3 sm:px-4 pb-28 sm:pb-16">
         <div className="flex items-center gap-2 mb-4">
-          <IconButton aria-label="뒤로가기" onClick={() => navigate(-1)} size="small">
+          <IconButton aria-label="뒤로가기" onClick={() => navigate(-1)} size="small" className="text-neutral-200">
             <ArrowBackIosNewIcon fontSize="small" />
           </IconButton>
           <span className="text-sm text-neutral-200">이벤트 목록으로</span>
@@ -90,18 +109,18 @@ export default function EventDetailPage() {
 
         {/* 사진 갤러리 */}
         {images.length > 0 && (
-          <CardUI className="p-3 sm:p-4 mb-4 bg-white/90 dark:bg-neutral-900/90 border border-neutral-200/80 dark:border-neutral-800/80 shadow-sm backdrop-blur">
+          <CardUI className="p-3 sm:p-4 mb-4 bg-neutral-900/80 border border-neutral-800 shadow-sm backdrop-blur">
             <div className="flex items-center justify-between mb-2">
-              <Typography variant="subtitle1" className="font-semibold text-neutral-900 dark:text-neutral-50">
+              <Typography variant="subtitle1" className="font-semibold text-neutral-100">
                 사진 갤러리
               </Typography>
-              <div className="hidden sm:flex gap-2 text-xs text-neutral-500 dark:text-neutral-400">{images.length}장</div>
+              <div className="hidden sm:flex gap-2 text-xs text-neutral-400">{images.length}장</div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
               {images.slice(0, 12).map((src, idx) => (
                 <button
                   key={src + idx}
-                  className="group relative block w-full overflow-hidden rounded-lg bg-neutral-100 dark:bg-neutral-800"
+                  className="group relative block w-full overflow-hidden rounded-lg bg-neutral-800"
                   onClick={() => openImage(src)}
                   aria-label={`이미지 ${idx + 1} 크게 보기`}
                 >
@@ -123,7 +142,7 @@ export default function EventDetailPage() {
         <div className="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-5">
           {/* 좌측 */}
           <div className="lg:col-span-2 space-y-5">
-            <CardUI className="p-5 bg-white/95 dark:bg-neutral-900/95 border border-neutral-200/80 dark:border-neutral-800/80 shadow-sm backdrop-blur">
+            <CardUI className="p-5 bg-neutral-900/90 border border-neutral-800 shadow-sm backdrop-blur">
               <div className="flex items-center gap-2 mb-2">
                 {e.seriesId != null ? (
                   <>
@@ -149,10 +168,10 @@ export default function EventDetailPage() {
               />
 
               {/* ✅ 호스트 정보 블럭 */}
-              <div className="mt-4 flex items-center justify-between rounded-xl  px-3 py-2.5 border border-neutral-200/70">
+              <div className="mt-4 flex items-center justify-between rounded-xl px-3 py-2.5 border border-neutral-800">
                 <div>
-                  <div className="text-xs">주최자</div>
-                  <div className="font-semibold">
+                  <div className="text-xs text-neutral-400">주최자</div>
+                  <div className="font-semibold text-neutral-100">
                     {(e as any)?.creator?.name ?? (e as any)?.creator?.email ?? (hostUserId ? `User #${hostUserId}` : "주최자")}
                   </div>
                 </div>
@@ -161,37 +180,37 @@ export default function EventDetailPage() {
                 </Button>
               </div>
 
-              <Typography variant="subtitle1" className="font-semibold mb-2 mt-4">
+              <Typography variant="subtitle1" className="font-semibold mb-2 mt-4 text-neutral-100">
                 이벤트 소개
               </Typography>
-              <Typography variant="body1" className="leading-7">
+              <Typography variant="body1" className="leading-7 text-neutral-200">
                 {e.description}
               </Typography>
             </CardUI>
 
             {/* 세부 정보 */}
-            <CardUI className="p-5 shadow-smbg-white/95 dark:bg-neutral-900/95 border border-neutral-200/80 dark:border-neutral-800/80 shadow-sm backdrop-blur">
-              <Typography variant="subtitle1" className="font-semibold mb-3 border-neutral-200/70">
+            <CardUI className="p-5 shadow-sm bg-neutral-900/90 border border-neutral-800 shadow-sm backdrop-blur">
+              <Typography variant="subtitle1" className="font-semibold mb-3 text-neutral-100">
                 세부 정보
               </Typography>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm border-neutral-200/70">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-neutral-200">
                 <div className="space-y-1">
-                  <div>이벤트 유형</div>
-                  <div className="font-medium">{e.type ?? "GENERAL"}</div>
+                  <div className="text-neutral-400">이벤트 유형</div>
+                  <div className="font-medium text-neutral-100">{e.type ?? "GENERAL"}</div>
                 </div>
                 <div className="space-y-1">
-                  <div>주최자</div>
-                  <div className="font-medium">
+                  <div className="text-neutral-400">주최자</div>
+                  <div className="font-medium text-neutral-100">
                     {(e as any)?.creator?.name ?? (e as any)?.creator?.email ?? (hostUserId ? `User #${hostUserId}` : "주최자")}
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <div>결제 처리</div>
-                  <div className="font-medium ">{e.paidToHost ? "주최자 수령" : "공유 정산"}</div>
+                  <div className="text-neutral-400">결제 처리</div>
+                  <div className="font-medium text-neutral-100">{e.paidToHost ? "주최자 수령" : "공유 정산"}</div>
                 </div>
                 <div className="space-y-1">
-                  <div>호스트 형태</div>
-                  <div className="font-medium ">{e.hostType ?? "creator"}</div>
+                  <div className="text-neutral-400">호스트 형태</div>
+                  <div className="font-medium text-neutral-100">{e.hostType ?? "creator"}</div>
                 </div>
               </div>
             </CardUI>
@@ -208,19 +227,19 @@ export default function EventDetailPage() {
 
           {/* 우측 CTA (데스크탑용) */}
           <div className="hidden lg:block">
-            <CardUI className="p-5 sticky top-6shadow-sm backdrop-blur">
+            <CardUI className="p-5 sticky top-6 shadow-sm backdrop-blur bg-neutral-900/90 border border-neutral-800">
               <div className="flex items-center justify-between">
-                <div className="text-lg font-semibold">{priceLabel}</div>
+                <div className="text-lg font-semibold text-neutral-100">{priceLabel}</div>
                 {e.type && <Chip size="small" label={e.type} variant="outlined" />}
               </div>
-              <Typography variant="body2" className="mt-1">
+              <Typography variant="body2" className="mt-1 text-neutral-300">
                 {startLabel}
               </Typography>
               <Divider className="!my-4" />
               <Button size="lg" className="w-full" onClick={onAttend} disabled={isFetching}>
                 {isFetching ? "처리 중…" : "참가요청"}
               </Button>
-              <Typography variant="caption" className="block mt-2">
+              <Typography variant="caption" className="block mt-2 text-neutral-400">
                 지금은 테스트로 주최자의 마이페이지로 이동하지만, 실제로는 참가요청 → 호스트 승인 플로우로 동작할 예정입니다.
               </Typography>
             </CardUI>
@@ -255,11 +274,11 @@ export default function EventDetailPage() {
       </div>
 
       {/* ✅ 모바일 하단 CTA 바 (BottomTab 위에 떠 있게 수정) */}
-      <div className="lg:hidden fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur">
+      <div className="lg:hidden fixed inset-x-0 bottom-0 z-40 border-t border-neutral-800 bg-neutral-950/90 backdrop-blur" style={mobileCtaStyle}>
         <div className="max-w-5xl mx-auto px-3 py-2 flex items-center justify-between gap-3">
           <div className="flex flex-col">
-            <span className="text-sm font-semibold">{priceLabel}</span>
-            <span className="text-[11px] ">{startLabel}</span>
+            <span className="text-sm font-semibold text-neutral-100">{priceLabel}</span>
+            <span className="text-[11px] text-neutral-400">{startLabel}</span>
           </div>
           <Button size="md" className="flex-1 max-w-[180px]" onClick={onAttend} disabled={isFetching}>
             {isFetching ? "처리 중…" : "참가요청"}

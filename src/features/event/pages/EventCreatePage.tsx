@@ -1,5 +1,5 @@
 // src/features/event/pages/EventCreatePage.tsx
-import React, { useState, type FormEvent, useMemo } from "react";
+import React, { useState, type FormEvent, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreateEvent } from "../queries";
 import type { CreateEventDto } from "../api";
@@ -67,7 +67,7 @@ function useUpdateSeries() {
 
 function useSeriesPermissions(seriesId?: number | null) {
   const [canEdit, setCanEdit] = useState(false);
-  useMemo(() => {
+  useEffect(() => {
     setCanEdit(!!seriesId);
   }, [seriesId]);
   return { canEdit };
@@ -193,13 +193,13 @@ export default function EventCreatePage() {
 
     createMut.mutate(payload, {
       onSuccess: (res) => {
-        navigate(res?.id ? `/event/${res.id}` : "/events", { replace: true });
+        navigate(res?.id ? `/events/${res.id}` : "/events", { replace: true });
       },
     });
   }
 
   // 시리즈 검색
-  useMemo(() => {
+  useEffect(() => {
     if (mode === "series") {
       const k = seriesKeyword.trim();
       if (k.length >= 1) seriesSearch.search(k);
@@ -322,7 +322,15 @@ export default function EventCreatePage() {
                   to="18:00"
                   stepMinutes={30}
                   value={range}
-                  onChange={(r) => setRange(isNaN(r.start.getTime()) ? null : r)}
+                  onChange={(r) => {
+                    if (isNaN(r.start.getTime())) {
+                      setRange(null);
+                      return;
+                    }
+                    setRange(r);
+                    setStartLocal(toLocalFromDate(r.start));
+                    setEndLocal(toLocalFromDate(r.end));
+                  }}
                 />
               </Stack>
             </Box>
