@@ -9,28 +9,14 @@ import { useChat } from "@/app/providers/ChatProvider";
 import { EventMyCard } from "../components/EventMyCard";
 import { RoomMyCard } from "../components/RoomMyCard";
 import { ReservationMyCard } from "../components/ReservationMyCard";
-import { FollowersScreen } from "../components/FollowersScreen";
-import { FollowingScreen } from "../components/FollowingScreen";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { Tabs } from "@/components/ui";
 
-// ───────────────────────────
-// 작은 공용 UI
-// ───────────────────────────
-function SectionHeader({ title, right }: { title: string; right?: React.ReactNode }) {
-  return (
-    <div className="mb-3 flex items-center justify-between">
-      <h3 className="text-lg font-semibold">{title}</h3>
-      {right}
-    </div>
-  );
-}
-
 function EmptyState({ title, hint }: { title: string; hint?: string }) {
   return (
-    <div className="w-full rounded-2xl border p-6 text-center">
+    <div className="w-full rounded-2xl border border-gray-200 bg-white/80 p-6 text-center text-gray-900 dark:border-white/10 dark:bg-white/5 dark:text-gray-100">
       <div className="text-base font-medium">{title}</div>
-      {hint && <div className="mt-1 text-sm opacity-75">{hint}</div>}
+      {hint && <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">{hint}</div>}
     </div>
   );
 }
@@ -44,10 +30,8 @@ function canView(v: Visibility | undefined, isOwner: boolean, isFollower: boolea
   return false;
 }
 
-type MajorTab = "EVENTS" | "ROOMS";
 type EventTab = "HOSTED" | "PARTICIPATING";
 type RoomTab = "MYROOMS" | "RESERVATIONS";
-type ViewMode = "MAIN" | "FOLLOWERS" | "FOLLOWING";
 
 export default function MyPage() {
   const { user } = useAuth(); // { id: number, ... } 라고 가정
@@ -61,18 +45,14 @@ export default function MyPage() {
   const initialData = sampleMyPages[targetUserId] ?? sampleMyPages[999];
 
   const [data, setData] = useState<MyPageDto>(initialData);
-  const [majorTab, setMajorTab] = useState<MajorTab>("EVENTS");
   const [eventTab, setEventTab] = useState<EventTab>("HOSTED");
   const [roomTab, setRoomTab] = useState<RoomTab>("MYROOMS");
-  const [view, setView] = useState<ViewMode>("MAIN");
   const [searchId, setSearchId] = useState("");
 
   // URL 바뀔 때마다 해당 사용자로 갈아끼우기
   useEffect(() => {
     const next = sampleMyPages[targetUserId] ?? sampleMyPages[999];
     setData(next);
-    setView("MAIN");
-    setMajorTab("EVENTS");
     setEventTab("HOSTED");
     setRoomTab("MYROOMS");
     setSearchId("");
@@ -113,15 +93,6 @@ export default function MyPage() {
     setData((prev) => ({ ...prev, isFollower: !prev.isFollower }));
   };
 
-  // 리스트 화면에서 팔로우/언팔
-  const toggleFollowUserInList = (userId: number) => {
-    setData((prev) => ({
-      ...prev,
-      followers: prev.followers.map((u) => (u.userId === userId ? { ...u, iFollow: !u.iFollow } : u)),
-      following: prev.following.map((u) => (u.userId === userId ? { ...u, iFollow: !u.iFollow } : u)),
-    }));
-  };
-
   // 상단에서 userId 입력 → 그 사용자 페이지로 이동
   const onSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,84 +104,106 @@ export default function MyPage() {
     }
   };
 
-  // 팔로워/팔로잉 뷰 (네 컴포넌트는 onOpenProfile 없음)
-  if (view === "FOLLOWERS") {
-    return <FollowersScreen list={data.followers} onBack={() => setView("MAIN")} onToggleFollow={toggleFollowUserInList} />;
-  }
-  if (view === "FOLLOWING") {
-    return <FollowingScreen list={data.following} onBack={() => setView("MAIN")} onToggleFollow={toggleFollowUserInList} />;
-  }
-
   return (
-    <div className="mx-auto max-w-6xl p-4 sm:p-6">
-      {/* 헤더 */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-4">
-          <div className="h-14 w-14 overflow-hidden rounded-full bg-gray-200" />
-          <div>
-            <div className="text-xl font-semibold">{data.profileName}</div>
-            <div className="text-sm opacity-70">{isOwner ? "내 페이지" : data.isFollower ? "팔로잉 중" : "팔로우하여 더 보기"}</div>
+    <div className="mx-auto max-w-6xl px-4 pb-10 pt-6 text-gray-900 dark:text-gray-100 sm:px-6">
+      {/* 프로필 헤더 */}
+      <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white/90 shadow-sm dark:border-white/10 dark:bg-neutral-900/70">
+        <div className="h-24 bg-gradient-to-r from-amber-100 via-orange-100 to-rose-100 dark:from-amber-500/25 dark:via-orange-500/20 dark:to-rose-500/25 sm:h-32" />
+        <div className="grid gap-5 px-5 pb-6 sm:grid-cols-[auto,1fr,auto] sm:px-6">
+          <div className="-mt-10 h-20 w-20 overflow-hidden rounded-2xl border border-gray-200 bg-gray-200 shadow-sm dark:border-white/10 dark:bg-white/10 sm:-mt-12 sm:h-24 sm:w-24" />
+          <div className="space-y-2">
+            <div>
+              <div className="text-2xl font-semibold">{data.profileName}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                {data.profileTitle ?? (isOwner ? "프로필 타이틀을 추가해 보세요" : "호스트")}
+              </div>
+            </div>
+            <div className="text-sm text-gray-700 dark:text-gray-300">
+              {data.profileBio ?? (isOwner ? "짧은 소개를 작성해 보세요." : "소개가 없습니다.")}
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+              {data.profileLocation && (
+                <span className="rounded-full bg-gray-100 px-2 py-1 text-gray-600 dark:bg-white/10 dark:text-gray-300">
+                  {data.profileLocation}
+                </span>
+              )}
+              {(data.profileTags ?? []).map((tag) => (
+                <span key={tag} className="rounded-full bg-gray-100 px-2 py-1 text-gray-600 dark:bg-white/10 dark:text-gray-300">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+            {isOwner ? (
+              <button className="rounded-2xl border border-gray-200 px-4 py-2 text-sm hover:bg-gray-50 dark:border-white/10 dark:hover:bg-white/10">
+                프로필 편집
+              </button>
+            ) : (
+              <button
+                onClick={toggleFollowProfile}
+                className={
+                  "rounded-2xl border px-4 py-2 text-sm shadow-sm dark:border-white/10 " +
+                  (data.isFollower ? "bg-black text-white dark:bg-white dark:text-black" : "hover:bg-gray-50 dark:hover:bg-white/10")
+                }
+              >
+                {data.isFollower ? "언팔로우" : "팔로우"}
+              </button>
+            )}
+            <button className="rounded-2xl border border-gray-200 px-4 py-2 text-sm hover:bg-gray-50 dark:border-white/10 dark:hover:bg-white/10">
+              공유
+            </button>
           </div>
         </div>
-
-        {/* 아이디로 이동하는 검색폼 */}
-        <form onSubmit={onSearchSubmit} className="flex items-center gap-2">
-          <input
-            value={searchId}
-            onChange={(e) => setSearchId(e.target.value)}
-            placeholder="userId로 열기 (예: 1)"
-            className="w-32 rounded-xl border px-3 py-1 text-sm"
-          />
-          <button type="submit" className="rounded-xl border px-3 py-1 text-sm hover:bg-gray-50">
-            열기
-          </button>
-        </form>
-
-        <div className="flex items-center gap-3">
-          <button className="rounded-2xl border px-3 py-1 text-sm hover:bg-gray-50" onClick={() => setView("FOLLOWERS")}>
-            팔로워 <span className="font-semibold">{data.followers.length}</span>
-          </button>
-          <button className="rounded-2xl border px-3 py-1 text-sm hover:bg-gray-50" onClick={() => setView("FOLLOWING")}>
-            팔로잉 <span className="font-semibold">{data.following.length}</span>
-          </button>
-          {!isOwner && (
-            <button
-              onClick={toggleFollowProfile}
-              className={"rounded-2xl border px-4 py-2 shadow-sm " + (data.isFollower ? "bg-black text-white" : "hover:bg-gray-50")}
-            >
-              {data.isFollower ? "언팔로우" : "팔로우"}
-            </button>
-          )}
+        <div className="grid gap-4 px-5 pb-6 sm:grid-cols-[2fr,1fr] sm:px-6">
+          <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-4 text-sm text-gray-700 dark:border-white/10 dark:bg-white/5 dark:text-gray-200">
+            <div className="mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400">소개</div>
+            <div>{data.profileIntro ?? (isOwner ? "프로필 소개를 추가해 보세요." : "소개가 없습니다.")}</div>
+          </div>
+          <div className="grid gap-3">
+            <div className="rounded-2xl border border-gray-200 px-4 py-3 dark:border-white/10">
+              <div className="text-xs text-gray-500 dark:text-gray-400">내가 만든 이벤트</div>
+              <div className="text-2xl font-semibold">{hostedEvents.length}</div>
+            </div>
+            <div className="rounded-2xl border border-gray-200 px-4 py-3 dark:border-white/10">
+              <div className="text-xs text-gray-500 dark:text-gray-400">참석 중인 이벤트</div>
+              <div className="text-2xl font-semibold">{participatingEvents.length}</div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* 대분류 탭 */}
-      <div className="mb-5">
-        <Tabs
-          value={majorTab}
-          onChange={setMajorTab}
-          tabs={[
-            { value: "EVENTS", label: "Events" },
-            { value: "ROOMS", label: "Rooms" },
-          ]}
+      {/* 아이디로 이동하는 검색폼 (샘플용) */}
+      <form onSubmit={onSearchSubmit} className="mt-4 hidden items-center gap-2 sm:flex">
+        <input
+          value={searchId}
+          onChange={(e) => setSearchId(e.target.value)}
+          placeholder="userId로 열기 (예: 1)"
+          className="w-40 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 dark:border-white/10 dark:bg-neutral-900 dark:text-gray-100 dark:placeholder:text-gray-500"
         />
-      </div>
+        <button type="submit" className="rounded-xl border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50 dark:border-white/10 dark:hover:bg-white/10">
+          열기
+        </button>
+      </form>
 
       {/* EVENTS */}
-      {majorTab === "EVENTS" ? (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <SectionHeader title="Events" />
-            <Tabs
-              value={eventTab}
-              onChange={setEventTab}
-              tabs={[
-                { value: "HOSTED", label: "Hosted" },
-                { value: "PARTICIPATING", label: "Participating" },
-              ]}
-            />
+      <div className="mt-8 space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="text-lg font-semibold">이벤트</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">내가 만든 이벤트와 참석 중인 이벤트</div>
           </div>
+          <Tabs
+            value={eventTab}
+            onChange={setEventTab}
+            tabs={[
+              { value: "HOSTED", label: "내가 만든 이벤트" },
+              { value: "PARTICIPATING", label: "참석 중인 이벤트" },
+            ]}
+          />
+        </div>
 
+        <div className="rounded-3xl border border-gray-200 bg-white p-4 dark:border-white/10 dark:bg-neutral-900/70 sm:p-6">
           {eventTab === "HOSTED" ? (
             hostedEvents.length ? (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -253,21 +246,26 @@ export default function MyPage() {
             <EmptyState title="참여 예정 이벤트가 없습니다." hint="관심 이벤트에 등록해 보세요." />
           )}
         </div>
-      ) : (
-        // ROOMS
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <SectionHeader title="Rooms" />
-            <Tabs
-              value={roomTab}
-              onChange={setRoomTab}
-              tabs={[
-                { value: "MYROOMS", label: "My Rooms" },
-                { value: "RESERVATIONS", label: "Reservations" },
-              ]}
-            />
-          </div>
+      </div>
 
+      {/* ROOMS */}
+      <div className="mt-10 space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="text-lg font-semibold">공간</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">공간 등록 및 예약 정보</div>
+          </div>
+          <Tabs
+            value={roomTab}
+            onChange={setRoomTab}
+            tabs={[
+              { value: "MYROOMS", label: "내 공간" },
+              { value: "RESERVATIONS", label: "예약 내역" },
+            ]}
+          />
+        </div>
+
+        <div className="rounded-3xl border border-gray-200 bg-white p-4 dark:border-white/10 dark:bg-neutral-900/70 sm:p-6">
           {roomTab === "MYROOMS" ? (
             myRooms.length ? (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -288,7 +286,7 @@ export default function MyPage() {
             <EmptyState title="예약 내역이 없습니다." hint="공간을 예약해 보세요." />
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

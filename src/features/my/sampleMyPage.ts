@@ -11,6 +11,11 @@ export const sampleMyPages: Record<number, MyPageDto> = {
   999: {
     profileUserId: 999,
     profileName: "Wookjin",
+    profileTitle: "Product Builder · Community Host",
+    profileBio: "로컬 커뮤니티에서 만남이 더 쉬워지도록 경험을 설계합니다.",
+    profileLocation: "서울 · 선릉",
+    profileIntro: "작게 시작해서 크게 성장하는 모임을 좋아해요. 워크숍과 멘토링을 자주 열고 있습니다.",
+    profileTags: ["커뮤니티", "멘토링", "워크숍"],
     isOwner: false,
     isFollower: false,
     sections: {
@@ -99,6 +104,11 @@ export const sampleMyPages: Record<number, MyPageDto> = {
   1: {
     profileUserId: 1,
     profileName: "Alice",
+    profileTitle: "UX Designer · Figma Educator",
+    profileBio: "일하는 사람들을 위한 유용한 도구와 워크숍을 만듭니다.",
+    profileLocation: "서울 · 성수",
+    profileIntro: "작은 팀이 더 빠르게 배우고 성장할 수 있도록 돕는 세션을 운영해요.",
+    profileTags: ["디자인", "스터디", "워크숍"],
     isOwner: false,
     isFollower: true, // 내가 이 사람을 보고 있다고 가정하면 true/false로 바꿔가며 테스트 가능
     sections: {
@@ -165,6 +175,11 @@ export const sampleMyPages: Record<number, MyPageDto> = {
   2: {
     profileUserId: 2,
     profileName: "Bob",
+    profileTitle: "Backend Engineer · NestJS",
+    profileBio: "확장 가능한 API와 개발자 경험을 좋아합니다.",
+    profileLocation: "서울 · 강남",
+    profileIntro: "실무에서 바로 써먹을 수 있는 백엔드 지식을 나누고 싶어요.",
+    profileTags: ["백엔드", "API", "멘토링"],
     isOwner: false,
     isFollower: false,
     sections: {
@@ -221,6 +236,11 @@ export const sampleMyPages: Record<number, MyPageDto> = {
   3: {
     profileUserId: 3,
     profileName: "Dana",
+    profileTitle: "Community Manager",
+    profileBio: "사람과 장소를 연결하는 일을 합니다.",
+    profileLocation: "부산 · 센텀",
+    profileIntro: "지역에서 의미 있는 만남이 일어나도록 공간과 프로그램을 기획해요.",
+    profileTags: ["로컬", "커뮤니티", "모임"],
     isOwner: false,
     isFollower: false,
     sections: {

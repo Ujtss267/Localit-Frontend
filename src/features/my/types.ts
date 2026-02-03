@@ -53,6 +53,11 @@ export interface UserBriefDto {
 export interface MyPageDto {
   profileUserId: number;
   profileName: string;
+  profileTitle?: string;
+  profileBio?: string;
+  profileLocation?: string;
+  profileIntro?: string;
+  profileTags?: string[];
   isOwner: boolean;
   isFollower: boolean;
   sections: MyPageSectionsDto;
