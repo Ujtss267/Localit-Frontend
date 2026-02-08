@@ -3,8 +3,8 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import RootLayout from "./layout/RootLayout";
 import ProtectedRoute from "./layout/ProtectedRoute";
 import { AuthProvider, useAuth } from "./providers/AuthProvider";
+import { BackNavPageTemplate, PlainPageTemplate, TabPageTemplate } from "./layout/PageTemplates";
 
-import HomePage from "@/pages/HomePage";
 import LoginPage from "@/features/auth/pages/LoginPage";
 import SignupPage from "@/features/auth/pages/SignupPage";
 
@@ -45,49 +45,58 @@ export const router = createBrowserRouter([
       </AuthProvider>
     ),
     children: [
-      // ✅ 공개 경로
-      { index: true, element: <EventListPage /> },
-      { path: "events", element: <EventListPage /> },
-      { path: "events/:id", element: <EventDetailPage /> },
-      { path: "events/new", element: <EventCreatePage /> },
-      { path: "events/:id/edit", element: <EventEditPage /> },
-      { path: "rooms", element: <RoomListPage /> },
-      { path: "rooms/new", element: <RoomCreatePage /> },
-      { path: "auth/phone-verify", element: <PhoneVerifyPage /> },
-      { path: "m-demo", element: <MobileFirstDemo /> },
-      { path: "my", element: <MyPage /> },
-      { path: "my/:userId", element: <MyPage /> },
-      { path: "subscription", element: <SubscriptionPage /> },
-      { path: "events/:eventId/manage", element: <EventManagePage /> },
-      { path: "chat", element: <ChatListPage /> },
-      { path: "chat/events/:eventId", element: <EventChatPage /> },
-      { path: "ticket/events/:eventId", element: <EventTicketPage /> },
-      // ✅ 로그인/회원가입 (원하면 PublicOnlyRoute로 보호)
+      { index: true, element: <Navigate to="/events" replace /> },
       {
-        path: "login",
-        element: (
-          <PublicOnlyRoute>
-            <LoginPage />
-          </PublicOnlyRoute>
-        ),
-      },
-      {
-        path: "signup",
-        element: (
-          <PublicOnlyRoute>
-            <SignupPage />
-          </PublicOnlyRoute>
-        ),
-      },
-
-      // 🔐 보호 경로
-      {
-        element: <ProtectedRoute />,
+        element: <TabPageTemplate />,
         children: [
-          // 데모는 유지하고 싶으면 여기 두세요(또는 공개로 빼도 됨)
-          { path: "style-demo", element: <StyleDemo /> },
-
-          { path: "rooms/reserve", element: <RoomReservePage /> },
+          { path: "events", element: <EventListPage /> },
+          { path: "rooms", element: <RoomListPage /> },
+          { path: "my", element: <MyPage /> },
+          { path: "my/:userId", element: <MyPage /> },
+          { path: "chat", element: <ChatListPage /> },
+          { path: "subscription", element: <SubscriptionPage /> },
+        ],
+      },
+      {
+        element: <BackNavPageTemplate />,
+        children: [
+          { path: "events/:id", element: <EventDetailPage /> },
+          { path: "events/new", element: <EventCreatePage /> },
+          { path: "events/:id/edit", element: <EventEditPage /> },
+          { path: "events/:eventId/manage", element: <EventManagePage /> },
+          { path: "rooms/new", element: <RoomCreatePage /> },
+          { path: "chat/events/:eventId", element: <EventChatPage /> },
+          { path: "ticket/events/:eventId", element: <EventTicketPage /> },
+          { path: "m-demo", element: <MobileFirstDemo /> },
+          {
+            element: <ProtectedRoute />,
+            children: [
+              { path: "style-demo", element: <StyleDemo /> },
+              { path: "rooms/reserve", element: <RoomReservePage /> },
+            ],
+          },
+        ],
+      },
+      {
+        element: <PlainPageTemplate />,
+        children: [
+          { path: "auth/phone-verify", element: <PhoneVerifyPage /> },
+          {
+            path: "login",
+            element: (
+              <PublicOnlyRoute>
+                <LoginPage />
+              </PublicOnlyRoute>
+            ),
+          },
+          {
+            path: "signup",
+            element: (
+              <PublicOnlyRoute>
+                <SignupPage />
+              </PublicOnlyRoute>
+            ),
+          },
         ],
       },
     ],

@@ -17,8 +17,8 @@ export default function CustomButton({ size = "md", variant = "primary", classNa
     "inline-flex items-center justify-center font-medium rounded-2xl transition active:scale-[.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed";
 
   const sizes: Record<NonNullable<Props["size"]>, string> = {
-    sm: "h-10 px-3 text-[15px]",
-    md: "h-11 px-4 text-[15px]",
+    sm: "h-11 px-3 text-sm",
+    md: "h-11 px-4 text-sm",
     lg: "h-12 px-5 text-base",
   };
 
@@ -42,10 +42,10 @@ export default function CustomButton({ size = "md", variant = "primary", classNa
       "dark:text-white dark:ring-offset-neutral-900",
     ].join(" "),
 
-    ghost: ["bg-transparent hover:bg-neutral-100 text-neutral-800", "dark:text-neutral-200 dark:hover:bg-neutral-800"].join(" "),
+    ghost: ["bg-transparent hover:bg-neutral-800 text-neutral-200", "dark:text-neutral-200 dark:hover:bg-neutral-800"].join(" "),
 
     outline: [
-      "border border-neutral-300 text-neutral-800 hover:bg-neutral-50",
+      "border border-neutral-700 text-neutral-200 hover:bg-neutral-800",
       "dark:border-neutral-700 dark:text-neutral-200",
       "dark:hover:bg-neutral-800",
     ].join(" "),

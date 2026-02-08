@@ -129,7 +129,7 @@ export default function PhoneVerifyPage() {
           <Button type="button" className="py-3" onClick={() => nav(-1)}>
             취소
           </Button>
-          <Button type="submit" variant="solid" className="py-3 bg-green-600 text-white disabled:opacity-50" disabled={!isValid}>
+          <Button type="submit" variant="primary" className="py-3 bg-green-600 text-white disabled:opacity-50" disabled={!isValid}>
             다음
           </Button>
         </div>

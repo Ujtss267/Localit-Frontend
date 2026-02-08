@@ -12,7 +12,7 @@ export function VisibilitySelect({ value = "PUBLIC", onChange }: VisibilitySelec
     <select
       value={value}
       onChange={(e) => onChange(e.target.value as Visibility)}
-      className="rounded-md border bg-white px-2 py-1 text-xs shadow-sm hover:bg-gray-50"
+      className="rounded-md border border-neutral-700 bg-neutral-900 px-2 py-1 text-xs text-neutral-100 shadow-sm hover:bg-neutral-800"
       title="공개 범위"
     >
       <option value="PUBLIC">공개</option>

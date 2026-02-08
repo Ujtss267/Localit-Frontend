@@ -64,7 +64,7 @@ export default function SeriesConnector(props: SeriesConnectorProps) {
         </Stack>
 
         {selectedSeries && seriesDetails.details && (
-          <Box className="rounded-xl border p-2 bg-white/60">
+          <Box className="rounded-xl border border-neutral-700 p-2 bg-neutral-900/70">
             <Typography variant="body2" className="font-semibold mb-1">
               최근 회차
             </Typography>

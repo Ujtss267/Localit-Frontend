@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { useChat } from "@/app/providers/ChatProvider";
+import { mobileText } from "@/components/ui/mobileTypography";
 
 export default function EventChatPage() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -13,7 +14,7 @@ export default function EventChatPage() {
   const id = Number(eventId);
   if (Number.isNaN(id)) {
     // 잘못된 URL 방어
-    return <div className="p-4">잘못된 이벤트 ID입니다.</div>;
+    return <div className="p-4 text-sm text-neutral-200">잘못된 이벤트 ID입니다.</div>;
   }
 
   // TODO: 실제로는 이벤트 제목을 API로 가져오기
@@ -31,10 +32,10 @@ export default function EventChatPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-3xl p-4 sm:p-6">
+    <div className="mx-auto max-w-3xl p-4 text-neutral-100 sm:p-6">
       {/* 상단 헤더 */}
       <div className="mb-3 flex items-center justify-between gap-2">
-        <button className="text-xs text-neutral-500 hover:underline" onClick={() => navigate("/chat")}>
+        <button className={`hidden ${mobileText.meta} text-neutral-400 hover:underline sm:inline-block`} onClick={() => navigate("/chat")}>
           ← 채팅 목록으로
         </button>
         <div className="flex items-center gap-2">
@@ -46,20 +47,23 @@ export default function EventChatPage() {
       </div>
 
       {/* 채팅 카드 */}
-      <Card className="flex h-[480px] flex-col rounded-2xl border">
-        <div className="border-b px-4 py-2 text-sm font-semibold">이벤트 채팅</div>
+      <Card className="flex h-[520px] flex-col rounded-2xl border border-neutral-800 bg-neutral-900">
+        <div className="border-b border-neutral-800 px-4 py-3 text-sm font-semibold text-neutral-100">이벤트 채팅</div>
         <div className="flex-1 space-y-2 overflow-y-auto px-4 py-3 text-sm">
           {messages.map((m) => (
             <div key={m.id} className={"flex " + (m.fromMe ? "justify-end" : "justify-start")}>
-              <div className={"max-w-[70%] rounded-2xl px-3 py-2 " + (m.fromMe ? "bg-black text-white" : "bg-gray-100 text-neutral-900")}>
-                {!m.fromMe && <div className="mb-0.5 text-[11px] font-medium text-neutral-500">{m.name}</div>}
+              <div className={"max-w-[70%] rounded-2xl px-3 py-2 " + (m.fromMe ? "bg-blue-600 text-white" : "bg-neutral-800 text-neutral-100")}>
+                {!m.fromMe && <div className={`mb-0.5 ${mobileText.meta} font-medium text-neutral-400`}>{m.name}</div>}
                 <div>{m.text}</div>
               </div>
             </div>
           ))}
         </div>
-        <div className="flex items-center gap-2 border-t px-3 py-2">
-          <input className="flex-1 rounded-xl border px-3 py-2 text-sm" placeholder="메시지를 입력하세요…" />
+        <div className="flex items-center gap-2 border-t border-neutral-800 px-3 py-2">
+          <input
+            className="h-11 flex-1 rounded-xl border border-neutral-700 bg-neutral-900 px-3 text-sm text-neutral-100 placeholder:text-neutral-500"
+            placeholder="메시지를 입력하세요…"
+          />
           <Button size="sm">전송</Button>
         </div>
       </Card>

@@ -26,12 +26,23 @@ export default function Select({
   ...props
 }: Props) {
   const muiSize: MuiSelectProps["size"] = size === "sm" ? "small" : "medium";
+  const minHeight = size === "sm" ? 44 : size === "md" ? 44 : 48;
 
   const defaultSx = {
     // rounded-2xl 대응
-    "& .MuiOutlinedInput-root": { borderRadius: "16px" },
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "16px",
+      backgroundColor: "rgba(23, 23, 23, 0.9)",
+      color: "rgb(245, 245, 245)",
+      minHeight,
+    },
     // 포커스 링 가시성 향상
-    "& .MuiOutlinedInput-notchedOutline": { transition: "box-shadow .2s" },
+    "& .MuiOutlinedInput-notchedOutline": {
+      transition: "box-shadow .2s",
+      borderColor: "rgba(82, 82, 91, 0.9)",
+    },
+    "& .MuiInputLabel-root": { color: "rgba(212, 212, 216, 0.9)" },
+    "& .MuiSvgIcon-root": { color: "rgba(228, 228, 231, 0.9)" },
     "& .Mui-focused .MuiOutlinedInput-notchedOutline": {
       boxShadow: "0 0 0 2px rgba(37, 99, 235, .6)", // blue-600 느낌
       borderColor: "rgba(37, 99, 235, 1)",

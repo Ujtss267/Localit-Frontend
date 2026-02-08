@@ -79,7 +79,7 @@ function FilterBar({ onChange }: { onChange: (p: Record<string, string>) => void
       <div className={`grid gap-3 sm:grid-cols-4 ${open ? "grid" : "hidden sm:grid"}`}>
         <Input placeholder="검색어" value={kw} onChange={(e) => setKw(e.target.value)} />
         <Input placeholder="지역 (예: 서울, 부산)" value={loc} onChange={(e) => setLoc(e.target.value)} />
-        <Select value={cat} onChange={(e) => setCat(e.target.value)}>
+        <Select value={cat} onChange={(e) => setCat(String(e.target.value ?? ""))}>
           <option value="">카테고리 전체</option>
           <option value="1">강연</option>
           <option value="2">체육</option>

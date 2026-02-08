@@ -1,8 +1,16 @@
-// src/features/event/pages/EventCreatePage.tsx
-import React, { useState, type FormEvent, useEffect } from "react";
+import React, { useEffect, useState, type FormEvent } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useCreateEvent } from "../queries";
-import type { CreateEventDto } from "../api";
+import {
+  createEvent,
+  createSeriesApi,
+  updateSeriesApi,
+  type AdmissionPolicy,
+  type CreateEventDto,
+  type EventType,
+  type Visibility,
+} from "../api";
 import { useFetchSeriesDetails, useSearchSeries } from "../hooks";
 
 import {
@@ -23,75 +31,30 @@ import {
   FormGroup,
   FormControlLabel,
   Checkbox,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
 
 import { ImagePickerGrid, LocationMap } from "@/components";
 import TimeRangeBadgePicker from "@/components/ui/TimeRangeBadgePicker";
 
-// 분리한 컴포넌트들
 import SeriesConnector from "../components/SeriesConnector";
 import CreateSeriesDialog from "../components/CreateSeriesDialog";
 import EditSeriesDialog from "../components/EditSeriesDialog";
 import BulkCreateDialog from "../components/BulkCreateDialog";
 
-/** ▼▼▼ 시리즈 API 훅 예시 (네 API에 맞춰 구현/대체) ▼▼▼ */
 type SeriesOption = { seriesId: number; title: string };
+type EventMode = "single" | "series";
 
-function useCreateSeries() {
-  const [isPending, setPending] = useState(false);
-  const mutateAsync = async (payload: { title: string; description?: string; isPublic?: boolean }) => {
-    setPending(true);
-    try {
-      // TODO: 서버 연동
-      return { seriesId: Math.floor(Math.random() * 100000), ...payload };
-    } finally {
-      setPending(false);
-    }
-  };
-  return { mutateAsync, isPending };
-}
+type CombinedError = { message?: string };
 
-function useUpdateSeries() {
-  const [isPending, setPending] = useState(false);
-  const mutateAsync = async (payload: { seriesId: number; title?: string; description?: string; isPublic?: boolean }) => {
-    setPending(true);
-    try {
-      // TODO: 서버 연동
-      return { ok: true };
-    } finally {
-      setPending(false);
-    }
-  };
-  return { mutateAsync, isPending };
-}
-
-function useSeriesPermissions(seriesId?: number | null) {
-  const [canEdit, setCanEdit] = useState(false);
-  useEffect(() => {
-    setCanEdit(!!seriesId);
-  }, [seriesId]);
-  return { canEdit };
-}
-
-function useBulkCreateEpisodes() {
-  const [isPending, setPending] = useState(false);
-  const mutateAsync = async (payloads: Array<CreateEventDto & { seriesId: number; episodeNo?: number }>) => {
-    setPending(true);
-    try {
-      // TODO: 서버 연동
-      return { created: payloads.length };
-    } finally {
-      setPending(false);
-    }
-  };
-  return { mutateAsync, isPending };
-}
-/** ▲▲▲ 시리즈 API 훅 예시 끝 ▲▲▲ */
+const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
 
 function toISO(local: string) {
   if (!local) return "";
-  const d = new Date(local);
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString();
+  return new Date(local).toISOString();
 }
 
 function toLocalFromDate(d: Date) {
@@ -99,34 +62,56 @@ function toLocalFromDate(d: Date) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-type EventMode = "single" | "series";
+function combineDateAndTime(dateYmd: string, timeSource: Date) {
+  const [y, m, d] = dateYmd.split("-").map(Number);
+  const out = new Date(timeSource);
+  out.setFullYear(y, (m ?? 1) - 1, d ?? 1);
+  return out;
+}
+
+function replaceDatePart(dateYmd: string, localDateTime: string) {
+  if (!localDateTime) return "";
+  const [y, m, d] = dateYmd.split("-").map(Number);
+  const out = new Date(localDateTime);
+  out.setFullYear(y, (m ?? 1) - 1, d ?? 1);
+  return toLocalFromDate(out);
+}
+
+function todayYmd() {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
 
 export default function EventCreatePage() {
   const navigate = useNavigate();
   const createMut = useCreateEvent();
 
-  // 기본 필드
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [location, setLocation] = useState("");
+  const [eventDate, setEventDate] = useState(todayYmd());
   const [startLocal, setStartLocal] = useState("");
   const [endLocal, setEndLocal] = useState("");
   const [capacity, setCapacity] = useState<number | "">("");
+  const [price, setPrice] = useState<number | "">(0);
+  const [type, setType] = useState<EventType>("GENERAL");
+  const [visibility, setVisibility] = useState<Visibility>("PUBLIC");
+  const [admissionPolicy, setAdmissionPolicy] = useState<AdmissionPolicy>("FIRST_COME");
+  const [paidToHost, setPaidToHost] = useState(true);
+
   const [genderControl, setGenderControl] = useState({
     maleLimit: false,
     femaleLimit: false,
     balanceRequired: false,
   });
 
-  // 이벤트 유형
   const [mode, setMode] = useState<EventMode>("single");
 
-  // 시리즈
   const [episodeNo, setEpisodeNo] = useState<number | "">("");
   const [seriesKeyword, setSeriesKeyword] = useState("");
   const [selectedSeries, setSelectedSeries] = useState<SeriesOption | null>(null);
 
-  // 새 시리즈 생성용
   const [newSeriesTitle, setNewSeriesTitle] = useState("");
   const [newSeriesDesc, setNewSeriesDesc] = useState("");
   const [newSeriesPublic, setNewSeriesPublic] = useState(true);
@@ -142,15 +127,37 @@ export default function EventCreatePage() {
   const [bulkCount, setBulkCount] = useState<number>(4);
 
   const seriesSearch = useSearchSeries();
-  const createSeries = useCreateSeries();
-  const updateSeries = useUpdateSeries();
-  const { canEdit } = useSeriesPermissions(selectedSeries?.seriesId ?? null);
   const seriesDetails = useFetchSeriesDetails(selectedSeries?.seriesId ?? null);
-  const bulkCreate = useBulkCreateEpisodes();
 
-  // 시간 선택/연동 상태
-  const [range, setRange] = React.useState<{ start: Date; end: Date } | null>(null);
+  const createSeries = useMutation({
+    mutationFn: (payload: { title: string; description?: string; isPublic?: boolean }) => createSeriesApi(payload),
+  });
+
+  const updateSeries = useMutation({
+    mutationFn: (payload: { seriesId: number; title?: string; description?: string; isPublic?: boolean }) => updateSeriesApi(payload),
+  });
+
+  const bulkCreate = useMutation({
+    mutationFn: async (payloads: Array<CreateEventDto & { seriesId: number; episodeNo?: number }>) => {
+      if (USE_SAMPLE) {
+        return { created: payloads.length };
+      }
+      const rows = await Promise.all(payloads.map((p) => createEvent(p)));
+      return { created: rows.length };
+    },
+  });
+
+  const [range, setRange] = useState<{ start: Date; end: Date } | null>(null);
   const [duration, setDuration] = useState(60);
+
+  const canEdit = Boolean(selectedSeries?.seriesId);
+
+  useEffect(() => {
+    if (!editSeriesOpen || !selectedSeries) return;
+    setEditSeriesTitle(selectedSeries.title);
+    setEditSeriesDesc(seriesDetails.details?.description ?? "");
+    setEditSeriesPublic(seriesDetails.details?.isPublic ?? true);
+  }, [editSeriesOpen, selectedSeries, seriesDetails.details]);
 
   const handleGenderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = e.target;
@@ -161,11 +168,14 @@ export default function EventCreatePage() {
     title.trim().length >= 2 &&
     desc.trim().length >= 5 &&
     location.trim().length >= 2 &&
+    !!eventDate &&
     !!startLocal &&
     !!endLocal &&
     new Date(endLocal) > new Date(startLocal) &&
     typeof capacity === "number" &&
-    capacity > 0;
+    capacity > 0 &&
+    typeof price === "number" &&
+    price >= 0;
 
   const seriesValid = mode === "single" ? true : !!selectedSeries;
   const valid = baseValid && seriesValid;
@@ -174,7 +184,7 @@ export default function EventCreatePage() {
     e.preventDefault();
     if (!valid) return;
 
-    let seriesId: number | undefined = undefined;
+    let seriesId: number | undefined;
     if (mode === "series") {
       if (!selectedSeries) return;
       seriesId = selectedSeries.seriesId;
@@ -187,6 +197,12 @@ export default function EventCreatePage() {
       startTime: toISO(startLocal),
       endTime: toISO(endLocal),
       capacity: Number(capacity),
+      price: Number(price),
+      type,
+      visibility,
+      admissionPolicy,
+      paidToHost,
+      genderControl,
       ...(seriesId ? { seriesId } : {}),
       ...(episodeNo !== "" ? { episodeNo: Number(episodeNo) } : {}),
     };
@@ -198,19 +214,21 @@ export default function EventCreatePage() {
     });
   }
 
-  // 시리즈 검색
   useEffect(() => {
-    if (mode === "series") {
-      const k = seriesKeyword.trim();
-      if (k.length >= 1) seriesSearch.search(k);
-      else seriesSearch.search("");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (mode !== "series") return;
+    const k = seriesKeyword.trim();
+    seriesSearch.search(k);
   }, [mode, seriesKeyword]);
 
-  // 지도용 예시
   const lat = 35.2277;
   const lng = 128.6812;
+
+  const isPending = createMut.isPending || createSeries.isPending || updateSeries.isPending || bulkCreate.isPending;
+  const combinedError =
+    (createMut.error as CombinedError) ||
+    (createSeries.error as CombinedError) ||
+    (updateSeries.error as CombinedError) ||
+    (bulkCreate.error as CombinedError);
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
@@ -226,7 +244,6 @@ export default function EventCreatePage() {
       <Box component="form" onSubmit={onSubmit}>
         <Card variant="outlined" sx={{ overflow: "hidden" }}>
           <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-            {/* 1. 이벤트 유형 */}
             <Box sx={{ mb: 3 }}>
               <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
                 이벤트 유형
@@ -237,7 +254,6 @@ export default function EventCreatePage() {
               </ToggleButtonGroup>
             </Box>
 
-            {/* 시리즈 옵션 */}
             {mode === "series" && (
               <Box sx={{ mb: 3, border: "1px solid", borderColor: "divider", borderRadius: 2, p: 2, backgroundColor: "background.default" }}>
                 <SeriesConnector
@@ -253,14 +269,13 @@ export default function EventCreatePage() {
                   setSeriesKeyword={setSeriesKeyword}
                   episodeNo={episodeNo}
                   setEpisodeNo={setEpisodeNo}
-                  createSeriesOpen={false}
+                  createSeriesOpen={createSeriesOpen}
                 />
               </Box>
             )}
 
             <Divider sx={{ my: 3 }} />
 
-            {/* 2. 기본 정보 */}
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" sx={{ mb: 1.5 }}>
                 기본 정보
@@ -284,12 +299,55 @@ export default function EventCreatePage() {
                   fullWidth
                 />
                 <TextField label="위치" placeholder="예) 서울 마포" value={location} onChange={(e) => setLocation(e.target.value)} fullWidth />
+
+                <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
+                  <FormControl fullWidth>
+                    <InputLabel id="event-type-label">이벤트 성격</InputLabel>
+                    <Select
+                      labelId="event-type-label"
+                      value={type}
+                      label="이벤트 성격"
+                      onChange={(e) => setType(e.target.value as EventType)}
+                    >
+                      <MenuItem value="GENERAL">일반</MenuItem>
+                      <MenuItem value="MENTORING">멘토링</MenuItem>
+                      <MenuItem value="WORKSHOP">워크숍</MenuItem>
+                      <MenuItem value="MEETUP">밋업</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth>
+                    <InputLabel id="visibility-label">공개 범위</InputLabel>
+                    <Select
+                      labelId="visibility-label"
+                      value={visibility}
+                      label="공개 범위"
+                      onChange={(e) => setVisibility(e.target.value as Visibility)}
+                    >
+                      <MenuItem value="PUBLIC">전체 공개</MenuItem>
+                      <MenuItem value="FOLLOWERS">팔로워 공개</MenuItem>
+                      <MenuItem value="PRIVATE">비공개</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth>
+                    <InputLabel id="admission-policy-label">입장 정책</InputLabel>
+                    <Select
+                      labelId="admission-policy-label"
+                      value={admissionPolicy}
+                      label="입장 정책"
+                      onChange={(e) => setAdmissionPolicy(e.target.value as AdmissionPolicy)}
+                    >
+                      <MenuItem value="FIRST_COME">선착순</MenuItem>
+                      <MenuItem value="REVIEW">심사 승인</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Stack>
               </Stack>
             </Box>
 
             <Divider sx={{ my: 3 }} />
 
-            {/* 3. 일정/시간 */}
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" sx={{ mb: 1.5 }}>
                 일정
@@ -298,19 +356,13 @@ export default function EventCreatePage() {
                 <TextField
                   label="이벤트 발생일"
                   type="date"
-                  value={startLocal}
+                  value={eventDate}
                   onChange={(e) => {
-                    const v = e.target.value;
-                    setStartLocal(v);
-                    if (v) {
-                      const s = new Date(v);
-                      const newEnd = new Date(s);
-                      newEnd.setMinutes(newEnd.getMinutes() + duration);
-                      setEndLocal(toLocalFromDate(newEnd));
-                      setRange({ start: s, end: newEnd });
-                    } else {
-                      setRange(null);
-                    }
+                    const dateYmd = e.target.value;
+                    setEventDate(dateYmd);
+                    if (!dateYmd) return;
+                    if (startLocal) setStartLocal(replaceDatePart(dateYmd, startLocal));
+                    if (endLocal) setEndLocal(replaceDatePart(dateYmd, endLocal));
                   }}
                   InputLabelProps={{ shrink: true }}
                   fullWidth
@@ -319,17 +371,23 @@ export default function EventCreatePage() {
 
                 <TimeRangeBadgePicker
                   from="09:00"
-                  to="18:00"
+                  to="23:00"
                   stepMinutes={30}
                   value={range}
                   onChange={(r) => {
-                    if (isNaN(r.start.getTime())) {
+                    if (isNaN(r.start.getTime()) || !eventDate) {
                       setRange(null);
                       return;
                     }
-                    setRange(r);
-                    setStartLocal(toLocalFromDate(r.start));
-                    setEndLocal(toLocalFromDate(r.end));
+                    const nextStart = combineDateAndTime(eventDate, r.start);
+                    const nextEnd = combineDateAndTime(eventDate, r.end);
+                    if (nextEnd <= nextStart) {
+                      nextEnd.setDate(nextEnd.getDate() + 1);
+                    }
+                    setRange({ start: nextStart, end: nextEnd });
+                    setStartLocal(toLocalFromDate(nextStart));
+                    setEndLocal(toLocalFromDate(nextEnd));
+                    setDuration(Math.max(30, Math.round((nextEnd.getTime() - nextStart.getTime()) / 60000)));
                   }}
                 />
               </Stack>
@@ -337,7 +395,6 @@ export default function EventCreatePage() {
 
             <Divider sx={{ my: 3 }} />
 
-            {/* 4. 모집/참가 조건 */}
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" sx={{ mb: 1.5 }}>
                 모집 조건
@@ -356,6 +413,7 @@ export default function EventCreatePage() {
                     control={<Checkbox name="balanceRequired" checked={genderControl.balanceRequired} onChange={handleGenderChange} />}
                     label="성비 균형 맞추기"
                   />
+                  <FormControlLabel control={<Checkbox checked={paidToHost} onChange={(e) => setPaidToHost(e.target.checked)} />} label="호스트 정산" />
                 </FormGroup>
 
                 <TextField
@@ -366,12 +424,20 @@ export default function EventCreatePage() {
                   onChange={(e) => setCapacity(e.target.value === "" ? "" : Math.max(0, Number(e.target.value)))}
                   sx={{ minWidth: 140 }}
                 />
+
+                <TextField
+                  label="참가비"
+                  type="number"
+                  inputProps={{ min: 0, step: 1000 }}
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value === "" ? "" : Math.max(0, Number(e.target.value)))}
+                  sx={{ minWidth: 160 }}
+                />
               </Stack>
             </Box>
 
             <Divider sx={{ my: 3 }} />
 
-            {/* 5. 이미지 & 위치 */}
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" sx={{ mb: 1.5 }}>
                 이미지 / 위치
@@ -388,7 +454,6 @@ export default function EventCreatePage() {
               </Stack>
             </Box>
 
-            {/* 다이얼로그들 */}
             <CreateSeriesDialog
               open={createSeriesOpen}
               onClose={() => setCreateSeriesOpen(false)}
@@ -436,32 +501,26 @@ export default function EventCreatePage() {
               episodeNo={episodeNo}
             />
 
-            {(createMut.isError || createSeries.isPending) && (
+            {combinedError && (
               <Alert severity="error" sx={{ mt: 2 }}>
-                {(createMut.error as any)?.response?.data?.message ?? "처리 중 오류가 발생했습니다."}
+                {combinedError.message ?? "처리 중 오류가 발생했습니다."}
               </Alert>
             )}
           </CardContent>
 
           <CardActions sx={{ p: 2, borderTop: "1px solid", borderColor: "divider" }}>
             <Stack direction="row" spacing={1} sx={{ width: "100%" }}>
-              <MUIButton
-                variant="outlined"
-                color="inherit"
-                fullWidth
-                onClick={() => navigate(-1)}
-                disabled={createMut.isPending || createSeries.isPending}
-              >
+              <MUIButton variant="outlined" color="inherit" fullWidth onClick={() => navigate(-1)} disabled={isPending}>
                 취소
               </MUIButton>
               <MUIButton
                 type="submit"
                 variant="contained"
                 fullWidth
-                disabled={!valid || createMut.isPending || createSeries.isPending}
-                startIcon={createMut.isPending || createSeries.isPending ? <CircularProgress size={18} /> : undefined}
+                disabled={!valid || isPending}
+                startIcon={isPending ? <CircularProgress size={18} /> : undefined}
               >
-                {createMut.isPending || createSeries.isPending ? "등록 중…" : "등록"}
+                {isPending ? "등록 중…" : "등록"}
               </MUIButton>
             </Stack>
           </CardActions>

@@ -182,11 +182,11 @@ export default function EventCardPretty({
   };
 
   const statusBadge = badgeLabel ? (
-    <Badge tone={badgeTone as any} className="text-[11px] px-2 py-0.5">
+    <Badge tone={badgeTone as any} className="text-xs px-2 py-0.5">
       {badgeLabel}
     </Badge>
   ) : (
-    <span className="text-[11px] text-neutral-400">신청 가능</span>
+    <span className="text-xs text-neutral-400">신청 가능</span>
   );
 
   return (

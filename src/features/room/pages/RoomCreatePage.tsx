@@ -76,7 +76,7 @@ export default function RoomCreatePage() {
       <Box component="form" onSubmit={onSubmit}>
         <Grid container spacing={2}>
           {/* 좌: 입력 폼 */}
-          <Grid item xs={12} md={7}>
+          <Grid size={{ xs: 12, md: 7 }}>
             <Card variant="outlined">
               <CardHeader title="기본 정보" />
               <CardContent>
@@ -151,7 +151,7 @@ export default function RoomCreatePage() {
           </Grid>
 
           {/* 우: 미리보기 / 요약 */}
-          <Grid item xs={12} md={5}>
+          <Grid size={{ xs: 12, md: 5 }}>
             <Card variant="outlined" sx={{ position: "sticky", top: 16 }}>
               <CardHeader title="미리보기" />
               <CardContent>

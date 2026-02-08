@@ -13,6 +13,7 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Empty from "@/components/ui/Empty";
 import SkeletonList from "@/components/patterns/SkeletonList";
+import { mobileText } from "@/components/ui/mobileTypography";
 
 // Icons
 import AddHomeWorkIcon from "@mui/icons-material/AddHomeWork";
@@ -97,13 +98,13 @@ export default function RoomListPage() {
   const count = filtered.length;
 
   return (
-    <div className="min-h-[100svh] bg-gradient-to-b pb-20">
-      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-6 space-y-5">
+    <div className="min-h-[100svh] bg-gradient-to-b from-neutral-950 via-neutral-950 to-neutral-900 text-neutral-100 pb-20">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-5 space-y-4">
         {/* 헤더 */}
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">공간 목록</h1>
-            <p className="text-[13px] sm:text-sm mt-1">필요한 것만 빠르게 필터링하세요.</p>
+            <h1 className="text-base font-semibold tracking-tight text-white sm:text-xl">공간 목록</h1>
+            <p className={`${mobileText.meta} mt-1 text-neutral-400`}>필요한 것만 빠르게 필터링하세요.</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -117,28 +118,29 @@ export default function RoomListPage() {
         </div>
 
         {/* ✅ 슬림 툴바 (검색/가용/정렬/적용 + 고급필터 토글) */}
-        <Card className="p-2 sm:p-3">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            {/* 좌측: 검색/가용/정렬/적용 */}
-            <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
-              {/* 검색어 */}
+        <Card className="p-2 sm:p-3 bg-neutral-900/80 border border-neutral-800">
+          <div className="flex flex-col gap-2">
+            {/* 모바일: 검색창을 독립 행으로 분리해서 더 넓게 */}
+            <div className="w-full">
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && applyToolbar()}
                 placeholder="공간명/위치로 검색"
-                className="flex-1 h-9 rounded-md border px-3 text-sm focus:outline-none focus:ring-2"
+                className="w-full h-12 rounded-md border border-neutral-700 bg-neutral-900/80 px-3 text-[13px] text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-500 sm:h-11 sm:text-sm"
               />
-              {/* 사용 가능만 */}
-              <label className="flex select-none items-center gap-2 text-sm">
-                <input type="checkbox" checked={onlyAvailable} onChange={(e) => setOnlyAvailable(e.target.checked)} className="h-4 w-4 " />
+            </div>
+
+            {/* 사용 가능/정렬/적용 */}
+            <div className="flex w-full flex-wrap items-center gap-2 sm:flex-row sm:justify-between">
+              <label className="flex min-h-11 select-none items-center gap-2 text-[13px] text-neutral-200 sm:text-sm">
+                <input type="checkbox" checked={onlyAvailable} onChange={(e) => setOnlyAvailable(e.target.checked)} className="h-4 w-4 accent-neutral-100" />
                 사용 가능만
               </label>
-              {/* 정렬 */}
               <select
                 value={sortKey}
                 onChange={(e) => setSortKey(e.target.value as SortKey)}
-                className="h-9 rounded-md border px-2 text-sm"
+                className="h-11 rounded-md border border-neutral-700 bg-neutral-900/80 px-2 text-[13px] text-neutral-100 sm:text-sm"
                 title="정렬"
               >
                 <option value="created">최신 등록순</option>
@@ -149,10 +151,6 @@ export default function RoomListPage() {
               <Button size="sm" onClick={applyToolbar}>
                 적용
               </Button>
-            </div>
-
-            {/* 우측: 고급 필터 토글 */}
-            <div className="flex items-center justify-end">
               <Button variant="ghost" size="sm" onClick={() => setShowAdvanced((v) => !v)} className="text-[13px]">
                 {showAdvanced ? "고급 필터 닫기" : "고급 필터 열기"}
               </Button>
@@ -161,7 +159,7 @@ export default function RoomListPage() {
 
           {/* 👉 필요 시에만 기존 RoomFilter 표시 */}
           {showAdvanced && (
-            <div className="mt-3 border-t pt-3">
+            <div className="mt-3 border-t border-neutral-800 pt-3">
               <RoomFilter
                 q={q}
                 onlyAvailable={onlyAvailable}
@@ -186,9 +184,9 @@ export default function RoomListPage() {
         {/* 상태 바 */}
         <div className="flex items-center justify-between pt-1">
           {showError ? (
-            <span className="text-sm text-red-600">공간 목록을 불러오지 못했습니다. {(error as any)?.message ?? ""}</span>
+            <span className="text-sm text-red-400">공간 목록을 불러오지 못했습니다. {(error as any)?.message ?? ""}</span>
           ) : (
-            <div className="text-[13px] sm:text-sm">{!USE_SAMPLE && isFetching ? "필터 적용 중…" : <>총 {count}개</>}</div>
+            <div className={`${mobileText.meta} text-neutral-400`}>{!USE_SAMPLE && isFetching ? "필터 적용 중…" : <>총 {count}개</>}</div>
           )}
           <div className="flex gap-2">
             <Button variant="ghost" disabled>

@@ -11,12 +11,13 @@ import { RoomMyCard } from "../components/RoomMyCard";
 import { ReservationMyCard } from "../components/ReservationMyCard";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { Tabs } from "@/components/ui";
+import { mobileText } from "@/components/ui/mobileTypography";
 
 function EmptyState({ title, hint }: { title: string; hint?: string }) {
   return (
-    <div className="w-full rounded-2xl border border-gray-200 bg-white/80 p-6 text-center text-gray-900 dark:border-white/10 dark:bg-white/5 dark:text-gray-100">
+    <div className="w-full rounded-2xl border border-neutral-700 bg-neutral-900/80 p-6 text-center text-neutral-100">
       <div className="text-base font-medium">{title}</div>
-      {hint && <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">{hint}</div>}
+      {hint && <div className="mt-1 text-sm text-neutral-400">{hint}</div>}
     </div>
   );
 }
@@ -105,30 +106,28 @@ export default function MyPage() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-10 pt-6 text-gray-900 dark:text-gray-100 sm:px-6">
+    <div className="mx-auto max-w-6xl px-4 pb-10 pt-6 text-neutral-100 sm:px-6">
       {/* 프로필 헤더 */}
-      <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white/90 shadow-sm dark:border-white/10 dark:bg-neutral-900/70">
-        <div className="h-24 bg-gradient-to-r from-amber-100 via-orange-100 to-rose-100 dark:from-amber-500/25 dark:via-orange-500/20 dark:to-rose-500/25 sm:h-32" />
+      <div className="overflow-hidden rounded-3xl border border-neutral-700 bg-neutral-900/90 shadow-sm">
+        <div className="h-24 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-rose-500/25 sm:h-32" />
         <div className="grid gap-5 px-5 pb-6 sm:grid-cols-[auto,1fr,auto] sm:px-6">
-          <div className="-mt-10 h-20 w-20 overflow-hidden rounded-2xl border border-gray-200 bg-gray-200 shadow-sm dark:border-white/10 dark:bg-white/10 sm:-mt-12 sm:h-24 sm:w-24" />
+          <div className="-mt-10 h-20 w-20 overflow-hidden rounded-2xl border border-neutral-700 bg-neutral-800 shadow-sm sm:-mt-12 sm:h-24 sm:w-24" />
           <div className="space-y-2">
             <div>
               <div className="text-2xl font-semibold">{data.profileName}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className={`${mobileText.meta} text-neutral-400`}>
                 {data.profileTitle ?? (isOwner ? "프로필 타이틀을 추가해 보세요" : "호스트")}
               </div>
             </div>
-            <div className="text-sm text-gray-700 dark:text-gray-300">
+            <div className={`${mobileText.body} text-neutral-300`}>
               {data.profileBio ?? (isOwner ? "짧은 소개를 작성해 보세요." : "소개가 없습니다.")}
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+            <div className={`flex flex-wrap items-center gap-2 ${mobileText.meta} text-neutral-400`}>
               {data.profileLocation && (
-                <span className="rounded-full bg-gray-100 px-2 py-1 text-gray-600 dark:bg-white/10 dark:text-gray-300">
-                  {data.profileLocation}
-                </span>
+                <span className="rounded-full bg-neutral-800 px-2 py-1 text-neutral-300">{data.profileLocation}</span>
               )}
               {(data.profileTags ?? []).map((tag) => (
-                <span key={tag} className="rounded-full bg-gray-100 px-2 py-1 text-gray-600 dark:bg-white/10 dark:text-gray-300">
+                <span key={tag} className="rounded-full bg-neutral-800 px-2 py-1 text-neutral-300">
                   #{tag}
                 </span>
               ))}
@@ -136,37 +135,37 @@ export default function MyPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:justify-end">
             {isOwner ? (
-              <button className="rounded-2xl border border-gray-200 px-4 py-2 text-sm hover:bg-gray-50 dark:border-white/10 dark:hover:bg-white/10">
+              <button className="rounded-2xl border border-neutral-700 px-4 py-2 text-sm min-h-11 hover:bg-neutral-800">
                 프로필 편집
               </button>
             ) : (
               <button
                 onClick={toggleFollowProfile}
                 className={
-                  "rounded-2xl border px-4 py-2 text-sm shadow-sm dark:border-white/10 " +
-                  (data.isFollower ? "bg-black text-white dark:bg-white dark:text-black" : "hover:bg-gray-50 dark:hover:bg-white/10")
+                  "rounded-2xl border border-neutral-700 px-4 py-2 text-sm min-h-11 shadow-sm " +
+                  (data.isFollower ? "bg-neutral-700 text-neutral-100" : "hover:bg-neutral-800")
                 }
               >
                 {data.isFollower ? "언팔로우" : "팔로우"}
               </button>
             )}
-            <button className="rounded-2xl border border-gray-200 px-4 py-2 text-sm hover:bg-gray-50 dark:border-white/10 dark:hover:bg-white/10">
+            <button className="rounded-2xl border border-neutral-700 px-4 py-2 text-sm min-h-11 hover:bg-neutral-800">
               공유
             </button>
           </div>
         </div>
         <div className="grid gap-4 px-5 pb-6 sm:grid-cols-[2fr,1fr] sm:px-6">
-          <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-4 text-sm text-gray-700 dark:border-white/10 dark:bg-white/5 dark:text-gray-200">
-            <div className="mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400">소개</div>
+          <div className="rounded-2xl border border-neutral-700 bg-neutral-900 px-4 py-4 text-sm text-neutral-200">
+            <div className={`mb-2 ${mobileText.meta} font-semibold text-neutral-400`}>소개</div>
             <div>{data.profileIntro ?? (isOwner ? "프로필 소개를 추가해 보세요." : "소개가 없습니다.")}</div>
           </div>
           <div className="grid gap-3">
-            <div className="rounded-2xl border border-gray-200 px-4 py-3 dark:border-white/10">
-              <div className="text-xs text-gray-500 dark:text-gray-400">내가 만든 이벤트</div>
+            <div className="rounded-2xl border border-neutral-700 px-4 py-3">
+              <div className={`${mobileText.meta} text-neutral-400`}>내가 만든 이벤트</div>
               <div className="text-2xl font-semibold">{hostedEvents.length}</div>
             </div>
-            <div className="rounded-2xl border border-gray-200 px-4 py-3 dark:border-white/10">
-              <div className="text-xs text-gray-500 dark:text-gray-400">참석 중인 이벤트</div>
+            <div className="rounded-2xl border border-neutral-700 px-4 py-3">
+              <div className={`${mobileText.meta} text-neutral-400`}>참석 중인 이벤트</div>
               <div className="text-2xl font-semibold">{participatingEvents.length}</div>
             </div>
           </div>
@@ -179,9 +178,12 @@ export default function MyPage() {
           value={searchId}
           onChange={(e) => setSearchId(e.target.value)}
           placeholder="userId로 열기 (예: 1)"
-          className="w-40 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 dark:border-white/10 dark:bg-neutral-900 dark:text-gray-100 dark:placeholder:text-gray-500"
+          className="h-11 w-40 rounded-xl border border-neutral-700 bg-neutral-900 px-3 text-sm text-neutral-100 placeholder:text-neutral-500"
         />
-        <button type="submit" className="rounded-xl border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50 dark:border-white/10 dark:hover:bg-white/10">
+        <button
+          type="submit"
+          className="h-11 rounded-xl border border-neutral-700 px-3 text-sm hover:bg-neutral-800"
+        >
           열기
         </button>
       </form>
@@ -191,7 +193,7 @@ export default function MyPage() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="text-lg font-semibold">이벤트</div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">내가 만든 이벤트와 참석 중인 이벤트</div>
+            <div className={`${mobileText.meta} text-neutral-400`}>내가 만든 이벤트와 참석 중인 이벤트</div>
           </div>
           <Tabs
             value={eventTab}
@@ -203,7 +205,7 @@ export default function MyPage() {
           />
         </div>
 
-        <div className="rounded-3xl border border-gray-200 bg-white p-4 dark:border-white/10 dark:bg-neutral-900/70 sm:p-6">
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-900 p-4 sm:p-6">
           {eventTab === "HOSTED" ? (
             hostedEvents.length ? (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -253,7 +255,7 @@ export default function MyPage() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="text-lg font-semibold">공간</div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">공간 등록 및 예약 정보</div>
+            <div className={`${mobileText.meta} text-neutral-400`}>공간 등록 및 예약 정보</div>
           </div>
           <Tabs
             value={roomTab}
@@ -265,7 +267,7 @@ export default function MyPage() {
           />
         </div>
 
-        <div className="rounded-3xl border border-gray-200 bg-white p-4 dark:border-white/10 dark:bg-neutral-900/70 sm:p-6">
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-900 p-4 sm:p-6">
           {roomTab === "MYROOMS" ? (
             myRooms.length ? (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

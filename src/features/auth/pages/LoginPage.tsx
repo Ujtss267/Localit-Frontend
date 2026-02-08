@@ -93,7 +93,7 @@ export default function LoginPage() {
         </button> */}
 
         {/* 로그인 버튼 */}
-        <Button type="submit" variant="solid" className="w-full py-3" disabled={submitting}>
+        <Button type="submit" variant="primary" className="w-full py-3" disabled={submitting}>
           {submitting ? "로그인 중..." : "로그인하기"}
         </Button>
       </form>

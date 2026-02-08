@@ -1,6 +1,5 @@
 // src/features/event/api.ts
 import { api } from "@/lib/axios";
-import { useMemo, useState } from "react";
 
 export type SeriesOption = { seriesId: number; title: string };
 
@@ -30,9 +29,10 @@ export type SeriesConnectorProps = {
  * Prisma Enum unions (TS)
  * ────────────────────────────── */
 export type EventType = "GENERAL" | "MENTORING" | "WORKSHOP" | "MEETUP";
-export type SlotDuration = "MIN30";
+export type SlotDuration = "MIN30" | "MIN60" | "MIN90" | "MIN120";
 export type Visibility = "PUBLIC" | "FOLLOWERS" | "PRIVATE";
 export type FeedbackType = "UX" | "CONTENT" | "PRICE" | "HOST" | "FACILITY" | "OTHER";
+export type AdmissionPolicy = "FIRST_COME" | "REVIEW";
 /** 신청이후 프로세스 상태 */
 export type RegistrationStatus = "PENDING" | "CONFIRMED" | "CANCELLED" | "ATTENDED" | "NO_SHOW";
 /** 신청/심사 프로세스 상태 (신청서 관점) */
@@ -151,6 +151,7 @@ export type EventDTO = {
 
   /** ▼▼▼ NEW: 현재 로그인 사용자의 신청/참석 상태 ▼▼▼ */
   myRegistration?: MyRegistrationDTO;
+  policy?: EventPolicyDto | null;
 };
 
 /* ──────────────────────────────
@@ -160,6 +161,17 @@ export type GenderControlDto = {
   maleLimit?: boolean;
   femaleLimit?: boolean;
   balanceRequired?: boolean;
+};
+
+export type EventPolicyDto = {
+  admission: AdmissionPolicy;
+  requiresInterview?: boolean;
+  enforceGenderBalance?: boolean;
+  capacityMale?: number | null;
+  capacityFemale?: number | null;
+  capacityOther?: number | null;
+  allowWaitlist?: boolean;
+  applyDeadline?: string | null;
 };
 
 /** Server(API) Event shape aligned with Prisma */
@@ -258,6 +270,7 @@ export type CreateEventDto = {
   hostType?: string;
   paidToHost?: boolean;
   visibility?: Visibility;
+  admissionPolicy?: AdmissionPolicy;
   /** ▼▼▼ NEW: 시리즈 회차 생성 지원 ▼▼▼ */
   seriesId?: number; // 있으면 회차형
   episodeNo?: number; // 선택 (표시/정렬용)

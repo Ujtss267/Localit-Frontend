@@ -9,11 +9,12 @@ import CardUI from "@/components/ui/Card";
 import EventMeta from "../components/EventMeta";
 import { sampleEvents } from "../sampleEvents";
 import type { EventDTO } from "../api";
-import { useEvent } from "../queries";
+import { useApplyEvent, useEvent, useJoinEvent } from "../queries";
 
 import ReviewSummaryCard from "../components/ReviewSummaryCard";
 import ReviewList from "../components/ReviewList";
 import Badge from "@/components/ui/Badge";
+import { mobileText } from "@/components/ui/mobileTypography";
 
 export default function EventDetailPage() {
   const { id } = useParams();
@@ -32,14 +33,16 @@ export default function EventDetailPage() {
   };
 
   const { data: serverEvent, isFetching } = useEvent(safeEventId);
+  const joinMut = useJoinEvent();
+  const applyMut = useApplyEvent();
   const sample = useMemo(() => sampleEvents.find((e) => e.id === eventId), [eventId]);
   const e: EventDTO | undefined = USE_SAMPLE ? sample : (serverEvent ?? sample);
 
   if (Number.isNaN(eventId)) {
     return (
       <div className="max-w-3xl mx-auto px-3 sm:px-4 py-10">
-        <CardUI className="p-6 border-neutral-200 dark:border-neutral-800 shadow-sm">
-          <Typography variant="h6" className="text-neutral-900 dark:text-neutral-50">
+        <CardUI className="p-6 border-neutral-800 shadow-sm">
+          <Typography variant="h6" className="text-neutral-50">
             잘못된 이벤트 ID입니다.
           </Typography>
           <div className="mt-3">
@@ -55,8 +58,8 @@ export default function EventDetailPage() {
   if (!e) {
     return (
       <div className="max-w-3xl mx-auto px-3 sm:px-4 py-10">
-        <CardUI className="p-6 border-neutral-200 dark:border-neutral-800 shadow-sm">
-          <Typography variant="h6" className="text-neutral-900 dark:text-neutral-50">
+        <CardUI className="p-6 border-neutral-800 shadow-sm">
+          <Typography variant="h6" className="text-neutral-50">
             이벤트를 찾을 수 없습니다.
           </Typography>
           <div className="mt-3">
@@ -86,11 +89,34 @@ export default function EventDetailPage() {
     }
   };
 
-  // 참가요청 버튼
-  const onAttend = () => {
-    // TODO: 실제로는 신청 API / 신청 폼으로 연결하고,
-    // 승인 프로세스는 EventApplication 기반으로 구현 예정
-    goHostPage();
+  const myReg = e.myRegistration;
+  const admission = e.policy?.admission ?? "FIRST_COME";
+  const isAlreadyRegistered = myReg?.registrationStatus === "CONFIRMED" || myReg?.registrationStatus === "ATTENDED";
+  const isAppliedOnly = myReg?.applicationStatus === "SUBMITTED" || myReg?.applicationStatus === "WAITLIST";
+
+  const ctaLabel = isAlreadyRegistered
+    ? "참가권 보기"
+    : isAppliedOnly
+      ? "신청 상태 보기"
+      : admission === "REVIEW"
+        ? "참가 신청"
+        : "바로 참가";
+
+  const onAttend = async () => {
+    if (isAlreadyRegistered || isAppliedOnly) {
+      navigate(`/ticket/events/${eventId}`);
+      return;
+    }
+    try {
+      if (admission === "REVIEW") {
+        await applyMut.mutateAsync({ eventId });
+      } else {
+        await joinMut.mutateAsync(eventId);
+      }
+      navigate(`/ticket/events/${eventId}`);
+    } catch {
+      // 실패 시 상세 페이지에 머물고 버튼 상태만 복구
+    }
   };
 
   const priceLabel = e.price && e.price > 0 ? `${e.price.toLocaleString()}원` : "무료";
@@ -100,7 +126,7 @@ export default function EventDetailPage() {
   return (
     <div className="min-h-[100svh] bg-neutral-950 text-neutral-100">
       <div className="max-w-5xl mx-auto px-3 sm:px-4 pb-28 sm:pb-16">
-        <div className="flex items-center gap-2 mb-4">
+        <div className="mb-4 hidden items-center gap-2 sm:flex">
           <IconButton aria-label="뒤로가기" onClick={() => navigate(-1)} size="small" className="text-neutral-200">
             <ArrowBackIosNewIcon fontSize="small" />
           </IconButton>
@@ -220,7 +246,7 @@ export default function EventDetailPage() {
               avg={e.ratingAvg}
               count={e.ratingCount}
               breakdown={e.ratingBreakdown ?? null}
-              className="rounded-2xl shadow-sm bg-white/95 dark:bg-neutral-900/95 border border-neutral-200/80 dark:border-neutral-800/80 backdrop-blur"
+              className="rounded-2xl shadow-sm bg-neutral-900/95 border border-neutral-800/80 backdrop-blur"
             />
             <ReviewList reviews={e.reviews} />
           </div>
@@ -236,12 +262,15 @@ export default function EventDetailPage() {
                 {startLabel}
               </Typography>
               <Divider className="!my-4" />
-              <Button size="lg" className="w-full" onClick={onAttend} disabled={isFetching}>
-                {isFetching ? "처리 중…" : "참가요청"}
+              <Button size="lg" className="w-full" onClick={onAttend} disabled={isFetching || joinMut.isPending || applyMut.isPending}>
+                {isFetching || joinMut.isPending || applyMut.isPending ? "처리 중…" : ctaLabel}
               </Button>
-              <Typography variant="caption" className="block mt-2 text-neutral-400">
-                지금은 테스트로 주최자의 마이페이지로 이동하지만, 실제로는 참가요청 → 호스트 승인 플로우로 동작할 예정입니다.
-              </Typography>
+              {myReg?.applicationStatus ? (
+                <Typography variant="caption" className="block mt-2 text-neutral-400">
+                  신청 상태: {myReg.applicationStatus}
+                  {myReg.registrationStatus ? ` / 등록 상태: ${myReg.registrationStatus}` : ""}
+                </Typography>
+              ) : null}
             </CardUI>
           </div>
         </div>
@@ -278,10 +307,10 @@ export default function EventDetailPage() {
         <div className="max-w-5xl mx-auto px-3 py-2 flex items-center justify-between gap-3">
           <div className="flex flex-col">
             <span className="text-sm font-semibold text-neutral-100">{priceLabel}</span>
-            <span className="text-[11px] text-neutral-400">{startLabel}</span>
+            <span className={`${mobileText.meta} text-neutral-400`}>{startLabel}</span>
           </div>
-          <Button size="md" className="flex-1 max-w-[180px]" onClick={onAttend} disabled={isFetching}>
-            {isFetching ? "처리 중…" : "참가요청"}
+          <Button size="md" className="flex-1 max-w-[180px]" onClick={onAttend} disabled={isFetching || joinMut.isPending || applyMut.isPending}>
+            {isFetching || joinMut.isPending || applyMut.isPending ? "처리 중…" : ctaLabel}
           </Button>
         </div>
       </div>

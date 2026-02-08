@@ -36,11 +36,29 @@ const Input = React.forwardRef<HTMLInputElement, Props>(function Input(
   const [showPassword, setShowPassword] = React.useState(false);
 
   const muiSize: TextFieldProps["size"] = size === "sm" ? "small" : "medium";
+  const minHeight = size === "sm" ? 44 : 48;
 
   const defaultSx = {
     "& .MuiInputBase-root": {
       borderRadius: "12px",
-      
+      backgroundColor: "rgba(23, 23, 23, 0.9)",
+      color: "rgb(245, 245, 245)",
+      minHeight,
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "rgba(82, 82, 91, 0.9)",
+    },
+    "& .MuiInputBase-root:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "rgba(161, 161, 170, 0.9)",
+    },
+    "& .MuiInputBase-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "rgba(96, 165, 250, 1)",
+    },
+    "& .MuiInputLabel-root": {
+      color: "rgba(212, 212, 216, 0.9)",
+    },
+    "& .MuiInputLabel-root.Mui-focused": {
+      color: "rgba(191, 219, 254, 1)",
     },
   } as const;
 

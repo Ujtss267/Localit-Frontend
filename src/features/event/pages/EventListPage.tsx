@@ -10,6 +10,7 @@ import { useEvents } from "../queries";
 import type { EventDTO, EventListParams } from "../api";
 import EventCardPretty from "../components/EventCardPretty";
 import { sampleEvents } from "../sampleEvents";
+import { mobileText } from "@/components/ui/mobileTypography";
 
 export default function EventListPage() {
   const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
@@ -76,12 +77,12 @@ export default function EventListPage() {
 
   return (
     <div className="min-h-[100svh] bg-gradient-to-b from-neutral-950 via-neutral-950 to-neutral-900 text-neutral-100 pb-20">
-      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-6 space-y-5">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-5 space-y-4">
         {/* 헤더 */}
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white">이벤트 둘러보기</h1>
-            <p className="text-[13px] sm:text-sm text-neutral-400 mt-1">필요한 것만 빠르게 필터링하세요.</p>
+            <h1 className={`${mobileText.title} font-semibold tracking-tight text-white`}>이벤트 둘러보기</h1>
+            <p className={`${mobileText.meta} text-neutral-400 mt-1`}>필요한 것만 빠르게 필터링하세요.</p>
           </div>
           <Button component={Link} to="/events/new" variant="outline" className="hidden sm:inline-flex">
             이벤트 생성
@@ -89,7 +90,7 @@ export default function EventListPage() {
         </div>
 
         {/* ✅ 슬림 툴바 (키워드 + 정렬 + 고급필터 토글 + 내 이벤트만) */}
-        <Card className="p-2 sm:p-3 bg-neutral-900/80 border border-neutral-800">
+        <Card className="p-3 bg-neutral-900/80 border border-neutral-800">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             {/* 좌측: 검색/정렬 */}
             <div className="flex w-full items-center gap-2">
@@ -98,12 +99,12 @@ export default function EventListPage() {
                 onChange={(e) => setKeyword(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && applyToolbar()}
                 placeholder="검색어를 입력하세요"
-                className="flex-1 h-9 rounded-md border border-neutral-700 bg-neutral-900/80 px-3 text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-500"
+                className="flex-1 h-11 rounded-md border border-neutral-700 bg-neutral-900/80 px-3 text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-500"
               />
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value as any)}
-                className="h-9 rounded-md border border-neutral-700 bg-neutral-900/80 px-2 text-sm text-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-500"
+                className="h-11 rounded-md border border-neutral-700 bg-neutral-900/80 px-2 text-sm text-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-500"
                 title="정렬"
               >
                 <option value="upcoming">시작 임박순</option>
@@ -118,12 +119,12 @@ export default function EventListPage() {
             {/* 우측: 내 이벤트만 + 고급필터 토글 */}
             <div className="flex items-center justify-between gap-3 sm:justify-end">
               {/* ✅ 내 이벤트만 토글 */}
-              <label className="inline-flex items-center gap-2 text-[13px] sm:text-sm cursor-pointer select-none text-neutral-200">
+              <label className="inline-flex min-h-11 items-center gap-2 text-sm cursor-pointer select-none text-neutral-200">
                 <input type="checkbox" checked={myOnly} onChange={(e) => setMyOnly(e.target.checked)} className="h-4 w-4 accent-neutral-100" />
                 내 이벤트만
               </label>
 
-              <Button variant="ghost" size="sm" onClick={() => setShowAdvanced((v) => !v)} className="text-[12px]">
+              <Button variant="ghost" size="sm" onClick={() => setShowAdvanced((v) => !v)} className="text-sm">
                 {showAdvanced ? "닫기" : "필터"}
               </Button>
             </div>
@@ -139,7 +140,7 @@ export default function EventListPage() {
 
         {/* 상태 표시줄 */}
         <div className="flex items-center justify-between pt-1">
-          <div className="text-[13px] sm:text-sm text-neutral-400">{!USE_SAMPLE && isFetching ? "필터 적용 중…" : <>총 {count}개</>}</div>
+          <div className={`${mobileText.meta} text-neutral-400`}>{!USE_SAMPLE && isFetching ? "필터 적용 중…" : <>총 {count}개</>}</div>
           <div className="flex gap-2">
             <Button variant="ghost" disabled>
               이전

@@ -14,7 +14,14 @@ export default function CustomCard({ className = "", children, header, ...rest }
   return (
     <Card
       className={className}
-      sx={{ borderRadius: 3, boxShadow: 2 }}
+      sx={{
+        borderRadius: 3,
+        boxShadow: 2,
+        border: "1px solid",
+        borderColor: "rgba(63, 63, 70, 0.9)",
+        backgroundColor: "rgba(23, 23, 23, 0.92)",
+        color: "rgb(245, 245, 245)",
+      }}
       {...rest}
     >
       {header && <CardHeader title={header.title} subheader={header.subheader} />}

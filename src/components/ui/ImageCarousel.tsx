@@ -65,7 +65,7 @@ export default function ImageCarousel({
                 src={src}
                 alt={`${alt} ${i + 1}`}
                 loading="lazy"
-                className={["w-full h-40 sm:h-48 md:h-56 lg:h-60", fit === "cover" ? "object-cover" : "object-contain bg-neutral-50"].join(" ")}
+                className={["w-full h-40 sm:h-48 md:h-56 lg:h-60", fit === "cover" ? "object-cover" : "object-contain bg-neutral-900"].join(" ")}
               />
             </div>
           ))}
@@ -79,18 +79,18 @@ export default function ImageCarousel({
             <IconButton
               aria-label="previous image"
               onClick={scrollPrev}
-              className="pointer-events-auto !bg-white/80 hover:!bg-white shadow-sm !p-1"
+              className="pointer-events-auto !bg-neutral-900/85 hover:!bg-neutral-800 shadow-sm !p-1"
               size="small"
             >
-              <ChevronLeftIcon htmlColor="#111827" />
+              <ChevronLeftIcon htmlColor="#f5f5f5" />
             </IconButton>
             <IconButton
               aria-label="next image"
               onClick={scrollNext}
-              className="pointer-events-auto !bg-white/80 hover:!bg-white shadow-sm !p-1"
+              className="pointer-events-auto !bg-neutral-900/85 hover:!bg-neutral-800 shadow-sm !p-1"
               size="small"
             >
-              <ChevronRightIcon htmlColor="#111827" />
+              <ChevronRightIcon htmlColor="#f5f5f5" />
             </IconButton>
           </div>
 
@@ -103,7 +103,7 @@ export default function ImageCarousel({
                 onClick={() => scrollTo(i)}
                 className={[
                   "h-1.5 rounded-full transition-all",
-                  selected === i ? "w-5 bg-blue-600" : "w-2 bg-white/70",
+                  selected === i ? "w-5 bg-blue-500" : "w-2 bg-neutral-300/70",
                   "shadow ring-1 ring-black/5",
                 ].join(" ")}
               />

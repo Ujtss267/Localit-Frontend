@@ -74,7 +74,7 @@ export default function RoomCardPretty({ room, className = "", to = `/rooms/rese
         {/* ⭐ 즐겨찾기 (absolute) */}
         <div className="absolute top-2 right-2">
           <Tooltip title="즐겨찾기">
-            <IconButton size="small" className="!bg-white/90 hover:!bg-white dark:!bg-neutral-900/70 dark:hover:!bg-neutral-900 shadow-sm">
+            <IconButton size="small" className="!bg-neutral-900/85 hover:!bg-neutral-800 shadow-sm">
               <FavoriteBorderIcon fontSize="small" />
             </IconButton>
           </Tooltip>
@@ -92,7 +92,7 @@ export default function RoomCardPretty({ room, className = "", to = `/rooms/rese
               </span>
             }
             className="backdrop-blur"
-            sx={{ bgcolor: "white", color: "text.primary", borderColor: "divider" }}
+            sx={{ bgcolor: "rgba(23,23,23,0.92)", color: "rgb(245,245,245)", borderColor: "rgba(82,82,91,0.9)" }}
           />
         </div>
       </div>

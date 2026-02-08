@@ -3,17 +3,18 @@ import { useNavigate } from "react-router-dom";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { useChat } from "@/app/providers/ChatProvider";
+import { mobileText } from "@/components/ui/mobileTypography";
 
 export default function ChatListPage() {
   const { openChats, closeChat } = useChat();
   const navigate = useNavigate();
 
   return (
-    <div className="mx-auto max-w-3xl p-4 sm:p-6">
-      <h1 className="mb-4 text-xl font-semibold">내 채팅방</h1>
+    <div className="mx-auto max-w-3xl p-4 text-neutral-100 sm:p-6">
+      <h1 className={`mb-4 ${mobileText.title} font-semibold`}>내 채팅방</h1>
 
       {!openChats.length ? (
-        <Card className="rounded-2xl border p-4 text-sm text-neutral-600">
+        <Card className="rounded-2xl border border-neutral-800 bg-neutral-900 p-4 text-sm text-neutral-300">
           아직 열린 채팅이 없어요.
           <br />
           이벤트나 모임에서 채팅을 시작하면 여기에 표시됩니다.
@@ -21,10 +22,10 @@ export default function ChatListPage() {
       ) : (
         <div className="space-y-3">
           {openChats.map((c) => (
-            <Card key={`${c.kind}-${c.id}`} className="flex items-center justify-between rounded-2xl border px-4 py-3 text-sm">
+            <Card key={`${c.kind}-${c.id}`} className="flex items-center justify-between rounded-2xl border border-neutral-800 bg-neutral-900 px-4 py-3 text-sm">
               <div>
-                <div className="font-medium">{c.title}</div>
-                {c.kind === "EVENT" && <div className="text-xs text-neutral-500">이벤트 채팅</div>}
+                <div className="font-medium text-neutral-100">{c.title}</div>
+                {c.kind === "EVENT" && <div className={`${mobileText.meta} text-neutral-400`}>이벤트 채팅</div>}
               </div>
               <div className="flex items-center gap-2">
                 <Button size="sm" variant="outline" onClick={() => closeChat(c.kind, c.id)}>
