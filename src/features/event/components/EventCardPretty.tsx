@@ -191,14 +191,21 @@ export default function EventCardPretty({
 
   return (
     <Card
-      className={`group relative flex h-full flex-col overflow-hidden rounded-2xl shadow-sm bg-neutral-900 border border-neutral-800 transition hover:border-neutral-700 hover:shadow-md ${className}`}
+      className={`group relative flex h-full flex-col overflow-hidden rounded-xl sm:rounded-2xl shadow-sm bg-neutral-900 border border-neutral-800 transition hover:border-neutral-700 hover:shadow-md [&_.MuiCardContent-root]:!p-0 [&_.MuiCardContent-root:last-child]:!pb-0 ${className}`}
     >
       {/* 이미지 영역 */}
       <div className="relative">
         {images.length > 1 ? (
-          <ImageCarousel images={images} autoplayMs={0} fit="cover" alt={e.title} options={{ loop: true }} />
+          <ImageCarousel
+            images={images}
+            autoplayMs={0}
+            fit="cover"
+            alt={e.title}
+            options={{ loop: true }}
+            className="[&_img]:!h-32 sm:[&_img]:!h-40"
+          />
         ) : (
-          <img src={images[0]} alt={e.title} className="h-40 w-full object-cover" loading="lazy" />
+          <img src={images[0]} alt={e.title} className="h-32 sm:h-40 w-full object-cover" loading="lazy" />
         )}
 
         {/* 상단 배지 (시리즈 / 타이틀 등) */}
@@ -221,13 +228,13 @@ export default function EventCardPretty({
       </div>
 
       {/* 본문 */}
-      <div className="flex flex-1 flex-col p-4 text-neutral-100">
+      <div className="flex flex-1 flex-col p-3 sm:p-4 text-neutral-100">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="truncate text-[17px] font-semibold tracking-tight sm:text-lg">{e.title}</h3>
+            <h3 className="truncate text-[15px] sm:text-lg font-semibold tracking-tight">{e.title}</h3>
 
             {!hideMeta && (
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-[13px] text-neutral-400 sm:text-sm">
+              <div className="mt-1 flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-neutral-400">
                 <span>{formatKoreanDate(date)}</span>
                 <span className="inline-flex items-center gap-1">📍{e.location}</span>
                 <StarRating avg={e.ratingAvg} count={e.ratingCount} />
@@ -236,10 +243,10 @@ export default function EventCardPretty({
           </div>
         </div>
 
-        <p className="mt-3 line-clamp-2 text-[13px] text-neutral-300 sm:text-sm">{e.description}</p>
+        <p className="mt-2.5 sm:mt-3 line-clamp-2 text-xs sm:text-sm text-neutral-300">{e.description}</p>
 
         {/* 하단 상태/버튼 */}
-        <div className="mt-4 flex items-center justify-between gap-2">
+        <div className="mt-3 sm:mt-4 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">{statusBadge}</div>
 
           {/* 편집 + 액션 버튼 */}
@@ -249,7 +256,7 @@ export default function EventCardPretty({
                 편집
               </Button>
             )}
-            <Button size="sm" onClick={handleRegisterClick} disabled={buttonDisabled}>
+            <Button size="sm" onClick={handleRegisterClick} disabled={buttonDisabled} className="!h-9 sm:!h-11 px-2.5 sm:px-3 text-xs sm:text-sm">
               {buttonText}
             </Button>
           </div>

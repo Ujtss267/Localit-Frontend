@@ -5,7 +5,6 @@ import { useRooms } from "../queries";
 import type { RoomDTO } from "../api";
 import { sampleRooms } from "../sampleRooms";
 import RoomCardPretty from "../components/RoomCardPretty";
-import RoomFilter from "../components/RoomFilter";
 import type { RoomSortKey } from "../components/RoomFilter";
 
 // UI
@@ -35,7 +34,6 @@ export default function RoomListPage() {
   const [q, setQ] = useState(sp.get("q") ?? "");
   const [onlyAvailable, setOnlyAvailable] = useState(sp.get("avail") === "1");
   const [sortKey, setSortKey] = useState<SortKey>((sp.get("sort") as SortKey) || "created");
-  const [showAdvanced, setShowAdvanced] = useState(false); // ✅ 고급필터 토글
 
   const syncSearchParams = useCallback(
     (next: { q?: string; avail?: string; sort?: SortKey }) => {
@@ -96,10 +94,16 @@ export default function RoomListPage() {
   }, [rawRooms, q, onlyAvailable, sortKey]);
 
   const count = filtered.length;
+  const sortLabel: Record<SortKey, string> = {
+    created: "최신 등록순",
+    capacity: "수용 인원순",
+    name: "이름순",
+  };
+  const activeSummary = [q.trim() ? `검색: ${q.trim()}` : "", onlyAvailable ? "사용 가능만" : "", `정렬: ${sortLabel[sortKey]}`].filter(Boolean);
 
   return (
     <div className="min-h-[100svh] bg-gradient-to-b from-neutral-950 via-neutral-950 to-neutral-900 text-neutral-100 pb-20">
-      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-5 space-y-4">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-5 space-y-3 sm:space-y-4">
         {/* 헤더 */}
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -108,77 +112,93 @@ export default function RoomListPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button component={RouterLink as any} to="/rooms/new" className="hidden sm:inline-flex" startIcon={<AddHomeWorkIcon fontSize="small" />}>
-              공간 등록
+            <Button
+              component={RouterLink as any}
+              to="/rooms/new"
+              className="!h-8 sm:!h-10 px-2 sm:px-3 text-[11px] sm:text-xs min-w-0"
+              startIcon={<AddHomeWorkIcon fontSize="small" />}
+              title="공간 등록"
+            >
+              <span className="hidden sm:inline">공간 등록</span>
             </Button>
-            <Button variant="ghost" disabled={USE_SAMPLE || isFetching} onClick={() => refetch()} startIcon={<RefreshIcon fontSize="small" />}>
-              새로고침
+            <Button
+              variant="ghost"
+              disabled={USE_SAMPLE || isFetching}
+              onClick={() => refetch()}
+              startIcon={<RefreshIcon fontSize="small" />}
+              className="!h-8 sm:!h-10 px-2 sm:px-3 text-[11px] sm:text-xs min-w-0"
+              title="새로고침"
+            >
+              <span className="hidden sm:inline">새로고침</span>
             </Button>
           </div>
         </div>
 
-        {/* ✅ 슬림 툴바 (검색/가용/정렬/적용 + 고급필터 토글) */}
-        <Card className="p-2 sm:p-3 bg-neutral-900/80 border border-neutral-800">
-          <div className="flex flex-col gap-2">
-            {/* 모바일: 검색창을 독립 행으로 분리해서 더 넓게 */}
-            <div className="w-full">
+        {/* ✅ 모바일 우선 필터 바 */}
+        <Card className="bg-neutral-900/80 border border-neutral-800 [&_.MuiCardContent-root]:!p-2.5 sm:[&_.MuiCardContent-root]:!p-3 [&_.MuiCardContent-root:last-child]:!pb-2.5 sm:[&_.MuiCardContent-root:last-child]:!pb-3">
+          <div className="space-y-2.5">
+            <div className="flex w-full items-center gap-1.5 sm:gap-2">
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && applyToolbar()}
-                placeholder="공간명/위치로 검색"
-                className="w-full h-12 rounded-md border border-neutral-700 bg-neutral-900/80 px-3 text-[13px] text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-500 sm:h-11 sm:text-sm"
+                placeholder="공간명/위치 검색"
+                className="w-full h-10 sm:h-11 rounded-md border border-neutral-700 bg-neutral-900/80 px-2.5 sm:px-3 text-xs sm:text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-500"
               />
-            </div>
-
-            {/* 사용 가능/정렬/적용 */}
-            <div className="flex w-full flex-wrap items-center gap-2 sm:flex-row sm:justify-between">
-              <label className="flex min-h-11 select-none items-center gap-2 text-[13px] text-neutral-200 sm:text-sm">
-                <input type="checkbox" checked={onlyAvailable} onChange={(e) => setOnlyAvailable(e.target.checked)} className="h-4 w-4 accent-neutral-100" />
-                사용 가능만
-              </label>
-              <select
-                value={sortKey}
-                onChange={(e) => setSortKey(e.target.value as SortKey)}
-                className="h-11 rounded-md border border-neutral-700 bg-neutral-900/80 px-2 text-[13px] text-neutral-100 sm:text-sm"
-                title="정렬"
-              >
-                <option value="created">최신 등록순</option>
-                <option value="capacity">수용 인원순</option>
-                <option value="name">이름순</option>
-              </select>
-
-              <Button size="sm" onClick={applyToolbar}>
+              {q && (
+                <Button variant="ghost" size="sm" onClick={() => setQ("")} className="!h-10 sm:!h-11 px-2 text-xs sm:text-sm whitespace-nowrap">
+                  지우기
+                </Button>
+              )}
+              <Button size="sm" onClick={applyToolbar} className="!h-10 sm:!h-11 px-2 sm:px-3 text-xs sm:text-sm">
                 적용
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setShowAdvanced((v) => !v)} className="text-[13px]">
-                {showAdvanced ? "고급 필터 닫기" : "고급 필터 열기"}
-              </Button>
             </div>
+
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              {(["created", "capacity", "name"] as const).map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => setSortKey(k)}
+                  className={[
+                    "h-9 sm:h-10 rounded-full px-3 text-xs sm:text-sm border transition",
+                    sortKey === k
+                      ? "border-neutral-200 bg-neutral-100 text-neutral-900"
+                      : "border-neutral-700 bg-neutral-900/80 text-neutral-200 hover:bg-neutral-800",
+                  ].join(" ")}
+                >
+                  {sortLabel[k]}
+                </button>
+              ))}
+            </div>
+
+            <label className="inline-flex min-h-10 sm:min-h-11 items-center gap-2 text-xs sm:text-sm cursor-pointer select-none text-neutral-200">
+              <input type="checkbox" checked={onlyAvailable} onChange={(e) => setOnlyAvailable(e.target.checked)} className="h-4 w-4 accent-neutral-100" />
+              사용 가능 공간만 보기
+            </label>
           </div>
 
-          {/* 👉 필요 시에만 기존 RoomFilter 표시 */}
-          {showAdvanced && (
-            <div className="mt-3 border-t border-neutral-800 pt-3">
-              <RoomFilter
-                q={q}
-                onlyAvailable={onlyAvailable}
-                sortKey={sortKey}
-                onQChange={(next, commit) => {
-                  setQ(next);
-                  if (commit) syncSearchParams({ q: next });
-                }}
-                onOnlyAvailableChange={(next) => {
-                  setOnlyAvailable(next);
-                  syncSearchParams({ avail: next ? "1" : "" });
-                }}
-                onSortKeyChange={(next) => {
-                  setSortKey(next);
-                  syncSearchParams({ sort: next });
-                }}
-              />
-            </div>
-          )}
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            {activeSummary.map((v) => (
+              <span key={v} className="inline-flex rounded-full border border-neutral-700 bg-neutral-900 px-2.5 py-1 text-[11px] sm:text-xs text-neutral-300">
+                {v}
+              </span>
+            ))}
+            <button
+              type="button"
+              onClick={() => {
+                setQ("");
+                setOnlyAvailable(false);
+                setSortKey("created");
+                syncSearchParams({ q: "", avail: "", sort: "created" });
+                if (!USE_SAMPLE) refetch();
+              }}
+              className="inline-flex rounded-full border border-neutral-600 px-2.5 py-1 text-[11px] sm:text-xs text-neutral-300 hover:bg-neutral-800"
+            >
+              조건 초기화
+            </button>
+          </div>
         </Card>
 
         {/* 상태 바 */}
@@ -188,11 +208,11 @@ export default function RoomListPage() {
           ) : (
             <div className={`${mobileText.meta} text-neutral-400`}>{!USE_SAMPLE && isFetching ? "필터 적용 중…" : <>총 {count}개</>}</div>
           )}
-          <div className="flex gap-2">
-            <Button variant="ghost" disabled>
+          <div className="hidden sm:flex gap-2">
+            <Button variant="ghost" disabled size="sm">
               이전
             </Button>
-            <Button variant="ghost" disabled>
+            <Button variant="ghost" disabled size="sm">
               다음
             </Button>
           </div>
@@ -206,7 +226,7 @@ export default function RoomListPage() {
         ) : count === 0 ? (
           <Empty title="등록된 공간이 없습니다" desc="첫 공간을 등록해 보세요." />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
             {filtered.map((r) => (
               <RoomCardPretty key={r.id} room={r} />
             ))}

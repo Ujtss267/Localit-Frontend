@@ -161,17 +161,17 @@ export default function EventFilter({ onChange, className = "", debounceMs = 200
     <div className={`space-y-3 ${className}`}>
       {/* 상단 프리셋 바 */}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm font-semibold text-neutral-700 dark:text-neutral-200">빠른 선택:</span>
-        <Button size="sm" variant="ghost" onClick={() => applyPreset("today")}>
+        <span className="text-xs sm:text-sm font-semibold text-neutral-700 dark:text-neutral-200">빠른 선택:</span>
+        <Button size="sm" variant="ghost" onClick={() => applyPreset("today")} className="!h-9 sm:!h-11 px-2 text-xs sm:text-sm">
           오늘
         </Button>
-        <Button size="sm" variant="ghost" onClick={() => applyPreset("weekend")}>
+        <Button size="sm" variant="ghost" onClick={() => applyPreset("weekend")} className="!h-9 sm:!h-11 px-2 text-xs sm:text-sm">
           이번 주말
         </Button>
-        <Button size="sm" variant="ghost" onClick={() => applyPreset("week")}>
+        <Button size="sm" variant="ghost" onClick={() => applyPreset("week")} className="!h-9 sm:!h-11 px-2 text-xs sm:text-sm">
           이번 주
         </Button>
-        <Button size="sm" variant="ghost" onClick={() => applyPreset("month")}>
+        <Button size="sm" variant="ghost" onClick={() => applyPreset("month")} className="!h-9 sm:!h-11 px-2 text-xs sm:text-sm">
           이번 달
         </Button>
         <div className="ml-auto flex gap-2">
@@ -183,6 +183,7 @@ export default function EventFilter({ onChange, className = "", debounceMs = 200
               setStartLocal("");
               setEndLocal("");
             }}
+            className="!h-9 sm:!h-11 px-2 text-xs sm:text-sm"
           >
             초기화
           </Button>
@@ -195,6 +196,7 @@ export default function EventFilter({ onChange, className = "", debounceMs = 200
         <div className="relative">
           <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-300 mb-1">카테고리 ID</label>
           <Input
+            size="sm"
             inputMode="numeric"
             placeholder="숫자만"
             aria-label="카테고리 ID"
@@ -212,6 +214,7 @@ export default function EventFilter({ onChange, className = "", debounceMs = 200
           <div className="relative">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">📍</span>
             <Input
+              size="sm"
               className="pl-8"
               placeholder="예: 서울, 부산, 창원…"
               aria-label="지역"
@@ -224,13 +227,13 @@ export default function EventFilter({ onChange, className = "", debounceMs = 200
         {/* startTime */}
         <div className="relative">
           <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-300 mb-1">시작일시</label>
-          <Input type="datetime-local" aria-label="시작일시" value={startLocal} onChange={(e) => setStartLocal(e.target.value)} />
+          <Input size="sm" type="datetime-local" aria-label="시작일시" value={startLocal} onChange={(e) => setStartLocal(e.target.value)} />
         </div>
 
         {/* endTime */}
         <div className="relative">
           <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-300 mb-1">종료일시</label>
-          <Input type="datetime-local" aria-label="종료일시" value={endLocal} onChange={(e) => setEndLocal(e.target.value)} />
+          <Input size="sm" type="datetime-local" aria-label="종료일시" value={endLocal} onChange={(e) => setEndLocal(e.target.value)} />
         </div>
       </div>
 

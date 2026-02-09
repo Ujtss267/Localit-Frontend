@@ -12,6 +12,8 @@ import { ReservationMyCard } from "../components/ReservationMyCard";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { Tabs } from "@/components/ui";
 import { mobileText } from "@/components/ui/mobileTypography";
+import CameraAltOutlinedIcon from "@mui/icons-material/CameraAltOutlined";
+import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 
 function EmptyState({ title, hint }: { title: string; hint?: string }) {
   return (
@@ -105,16 +107,57 @@ export default function MyPage() {
     }
   };
 
+  const onOpenProfileSettings = () => {
+    navigate("/settings/account");
+  };
+
+  const onChangeProfilePhoto = () => {
+    navigate("/settings/account#profile-photo");
+  };
+
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-10 pt-6 text-neutral-100 sm:px-6">
+    <div className="mx-auto max-w-6xl px-3 sm:px-6 pb-8 sm:pb-10 pt-4 sm:pt-6 text-neutral-100">
+      {/* 아이디로 이동하는 검색폼 (샘플용) */}
+      <form onSubmit={onSearchSubmit} className="mb-3 sm:mb-4 rounded-2xl border border-neutral-700 bg-neutral-900/90 p-2.5 sm:p-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className={`${mobileText.meta} text-neutral-400`}>사용자 ID로 마이페이지 조회</div>
+          <div className="text-[11px] sm:text-xs text-neutral-500">예: 1, 999</div>
+        </div>
+        <div className="mt-2 flex items-center gap-2">
+          <input
+            value={searchId}
+            onChange={(e) => setSearchId(e.target.value)}
+            inputMode="numeric"
+            placeholder="userId 입력"
+            className="h-10 sm:h-11 w-full rounded-xl border border-neutral-700 bg-neutral-900 px-3 text-xs sm:text-sm text-neutral-100 placeholder:text-neutral-500"
+          />
+          <button type="submit" className="h-10 sm:h-11 shrink-0 rounded-xl border border-neutral-700 px-3 sm:px-4 text-xs sm:text-sm hover:bg-neutral-800">
+            열기
+          </button>
+        </div>
+      </form>
+
       {/* 프로필 헤더 */}
       <div className="overflow-hidden rounded-3xl border border-neutral-700 bg-neutral-900/90 shadow-sm">
         <div className="h-24 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-rose-500/25 sm:h-32" />
-        <div className="grid gap-5 px-5 pb-6 sm:grid-cols-[auto,1fr,auto] sm:px-6">
-          <div className="-mt-10 h-20 w-20 overflow-hidden rounded-2xl border border-neutral-700 bg-neutral-800 shadow-sm sm:-mt-12 sm:h-24 sm:w-24" />
+        <div className="grid gap-4 sm:gap-5 px-4 sm:px-6 pb-5 sm:pb-6 sm:grid-cols-[auto,1fr,auto]">
+          <div className="-mt-10 h-20 w-20 sm:-mt-12 sm:h-24 sm:w-24 relative">
+            <div className="h-full w-full overflow-hidden rounded-2xl border border-neutral-700 bg-neutral-800 shadow-sm" />
+            {isOwner && (
+              <button
+                type="button"
+                onClick={onChangeProfilePhoto}
+                className="absolute -bottom-1 -right-1 inline-flex h-8 w-8 items-center justify-center rounded-full border border-neutral-600 bg-neutral-900/95 text-neutral-100 hover:bg-neutral-800"
+                aria-label="프로필 사진 변경"
+                title="프로필 사진 변경"
+              >
+                <CameraAltOutlinedIcon sx={{ fontSize: 16 }} />
+              </button>
+            )}
+          </div>
           <div className="space-y-2">
             <div>
-              <div className="text-2xl font-semibold">{data.profileName}</div>
+              <div className="text-xl sm:text-2xl font-semibold">{data.profileName}</div>
               <div className={`${mobileText.meta} text-neutral-400`}>
                 {data.profileTitle ?? (isOwner ? "프로필 타이틀을 추가해 보세요" : "호스트")}
               </div>
@@ -135,62 +178,56 @@ export default function MyPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:justify-end">
             {isOwner ? (
-              <button className="rounded-2xl border border-neutral-700 px-4 py-2 text-sm min-h-11 hover:bg-neutral-800">
+              <button className="rounded-2xl border border-neutral-700 px-3 sm:px-4 py-2 text-xs sm:text-sm min-h-10 sm:min-h-11 hover:bg-neutral-800">
                 프로필 편집
               </button>
             ) : (
               <button
                 onClick={toggleFollowProfile}
                 className={
-                  "rounded-2xl border border-neutral-700 px-4 py-2 text-sm min-h-11 shadow-sm " +
+                  "rounded-2xl border border-neutral-700 px-3 sm:px-4 py-2 text-xs sm:text-sm min-h-10 sm:min-h-11 shadow-sm " +
                   (data.isFollower ? "bg-neutral-700 text-neutral-100" : "hover:bg-neutral-800")
                 }
               >
                 {data.isFollower ? "언팔로우" : "팔로우"}
               </button>
             )}
-            <button className="rounded-2xl border border-neutral-700 px-4 py-2 text-sm min-h-11 hover:bg-neutral-800">
+            <button className="rounded-2xl border border-neutral-700 px-3 sm:px-4 py-2 text-xs sm:text-sm min-h-10 sm:min-h-11 hover:bg-neutral-800">
               공유
             </button>
+            {isOwner && (
+              <button
+                type="button"
+                onClick={onOpenProfileSettings}
+                className="rounded-2xl border border-neutral-700 px-3 sm:px-4 py-2 text-xs sm:text-sm min-h-10 sm:min-h-11 hover:bg-neutral-800 inline-flex items-center gap-1.5"
+              >
+                <SettingsOutlinedIcon sx={{ fontSize: 16 }} />
+                설정
+              </button>
+            )}
           </div>
         </div>
-        <div className="grid gap-4 px-5 pb-6 sm:grid-cols-[2fr,1fr] sm:px-6">
-          <div className="rounded-2xl border border-neutral-700 bg-neutral-900 px-4 py-4 text-sm text-neutral-200">
+        <div className="grid gap-3 sm:gap-4 px-4 sm:px-6 pb-5 sm:pb-6 sm:grid-cols-[2fr,1fr]">
+          <div className="rounded-2xl border border-neutral-700 bg-neutral-900 px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-neutral-200">
             <div className={`mb-2 ${mobileText.meta} font-semibold text-neutral-400`}>소개</div>
             <div>{data.profileIntro ?? (isOwner ? "프로필 소개를 추가해 보세요." : "소개가 없습니다.")}</div>
           </div>
-          <div className="grid gap-3">
-            <div className="rounded-2xl border border-neutral-700 px-4 py-3">
+          <div className="grid gap-2.5 sm:gap-3">
+            <div className="rounded-2xl border border-neutral-700 px-3 sm:px-4 py-2.5 sm:py-3">
               <div className={`${mobileText.meta} text-neutral-400`}>내가 만든 이벤트</div>
-              <div className="text-2xl font-semibold">{hostedEvents.length}</div>
+              <div className="text-xl sm:text-2xl font-semibold">{hostedEvents.length}</div>
             </div>
-            <div className="rounded-2xl border border-neutral-700 px-4 py-3">
+            <div className="rounded-2xl border border-neutral-700 px-3 sm:px-4 py-2.5 sm:py-3">
               <div className={`${mobileText.meta} text-neutral-400`}>참석 중인 이벤트</div>
-              <div className="text-2xl font-semibold">{participatingEvents.length}</div>
+              <div className="text-xl sm:text-2xl font-semibold">{participatingEvents.length}</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 아이디로 이동하는 검색폼 (샘플용) */}
-      <form onSubmit={onSearchSubmit} className="mt-4 hidden items-center gap-2 sm:flex">
-        <input
-          value={searchId}
-          onChange={(e) => setSearchId(e.target.value)}
-          placeholder="userId로 열기 (예: 1)"
-          className="h-11 w-40 rounded-xl border border-neutral-700 bg-neutral-900 px-3 text-sm text-neutral-100 placeholder:text-neutral-500"
-        />
-        <button
-          type="submit"
-          className="h-11 rounded-xl border border-neutral-700 px-3 text-sm hover:bg-neutral-800"
-        >
-          열기
-        </button>
-      </form>
-
       {/* EVENTS */}
-      <div className="mt-8 space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="mt-6 sm:mt-8 space-y-4 sm:space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
           <div>
             <div className="text-lg font-semibold">이벤트</div>
             <div className={`${mobileText.meta} text-neutral-400`}>내가 만든 이벤트와 참석 중인 이벤트</div>
@@ -205,10 +242,10 @@ export default function MyPage() {
           />
         </div>
 
-        <div className="rounded-3xl border border-neutral-700 bg-neutral-900 p-4 sm:p-6">
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-900 p-3 sm:p-6">
           {eventTab === "HOSTED" ? (
             hostedEvents.length ? (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {hostedEvents.map((e) => (
                   <EventMyCard
                     key={e.eventId}
@@ -229,7 +266,7 @@ export default function MyPage() {
               <EmptyState title="호스팅한 이벤트가 없습니다." hint="새 이벤트를 생성해 보세요." />
             )
           ) : participatingEvents.length ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {participatingEvents.map((e) => (
                 <EventMyCard
                   key={e.eventId}
@@ -251,8 +288,8 @@ export default function MyPage() {
       </div>
 
       {/* ROOMS */}
-      <div className="mt-10 space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="mt-8 sm:mt-10 space-y-4 sm:space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
           <div>
             <div className="text-lg font-semibold">공간</div>
             <div className={`${mobileText.meta} text-neutral-400`}>공간 등록 및 예약 정보</div>
@@ -267,10 +304,10 @@ export default function MyPage() {
           />
         </div>
 
-        <div className="rounded-3xl border border-neutral-700 bg-neutral-900 p-4 sm:p-6">
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-900 p-3 sm:p-6">
           {roomTab === "MYROOMS" ? (
             myRooms.length ? (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {myRooms.map((r) => (
                   <RoomMyCard key={r.roomId} room={r} editable={isOwner} onVisibilityChange={(v) => updateRoomVisibility(r.roomId, v)} />
                 ))}
@@ -279,7 +316,7 @@ export default function MyPage() {
               <EmptyState title="등록한 공간이 없습니다." hint="새 공간을 등록해 보세요." />
             )
           ) : reservations.length ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {reservations.map((x) => (
                 <ReservationMyCard key={x.roomReservationId} item={x} />
               ))}

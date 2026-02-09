@@ -22,6 +22,8 @@ import {
   Chip,
   Divider,
   Box,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DoNotDisturbOnIcon from "@mui/icons-material/DoNotDisturbOn";
@@ -30,6 +32,8 @@ import ImagePickerGrid from "@/components/ui/ImagePickerGrid";
 export default function RoomCreatePage() {
   const navigate = useNavigate();
   const createMut = useCreateRoom();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
@@ -41,11 +45,6 @@ export default function RoomCreatePage() {
   const previews = useMemo(() => images.map((f) => URL.createObjectURL(f)), [images]);
 
   const valid = name.trim().length >= 2 && location.trim().length >= 2 && typeof capacity === "number" && capacity > 0;
-
-  function onPickImages(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = e.target.files ? Array.from(e.target.files) : [];
-    setImages(files.slice(0, 5)); // 최대 5장 제한 예시
-  }
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -65,27 +64,32 @@ export default function RoomCreatePage() {
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 3 }}>
-      <Typography variant="h5" fontWeight={700} gutterBottom>
+    <Container maxWidth="md" sx={{ py: { xs: 1.5, sm: 3 }, px: { xs: 1, sm: 2 } }}>
+      <Typography variant="h5" fontWeight={700} gutterBottom sx={{ fontSize: { xs: 20, sm: 28 }, lineHeight: 1.2 }}>
         공간 등록
       </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: { xs: 1.5, sm: 2 }, fontSize: { xs: 12, sm: 14 } }}>
         모임/이벤트가 열릴 공간 정보를 입력해 주세요.
       </Typography>
 
       <Box component="form" onSubmit={onSubmit}>
-        <Grid container spacing={2}>
+        <Grid container spacing={{ xs: 1.5, sm: 2 }}>
           {/* 좌: 입력 폼 */}
           <Grid size={{ xs: 12, md: 7 }}>
-            <Card variant="outlined">
-              <CardHeader title="기본 정보" />
+            <Card variant="outlined" sx={{ borderRadius: { xs: 2, sm: 3 } }}>
+              <CardHeader
+                title="기본 정보"
+                titleTypographyProps={{ fontSize: { xs: 15, sm: 18 }, fontWeight: 700 }}
+                sx={{ pb: 0.5, "& .MuiCardHeader-content": { overflow: "hidden" } }}
+              />
               <CardContent>
-                <Stack spacing={2}>
+                <Stack spacing={{ xs: 1.5, sm: 2 }}>
                   <TextField
                     label="이름"
                     placeholder="예) A동 3층 소회의실"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    size={isMobile ? "small" : "medium"}
                     fullWidth
                     required
                   />
@@ -94,6 +98,7 @@ export default function RoomCreatePage() {
                     placeholder="예) 서울 마포구 ..."
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
+                    size={isMobile ? "small" : "medium"}
                     fullWidth
                     required
                   />
@@ -103,6 +108,7 @@ export default function RoomCreatePage() {
                     inputProps={{ min: 1, step: 1 }}
                     value={capacity}
                     onChange={(e) => setCapacity(e.target.value === "" ? "" : Math.max(0, Number(e.target.value)))}
+                    size={isMobile ? "small" : "medium"}
                     fullWidth
                     required
                     helperText="수용 가능한 최대 인원 수"
@@ -119,7 +125,7 @@ export default function RoomCreatePage() {
                     value={images}
                     onChange={setImages}
                     max={5}
-                    columns={3}
+                    columns={isMobile ? 2 : 3}
                     helperText="최대 5장까지 업로드 가능합니다. (실제 업로드 연동은 추후 진행)"
                   />
                 </Stack>
@@ -131,15 +137,23 @@ export default function RoomCreatePage() {
                 )}
               </CardContent>
 
-              <CardActions sx={{ p: 2 }}>
+              <CardActions sx={{ p: { xs: 1.5, sm: 2 }, pt: { xs: 0.5, sm: 1 } }}>
                 <Stack direction="row" spacing={1} sx={{ width: "100%" }}>
-                  <Button variant="outlined" color="inherit" fullWidth onClick={() => navigate(-1)} disabled={createMut.isPending}>
+                  <Button
+                    variant="outlined"
+                    color="inherit"
+                    fullWidth
+                    onClick={() => navigate(-1)}
+                    disabled={createMut.isPending}
+                    size={isMobile ? "small" : "medium"}
+                  >
                     취소
                   </Button>
                   <Button
                     type="submit"
                     variant="contained"
                     fullWidth
+                    size={isMobile ? "small" : "medium"}
                     disabled={!valid || createMut.isPending}
                     startIcon={createMut.isPending ? <SpinnerMini /> : undefined}
                   >
@@ -151,8 +165,8 @@ export default function RoomCreatePage() {
           </Grid>
 
           {/* 우: 미리보기 / 요약 */}
-          <Grid size={{ xs: 12, md: 5 }}>
-            <Card variant="outlined" sx={{ position: "sticky", top: 16 }}>
+          <Grid size={{ xs: 12, md: 5 }} sx={{ display: { xs: "none", md: "block" } }}>
+            <Card variant="outlined" sx={{ position: "sticky", top: 16, borderRadius: 3 }}>
               <CardHeader title="미리보기" />
               <CardContent>
                 <Stack spacing={1.5}>
@@ -181,7 +195,7 @@ export default function RoomCreatePage() {
                     {previews.length > 0 ? (
                       previews.slice(0, 3).map((src, i) => (
                         // eslint-disable-next-line jsx-a11y/alt-text
-                        <img key={i} src={src} style={{ width: "100%", height: 90, objectFit: "cover", borderRadius: 8 }} />
+                        <img key={i} src={src} style={{ width: "100%", height: 80, objectFit: "cover", borderRadius: 8 }} />
                       ))
                     ) : (
                       <Box

@@ -15,6 +15,7 @@ import RoomListPage from "@/features/room/pages/RoomListPage";
 import RoomReservePage from "@/features/room/pages/RoomReservePage";
 
 import MyPage from "@/features/my/pages/MyPage";
+import AccountSettingsPage from "@/features/my/pages/AccountSettingsPage";
 import StyleDemo from "@/pages/StyleDemo";
 import MobileFirstDemo from "@/pages/MobileFirstDemo";
 import PhoneVerifyPage from "@/features/auth/pages/PhoneVerifyPage";
@@ -73,6 +74,7 @@ export const router = createBrowserRouter([
             children: [
               { path: "style-demo", element: <StyleDemo /> },
               { path: "rooms/reserve", element: <RoomReservePage /> },
+              { path: "settings/account", element: <AccountSettingsPage /> },
             ],
           },
         ],

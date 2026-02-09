@@ -16,7 +16,7 @@ export const sampleMyPages: Record<number, MyPageDto> = {
     profileLocation: "서울 · 선릉",
     profileIntro: "작게 시작해서 크게 성장하는 모임을 좋아해요. 워크숍과 멘토링을 자주 열고 있습니다.",
     profileTags: ["커뮤니티", "멘토링", "워크숍"],
-    isOwner: false,
+    isOwner: true,
     isFollower: false,
     sections: {
       hostedEvents: [

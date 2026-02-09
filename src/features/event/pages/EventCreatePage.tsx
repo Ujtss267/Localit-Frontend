@@ -35,6 +35,8 @@ import {
   Select,
   InputLabel,
   FormControl,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 
 import { ImagePickerGrid, LocationMap } from "@/components";
@@ -86,6 +88,8 @@ function todayYmd() {
 export default function EventCreatePage() {
   const navigate = useNavigate();
   const createMut = useCreateEvent();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
@@ -231,26 +235,46 @@ export default function EventCreatePage() {
     (bulkCreate.error as CombinedError);
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Stack spacing={1} sx={{ mb: 3 }}>
-        <Typography variant="h4" fontWeight={700}>
+    <Container maxWidth="md" sx={{ py: { xs: 1.5, sm: 4 }, px: { xs: 1, sm: 2 }, pb: { xs: 10, sm: 4 } }}>
+      <Stack spacing={1} sx={{ mb: { xs: 1.5, sm: 3 } }}>
+        <Typography variant="h4" fontWeight={700} sx={{ fontSize: { xs: 20, sm: 32 }, lineHeight: 1.2 }}>
           새 이벤트 만들기
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: 12, sm: 14 } }}>
           기본 정보부터 일정, 모집 조건, 위치까지 순서대로 입력해 주세요.
         </Typography>
       </Stack>
 
       <Box component="form" onSubmit={onSubmit}>
         <Card variant="outlined" sx={{ overflow: "hidden" }}>
-          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+          <CardContent
+            sx={{
+              p: { xs: 1.5, sm: 3 },
+              "& .MuiInputBase-input": { fontSize: { xs: 13, sm: 14 } },
+              "& .MuiInputLabel-root": { fontSize: { xs: 12, sm: 14 } },
+              "& .MuiFormHelperText-root": { fontSize: { xs: 11, sm: 12 } },
+              "& .MuiFormControlLabel-label": { fontSize: { xs: 12, sm: 14 } },
+              "& .MuiMenuItem-root": { fontSize: { xs: 13, sm: 14 } },
+            }}
+          >
+            <Box sx={{ mb: { xs: 2, sm: 3 } }}>
+              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, fontSize: { xs: 12, sm: 14 } }}>
                 이벤트 유형
               </Typography>
-              <ToggleButtonGroup value={mode} exclusive onChange={(_, v) => v && setMode(v)} size="small" sx={{ borderRadius: 3 }}>
-                <ToggleButton value="single">단발형</ToggleButton>
-                <ToggleButton value="series">시리즈 회차형</ToggleButton>
+              <ToggleButtonGroup
+                value={mode}
+                exclusive
+                onChange={(_, v) => v && setMode(v)}
+                size="small"
+                fullWidth={isMobile}
+                sx={{ borderRadius: 3 }}
+              >
+                <ToggleButton value="single" sx={{ fontSize: { xs: 12, sm: 14 }, py: { xs: 0.8, sm: 1 } }}>
+                  단발형
+                </ToggleButton>
+                <ToggleButton value="series" sx={{ fontSize: { xs: 12, sm: 14 }, py: { xs: 0.8, sm: 1 } }}>
+                  시리즈 회차형
+                </ToggleButton>
               </ToggleButtonGroup>
             </Box>
 
@@ -274,18 +298,19 @@ export default function EventCreatePage() {
               </Box>
             )}
 
-            <Divider sx={{ my: 3 }} />
+            <Divider sx={{ my: { xs: 2, sm: 3 } }} />
 
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" sx={{ mb: 1.5 }}>
+            <Box sx={{ mb: { xs: 2, sm: 3 } }}>
+              <Typography variant="h6" sx={{ mb: 1.25, fontSize: { xs: 15, sm: 18 } }}>
                 기본 정보
               </Typography>
-              <Stack spacing={2}>
+              <Stack spacing={{ xs: 1.5, sm: 2 }}>
                 <TextField
                   label="제목"
                   placeholder="예) 로컬 스터디 모임"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  size={isMobile ? "small" : "medium"}
                   required
                   fullWidth
                 />
@@ -296,9 +321,17 @@ export default function EventCreatePage() {
                   onChange={(e) => setDesc(e.target.value)}
                   multiline
                   minRows={3}
+                  size={isMobile ? "small" : "medium"}
                   fullWidth
                 />
-                <TextField label="위치" placeholder="예) 서울 마포" value={location} onChange={(e) => setLocation(e.target.value)} fullWidth />
+                <TextField
+                  label="위치"
+                  placeholder="예) 서울 마포"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  size={isMobile ? "small" : "medium"}
+                  fullWidth
+                />
 
                 <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
                   <FormControl fullWidth>
@@ -308,6 +341,7 @@ export default function EventCreatePage() {
                       value={type}
                       label="이벤트 성격"
                       onChange={(e) => setType(e.target.value as EventType)}
+                      size={isMobile ? "small" : "medium"}
                     >
                       <MenuItem value="GENERAL">일반</MenuItem>
                       <MenuItem value="MENTORING">멘토링</MenuItem>
@@ -323,6 +357,7 @@ export default function EventCreatePage() {
                       value={visibility}
                       label="공개 범위"
                       onChange={(e) => setVisibility(e.target.value as Visibility)}
+                      size={isMobile ? "small" : "medium"}
                     >
                       <MenuItem value="PUBLIC">전체 공개</MenuItem>
                       <MenuItem value="FOLLOWERS">팔로워 공개</MenuItem>
@@ -337,6 +372,7 @@ export default function EventCreatePage() {
                       value={admissionPolicy}
                       label="입장 정책"
                       onChange={(e) => setAdmissionPolicy(e.target.value as AdmissionPolicy)}
+                      size={isMobile ? "small" : "medium"}
                     >
                       <MenuItem value="FIRST_COME">선착순</MenuItem>
                       <MenuItem value="REVIEW">심사 승인</MenuItem>
@@ -346,13 +382,13 @@ export default function EventCreatePage() {
               </Stack>
             </Box>
 
-            <Divider sx={{ my: 3 }} />
+            <Divider sx={{ my: { xs: 2, sm: 3 } }} />
 
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" sx={{ mb: 1.5 }}>
+            <Box sx={{ mb: { xs: 2, sm: 3 } }}>
+              <Typography variant="h6" sx={{ mb: 1.25, fontSize: { xs: 15, sm: 18 } }}>
                 일정
               </Typography>
-              <Stack spacing={2}>
+              <Stack spacing={{ xs: 1.5, sm: 2 }}>
                 <TextField
                   label="이벤트 발생일"
                   type="date"
@@ -365,6 +401,7 @@ export default function EventCreatePage() {
                     if (endLocal) setEndLocal(replaceDatePart(dateYmd, endLocal));
                   }}
                   InputLabelProps={{ shrink: true }}
+                  size={isMobile ? "small" : "medium"}
                   fullWidth
                   required
                 />
@@ -393,14 +430,14 @@ export default function EventCreatePage() {
               </Stack>
             </Box>
 
-            <Divider sx={{ my: 3 }} />
+            <Divider sx={{ my: { xs: 2, sm: 3 } }} />
 
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" sx={{ mb: 1.5 }}>
+            <Box sx={{ mb: { xs: 2, sm: 3 } }}>
+              <Typography variant="h6" sx={{ mb: 1.25, fontSize: { xs: 15, sm: 18 } }}>
                 모집 조건
               </Typography>
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ xs: "flex-start", sm: "center" }}>
-                <FormGroup row>
+              <Stack direction="column" spacing={{ xs: 1.5, sm: 2 }}>
+                <FormGroup row={!isMobile}>
                   <FormControlLabel
                     control={<Checkbox name="maleLimit" checked={genderControl.maleLimit} onChange={handleGenderChange} />}
                     label="남자 제한"
@@ -416,41 +453,45 @@ export default function EventCreatePage() {
                   <FormControlLabel control={<Checkbox checked={paidToHost} onChange={(e) => setPaidToHost(e.target.checked)} />} label="호스트 정산" />
                 </FormGroup>
 
-                <TextField
-                  label="정원"
-                  type="number"
-                  inputProps={{ min: 1, step: 1 }}
-                  value={capacity}
-                  onChange={(e) => setCapacity(e.target.value === "" ? "" : Math.max(0, Number(e.target.value)))}
-                  sx={{ minWidth: 140 }}
-                />
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+                  <TextField
+                    label="정원"
+                    type="number"
+                    inputProps={{ min: 1, step: 1 }}
+                    value={capacity}
+                    onChange={(e) => setCapacity(e.target.value === "" ? "" : Math.max(0, Number(e.target.value)))}
+                    size={isMobile ? "small" : "medium"}
+                    fullWidth
+                  />
 
-                <TextField
-                  label="참가비"
-                  type="number"
-                  inputProps={{ min: 0, step: 1000 }}
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value === "" ? "" : Math.max(0, Number(e.target.value)))}
-                  sx={{ minWidth: 160 }}
-                />
+                  <TextField
+                    label="참가비"
+                    type="number"
+                    inputProps={{ min: 0, step: 1000 }}
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value === "" ? "" : Math.max(0, Number(e.target.value)))}
+                    size={isMobile ? "small" : "medium"}
+                    fullWidth
+                  />
+                </Stack>
               </Stack>
             </Box>
 
-            <Divider sx={{ my: 3 }} />
+            <Divider sx={{ my: { xs: 2, sm: 3 } }} />
 
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" sx={{ mb: 1.5 }}>
+            <Box sx={{ mb: { xs: 2, sm: 3 } }}>
+              <Typography variant="h6" sx={{ mb: 1.25, fontSize: { xs: 15, sm: 18 } }}>
                 이미지 / 위치
               </Typography>
-              <Stack spacing={2}>
+              <Stack spacing={{ xs: 1.5, sm: 2 }}>
                 <ImagePickerGrid
                   value={[]}
                   onChange={() => {}}
                   max={5}
-                  columns={3}
+                  columns={isMobile ? 2 : 3}
                   helperText="최대 5장까지 업로드 가능합니다. (실제 업로드 연동은 추후 진행)"
                 />
-                <LocationMap title="로컬잇 밋업 @ 사림동" lat={lat} lng={lng} zoom={3} height={380} />
+                <LocationMap title="로컬잇 밋업 @ 사림동" lat={lat} lng={lng} zoom={3} height={isMobile ? 260 : 380} />
               </Stack>
             </Box>
 
@@ -508,15 +549,26 @@ export default function EventCreatePage() {
             )}
           </CardContent>
 
-          <CardActions sx={{ p: 2, borderTop: "1px solid", borderColor: "divider" }}>
+          <CardActions
+            sx={{
+              p: { xs: 1.5, sm: 2 },
+              borderTop: "1px solid",
+              borderColor: "divider",
+              position: { xs: "sticky", sm: "static" },
+              bottom: 0,
+              zIndex: 2,
+              backgroundColor: "background.paper",
+            }}
+          >
             <Stack direction="row" spacing={1} sx={{ width: "100%" }}>
-              <MUIButton variant="outlined" color="inherit" fullWidth onClick={() => navigate(-1)} disabled={isPending}>
+              <MUIButton variant="outlined" color="inherit" fullWidth onClick={() => navigate(-1)} disabled={isPending} size={isMobile ? "small" : "medium"}>
                 취소
               </MUIButton>
               <MUIButton
                 type="submit"
                 variant="contained"
                 fullWidth
+                size={isMobile ? "small" : "medium"}
                 disabled={!valid || isPending}
                 startIcon={isPending ? <CircularProgress size={18} /> : undefined}
               >
