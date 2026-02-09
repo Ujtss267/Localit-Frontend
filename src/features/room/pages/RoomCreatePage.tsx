@@ -1,6 +1,6 @@
 // src/features/room/pages/RoomCreatePage.tsx
 import { useState, type FormEvent, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCreateRoom } from "../queries";
 import type { CreateRoomDto } from "../api";
 
@@ -31,6 +31,7 @@ import ImagePickerGrid from "@/components/ui/ImagePickerGrid";
 
 export default function RoomCreatePage() {
   const navigate = useNavigate();
+  const [sp] = useSearchParams();
   const createMut = useCreateRoom();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -39,6 +40,7 @@ export default function RoomCreatePage() {
   const [location, setLocation] = useState("");
   const [capacity, setCapacity] = useState<number | "">("");
   const [available, setAvailable] = useState(true);
+  const fromEventCreate = sp.get("fromEventCreate") === "1";
 
   // (선택) 이미지 미리보기 — 실제 업로드는 추후 멀티파트 연동
   const [images, setImages] = useState<File[]>([]);
@@ -59,7 +61,10 @@ export default function RoomCreatePage() {
 
     // NOTE: 이미지 업로드가 필요하면 FormData로 변경 + 백엔드 엔드포인트 분리 권장
     createMut.mutate(payload, {
-      onSuccess: (room) => navigate(`/rooms`, { replace: true }),
+      onSuccess: (room) =>
+        navigate(fromEventCreate ? `/events/new?roomId=${room.id}` : `/rooms`, {
+          replace: true,
+        }),
     });
   }
 

@@ -7,7 +7,7 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import Button from "@/components/ui/Button";
 import CardUI from "@/components/ui/Card";
 import EventMeta from "../components/EventMeta";
-import { sampleEvents } from "../sampleEvents";
+import { sampleData } from "@/mocks/sampleData";
 import type { EventDTO } from "../api";
 import { useApplyEvent, useEvent, useJoinEvent } from "../queries";
 
@@ -35,7 +35,7 @@ export default function EventDetailPage() {
   const { data: serverEvent, isFetching } = useEvent(safeEventId);
   const joinMut = useJoinEvent();
   const applyMut = useApplyEvent();
-  const sample = useMemo(() => sampleEvents.find((e) => e.id === eventId), [eventId]);
+  const sample = useMemo(() => sampleData.events.find((e) => e.id === eventId), [eventId]);
   const e: EventDTO | undefined = USE_SAMPLE ? sample : (serverEvent ?? sample);
 
   if (Number.isNaN(eventId)) {

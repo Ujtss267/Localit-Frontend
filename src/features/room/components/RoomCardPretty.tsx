@@ -55,7 +55,9 @@ export default function RoomCardPretty({ room, className = "", to = `/rooms/rese
   );
 
   return (
-    <Card className={`group relative overflow-hidden rounded-2xl shadow-sm hover:shadow-md transition h-full flex flex-col ${className}`}>
+    <Card
+      className={`group relative overflow-hidden rounded-xl sm:rounded-2xl shadow-sm hover:shadow-md transition h-full flex flex-col [&_.MuiCardContent-root]:!p-0 [&_.MuiCardContent-root:last-child]:!pb-0 ${className}`}
+    >
       {/* ✅ 이미지/캐러셀 영역 (클릭 이동 제거) */}
       <div className="relative">
         {images.length > 1 ? (
@@ -65,10 +67,10 @@ export default function RoomCardPretty({ room, className = "", to = `/rooms/rese
             fit="cover"
             alt={room.name}
             options={{ loop: true }}
-            className="" // 필요시 높이 조절: h-40 sm:h-48 ...
+            className="[&_img]:!h-32 sm:[&_img]:!h-40" // 필요시 높이 조절
           />
         ) : (
-          <img src={images[0]} alt={room.name} loading="lazy" className="w-full h-40 sm:h-48 md:h-56 lg:h-60 object-cover" />
+          <img src={images[0]} alt={room.name} loading="lazy" className="w-full h-32 sm:h-40 md:h-56 lg:h-60 object-cover" />
         )}
 
         {/* ⭐ 즐겨찾기 (absolute) */}
@@ -98,30 +100,30 @@ export default function RoomCardPretty({ room, className = "", to = `/rooms/rese
       </div>
 
       {/* 본문 (텍스트) */}
-      <CardContent className="flex-1 grid gap-1">
-        <Typography variant="subtitle1" fontWeight={700} className="line-clamp-1">
+      <CardContent className="flex-1 grid gap-1 p-3 sm:p-4">
+        <Typography variant="subtitle1" fontWeight={700} className="line-clamp-1 !text-[15px] sm:!text-base">
           {room.name}
         </Typography>
 
         <Stack direction="row" spacing={1} alignItems="center">
           <PlaceOutlinedIcon fontSize="small" />
-          <Typography variant="body2" color="text.secondary" className="truncate">
+          <Typography variant="body2" color="text.secondary" className="truncate !text-xs sm:!text-sm">
             {room.location}
           </Typography>
         </Stack>
 
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
           {availableChip}
-          <Chip size="small" variant="outlined" label={`생성 ${formatDateShort(room.createdAt)}`} />
+          <Chip size="small" variant="outlined" label={`생성 ${formatDateShort(room.createdAt)}`} className="!text-[11px]" />
         </Stack>
 
-        <Typography variant="caption" sx={{ mt: 1 }} color="text.disabled">
+        <Typography variant="caption" sx={{ mt: 0.5 }} color="text.disabled" className="!text-[11px]">
           업데이트 {formatDateShort(room.updatedAt)}
         </Typography>
       </CardContent>
 
       {/* ✅ 푸터만 이동: 버튼으로만 페이지 이동 */}
-      <CardActions className="p-3 pt-0">
+      <CardActions className="p-3 pt-0 sm:p-3 sm:pt-0">
         <Stack direction="row" spacing={1} sx={{ width: "100%" }}>
           <Button
             variant="outlined"
@@ -130,10 +132,12 @@ export default function RoomCardPretty({ room, className = "", to = `/rooms/rese
             component={RouterLink}
             to={`/rooms/reserve?roomId=${room.id}`}
             disabled={!room.available}
+            size="small"
+            className="!h-9 sm:!h-11 text-xs sm:text-sm"
           >
             예약
           </Button>
-          <Button variant="contained" fullWidth component={RouterLink} to={to}>
+          <Button variant="contained" fullWidth component={RouterLink} to={to} size="small" className="!h-9 sm:!h-11 text-xs sm:text-sm">
             상세/예약
           </Button>
         </Stack>

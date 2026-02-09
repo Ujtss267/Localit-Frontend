@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MyPageDto, Visibility } from "../types";
-import { sampleMyPages } from "../sampleMyPage";
+import { sampleData } from "@/mocks/sampleData";
 import { useChat } from "@/app/providers/ChatProvider";
 
 // 이미 있는 컴포넌트
@@ -45,7 +45,7 @@ export default function MyPage() {
   // 2순위: 로그인 사용자
   // 3순위: 샘플 999
   const targetUserId = userId ? Number(userId) : (user?.id ?? 999);
-  const initialData = sampleMyPages[targetUserId] ?? sampleMyPages[999];
+  const initialData = sampleData.myPages[targetUserId] ?? sampleData.myPages[999];
 
   const [data, setData] = useState<MyPageDto>(initialData);
   const [eventTab, setEventTab] = useState<EventTab>("HOSTED");
@@ -54,7 +54,7 @@ export default function MyPage() {
 
   // URL 바뀔 때마다 해당 사용자로 갈아끼우기
   useEffect(() => {
-    const next = sampleMyPages[targetUserId] ?? sampleMyPages[999];
+    const next = sampleData.myPages[targetUserId] ?? sampleData.myPages[999];
     setData(next);
     setEventTab("HOSTED");
     setRoomTab("MYROOMS");
@@ -100,7 +100,7 @@ export default function MyPage() {
   const onSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const n = Number(searchId);
-    if (!Number.isNaN(n) && sampleMyPages[n]) {
+    if (!Number.isNaN(n) && sampleData.myPages[n]) {
       navigate(`/my/${n}`);
     } else {
       alert("해당 ID의 사용자 샘플이 없습니다.");

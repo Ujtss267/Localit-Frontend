@@ -1,7 +1,7 @@
 // src/features/event/hooks.ts
 import { useEffect, useState } from "react";
 import { getSeriesById, searchSeries } from "./api";
-import { sampleSeries, sampleSeriesDetails } from "./sampleEvents";
+import { sampleData } from "@/mocks/sampleData";
 import type { SeriesDetailDTO, SeriesOption } from "./api";
 
 const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
@@ -11,7 +11,7 @@ export function useSearchSeries() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    setOptions(sampleSeries.map((s) => ({ seriesId: s.seriesId, title: s.title })));
+    setOptions(sampleData.series.map((s) => ({ seriesId: s.seriesId, title: s.title })));
   }, []);
 
   const search = async (keyword: string) => {
@@ -19,7 +19,7 @@ export function useSearchSeries() {
     try {
       const trimmed = keyword.trim();
       if (USE_SAMPLE) {
-        const filtered = trimmed ? sampleSeries.filter((s) => s.title.includes(trimmed)) : sampleSeries;
+        const filtered = trimmed ? sampleData.series.filter((s) => s.title.includes(trimmed)) : sampleData.series;
         setOptions(filtered.map((s) => ({ seriesId: s.seriesId, title: s.title })));
         return;
       }
@@ -46,7 +46,7 @@ export function useFetchSeriesDetails(seriesId?: number | null) {
       setLoading(true);
       try {
         if (USE_SAMPLE) {
-          setDetails(sampleSeriesDetails.seriesId === seriesId ? sampleSeriesDetails : null);
+          setDetails(sampleData.seriesDetails.seriesId === seriesId ? sampleData.seriesDetails : null);
         } else {
           const found = await getSeriesById(seriesId);
           setDetails(found);

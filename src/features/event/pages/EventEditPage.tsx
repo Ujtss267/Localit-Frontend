@@ -2,7 +2,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEventById, useUpdateEvent } from "../queries";
 import { EventForm } from "../components/EventForm";
-import { sampleEvents } from "../sampleEvents"; // ✅ 샘플데이터
+import { sampleData } from "@/mocks/sampleData"; // ✅ 샘플데이터
 import { useMemo } from "react";
 
 export default function EventEditPage() {
@@ -14,7 +14,7 @@ export default function EventEditPage() {
   // ─────────────────────────────
   // 1) 샘플 모드일 때: sampleEvents에서 찾아오기
   // ─────────────────────────────
-  const sampleEvent = useMemo(() => (USE_SAMPLE ? sampleEvents.find((e) => e.id === eventId) : null), [USE_SAMPLE, eventId]);
+  const sampleEvent = useMemo(() => (USE_SAMPLE ? sampleData.events.find((e) => e.id === eventId) : null), [USE_SAMPLE, eventId]);
 
   // ─────────────────────────────
   // 2) 실제 API 모드일 때: 기존 훅 사용

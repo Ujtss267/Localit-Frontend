@@ -125,6 +125,11 @@ export type EventDTO = {
   price: number;
   paidToHost: boolean;
   hostType: string;
+  visibility: Visibility;
+  categoryId?: number | null;
+  mentorId?: number | null;
+  creatorId?: number | null;
+  roomId?: number | null;
 
   /** 관계형 (optional) */
   mentor?: { id: number; email: string; name?: string | null } | null;
@@ -211,6 +216,8 @@ export function mapApiEventToEventDTO(e: ApiEvent): EventDTO {
     title: e.title,
     description: e.description,
     location: e.location,
+    lat: e.lat ?? null,
+    lng: e.lng ?? null,
     startTime: e.startTime,
     endTime: e.endTime,
     capacity: e.capacity,
@@ -220,6 +227,11 @@ export function mapApiEventToEventDTO(e: ApiEvent): EventDTO {
     price: e.price,
     paidToHost: e.paidToHost,
     hostType: e.hostType,
+    visibility: e.visibility,
+    categoryId: e.categoryId ?? null,
+    mentorId: e.mentorId ?? null,
+    creatorId: e.creatorId ?? null,
+    roomId: e.roomId ?? null,
     imageUrls: e.imageUrls,
     seriesId: e.seriesId ?? null,
     episodeNo: e.episodeNo ?? null,

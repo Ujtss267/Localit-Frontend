@@ -3,7 +3,7 @@ import { useMemo, useState, useCallback } from "react";
 import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import { useRooms } from "../queries";
 import type { RoomDTO } from "../api";
-import { sampleRooms } from "../sampleRooms";
+import { sampleData } from "@/mocks/sampleData";
 import RoomCardPretty from "../components/RoomCardPretty";
 import type { RoomSortKey } from "../components/RoomFilter";
 
@@ -25,12 +25,15 @@ export default function RoomListPage() {
   const { data, isLoading, isError, error, refetch, isFetching } = useRooms();
 
   // 샘플/실데이터 스위치
-  const rawRooms: RoomDTO[] = USE_SAMPLE ? sampleRooms : (data ?? []);
+  const rawRooms: RoomDTO[] = USE_SAMPLE ? sampleData.rooms : (data ?? []);
   const showLoading = !USE_SAMPLE && isLoading;
   const showError = !USE_SAMPLE && isError;
 
   // URL 쿼리 동기화
   const [sp, setSp] = useSearchParams();
+  const pickForEvent = sp.get("pickForEvent") === "1";
+  const startLocalParam = sp.get("startLocal") ?? "";
+  const endLocalParam = sp.get("endLocal") ?? "";
   const [q, setQ] = useState(sp.get("q") ?? "");
   const [onlyAvailable, setOnlyAvailable] = useState(sp.get("avail") === "1");
   const [sortKey, setSortKey] = useState<SortKey>((sp.get("sort") as SortKey) || "created");
@@ -108,13 +111,15 @@ export default function RoomListPage() {
         <div className="flex items-start justify-between gap-3">
           <div>
             <h1 className="text-base font-semibold tracking-tight text-white sm:text-xl">공간 목록</h1>
-            <p className={`${mobileText.meta} mt-1 text-neutral-400`}>필요한 것만 빠르게 필터링하세요.</p>
+            <p className={`${mobileText.meta} mt-1 text-neutral-400`}>
+              {pickForEvent ? "이벤트에 연결할 공간을 선택하거나 새 공간을 등록하세요." : "필요한 것만 빠르게 필터링하세요."}
+            </p>
           </div>
 
           <div className="flex items-center gap-2">
             <Button
               component={RouterLink as any}
-              to="/rooms/new"
+              to={pickForEvent ? "/rooms/new?fromEventCreate=1" : "/rooms/new"}
               className="!h-8 sm:!h-10 px-2 sm:px-3 text-[11px] sm:text-xs min-w-0"
               startIcon={<AddHomeWorkIcon fontSize="small" />}
               title="공간 등록"
@@ -228,7 +233,19 @@ export default function RoomListPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
             {filtered.map((r) => (
-              <RoomCardPretty key={r.id} room={r} />
+              <div key={r.id} className="space-y-2">
+                <RoomCardPretty room={r} />
+                {pickForEvent && (
+                  <Button
+                    component={RouterLink as any}
+                    to={`/events/new?roomId=${r.id}&startLocal=${encodeURIComponent(startLocalParam)}&endLocal=${encodeURIComponent(endLocalParam)}`}
+                    size="sm"
+                    className="w-full !h-9 text-xs"
+                  >
+                    이 공간으로 이벤트 만들기
+                  </Button>
+                )}
+              </div>
             ))}
           </div>
         )}

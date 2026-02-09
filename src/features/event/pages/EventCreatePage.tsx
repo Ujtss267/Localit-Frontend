@@ -1,6 +1,6 @@
 import React, { useEffect, useState, type FormEvent } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCreateEvent } from "../queries";
 import {
   createEvent,
@@ -46,6 +46,10 @@ import SeriesConnector from "../components/SeriesConnector";
 import CreateSeriesDialog from "../components/CreateSeriesDialog";
 import EditSeriesDialog from "../components/EditSeriesDialog";
 import BulkCreateDialog from "../components/BulkCreateDialog";
+import { useRooms } from "@/features/room/queries";
+import { useAuth } from "@/app/providers/AuthProvider";
+import { sampleData } from "@/mocks/sampleData";
+import { checkRoomAvailability } from "@/features/room/api";
 
 type SeriesOption = { seriesId: number; title: string };
 type EventMode = "single" | "series";
@@ -87,13 +91,16 @@ function todayYmd() {
 
 export default function EventCreatePage() {
   const navigate = useNavigate();
+  const [sp] = useSearchParams();
   const createMut = useCreateEvent();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const { user } = useAuth();
 
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [location, setLocation] = useState("");
+  const [selectedRoomId, setSelectedRoomId] = useState<number | "">("");
   const [eventDate, setEventDate] = useState(todayYmd());
   const [startLocal, setStartLocal] = useState("");
   const [endLocal, setEndLocal] = useState("");
@@ -153,6 +160,37 @@ export default function EventCreatePage() {
 
   const [range, setRange] = useState<{ start: Date; end: Date } | null>(null);
   const [duration, setDuration] = useState(60);
+  const { data: roomsData, isLoading: roomsLoading } = useRooms();
+  const viewerId = user?.id ?? 1;
+  const userPref = sampleData.userPreferences[viewerId];
+  const [needsRoom, setNeedsRoom] = useState(Boolean(userPref?.needsRoom));
+
+  const distanceKm = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+    const toRad = (deg: number) => (deg * Math.PI) / 180;
+    const R = 6371;
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  const availableRooms = React.useMemo(() => {
+    const base = (roomsData ?? []).filter((r) => r.available && r.creatorId === viewerId);
+    if (!needsRoom) return base;
+    if (typeof userPref?.lat !== "number" || typeof userPref?.lng !== "number") return base;
+    return [...base].sort((a, b) => {
+      if (a.lat == null || a.lng == null) return 1;
+      if (b.lat == null || b.lng == null) return -1;
+      return distanceKm(userPref.lat!, userPref.lng!, a.lat, a.lng) - distanceKm(userPref.lat!, userPref.lng!, b.lat, b.lng);
+    });
+  }, [roomsData, needsRoom, userPref?.lat, userPref?.lng]);
+
+  const selectedRoom = selectedRoomId === "" ? null : availableRooms.find((r) => r.id === Number(selectedRoomId)) ?? null;
+  const { data: availability } = useQuery({
+    queryKey: ["room-availability", selectedRoom?.id, startLocal, endLocal],
+    enabled: Boolean(needsRoom && selectedRoom?.id && startLocal && endLocal),
+    queryFn: () => checkRoomAvailability(selectedRoom!.id, toISO(startLocal), toISO(endLocal)),
+  });
 
   const canEdit = Boolean(selectedSeries?.seriesId);
 
@@ -182,7 +220,8 @@ export default function EventCreatePage() {
     price >= 0;
 
   const seriesValid = mode === "single" ? true : !!selectedSeries;
-  const valid = baseValid && seriesValid;
+  const roomValid = !needsRoom || (Boolean(selectedRoom) && (availability?.available ?? false));
+  const valid = baseValid && seriesValid && roomValid;
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -207,6 +246,7 @@ export default function EventCreatePage() {
       admissionPolicy,
       paidToHost,
       genderControl,
+      ...(selectedRoom ? { roomId: selectedRoom.id } : {}),
       ...(seriesId ? { seriesId } : {}),
       ...(episodeNo !== "" ? { episodeNo: Number(episodeNo) } : {}),
     };
@@ -223,6 +263,33 @@ export default function EventCreatePage() {
     const k = seriesKeyword.trim();
     seriesSearch.search(k);
   }, [mode, seriesKeyword]);
+
+  useEffect(() => {
+    if (!selectedRoom) return;
+    setLocation(selectedRoom.location);
+  }, [selectedRoom]);
+
+  useEffect(() => {
+    const roomIdFromQuery = sp.get("roomId");
+    if (!roomIdFromQuery) return;
+    const n = Number(roomIdFromQuery);
+    if (Number.isFinite(n)) {
+      setNeedsRoom(true);
+      setSelectedRoomId(n);
+    }
+  }, [sp]);
+
+  useEffect(() => {
+    const qsStart = sp.get("startLocal");
+    const qsEnd = sp.get("endLocal");
+    if (qsStart && !startLocal) setStartLocal(qsStart);
+    if (qsEnd && !endLocal) setEndLocal(qsEnd);
+  }, [sp, startLocal, endLocal]);
+
+  useEffect(() => {
+    if (needsRoom) return;
+    setSelectedRoomId("");
+  }, [needsRoom]);
 
   const lat = 35.2277;
   const lng = 128.6812;
@@ -324,12 +391,67 @@ export default function EventCreatePage() {
                   size={isMobile ? "small" : "medium"}
                   fullWidth
                 />
+                <FormControl fullWidth size={isMobile ? "small" : "medium"}>
+                  <InputLabel id="need-room-label">공간 연결</InputLabel>
+                  <Select
+                    labelId="need-room-label"
+                    value={needsRoom ? "yes" : "no"}
+                    label="공간 연결"
+                    onChange={(e) => setNeedsRoom(e.target.value === "yes")}
+                  >
+                    <MenuItem value="yes">공간 필요</MenuItem>
+                    <MenuItem value="no">공간 없이 진행</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <FormControl fullWidth size={isMobile ? "small" : "medium"} disabled={!needsRoom}>
+                  <InputLabel id="room-link-label">연결 공간(선택)</InputLabel>
+                  <Select
+                    labelId="room-link-label"
+                    value={selectedRoomId === "" ? "" : String(selectedRoomId)}
+                    label="연결 공간(선택)"
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setSelectedRoomId(v === "" ? "" : Number(v));
+                    }}
+                    disabled={roomsLoading}
+                  >
+                    <MenuItem value="">공간 없이 진행</MenuItem>
+                    {availableRooms.map((room) => (
+                      <MenuItem key={room.id} value={room.id}>
+                        {room.name} · {room.location}
+                        {needsRoom && typeof userPref?.lat === "number" && typeof userPref?.lng === "number" && room.lat != null && room.lng != null
+                          ? ` (${distanceKm(userPref.lat, userPref.lng, room.lat, room.lng).toFixed(1)}km)`
+                          : ""}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                {needsRoom && (
+                  <MUIButton
+                    variant="outlined"
+                    size={isMobile ? "small" : "medium"}
+                    onClick={() => navigate(`/rooms?pickForEvent=1&startLocal=${encodeURIComponent(startLocal)}&endLocal=${encodeURIComponent(endLocal)}`)}
+                  >
+                    공간 목록에서 선택/등록
+                  </MUIButton>
+                )}
                 <TextField
                   label="위치"
-                  placeholder="예) 서울 마포"
+                  placeholder={needsRoom && selectedRoom ? "선택한 공간의 위치가 자동 입력됩니다." : "예) 서울 마포"}
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   size={isMobile ? "small" : "medium"}
+                  disabled={Boolean(needsRoom && selectedRoom)}
+                  helperText={
+                    needsRoom
+                      ? selectedRoom
+                        ? availability?.available === false
+                          ? "선택한 시간에는 이 공간 예약이 불가능합니다."
+                          : `연결된 공간: ${selectedRoom.name}`
+                        : "내가 등록한 공간 중, 사용자 위치 기준 가까운 순으로 정렬됩니다."
+                      : "공간을 선택하지 않으면 위치를 직접 입력하세요."
+                  }
                   fullWidth
                 />
 

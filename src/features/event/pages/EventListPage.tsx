@@ -9,7 +9,7 @@ import EventFilter from "../components/EventFilter";
 import { useEvents } from "../queries";
 import type { EventDTO, EventListParams } from "../api";
 import EventCardPretty from "../components/EventCardPretty";
-import { sampleEvents } from "../sampleEvents";
+import { sampleData } from "@/mocks/sampleData";
 import { mobileText } from "@/components/ui/mobileTypography";
 
 export default function EventListPage() {
@@ -29,7 +29,7 @@ export default function EventListPage() {
   const dragStartYRef = useRef<number | null>(null);
 
   const { data, isLoading, isFetching, isError, refetch } = useEvents(paramsRef);
-  const baseItems: EventDTO[] = USE_SAMPLE ? sampleEvents : (data ?? []);
+  const baseItems: EventDTO[] = USE_SAMPLE ? sampleData.events : (data ?? []);
 
   // 공통 병합 유틸
   const mergeParamsAndRefetch = useCallback(

@@ -5,6 +5,8 @@ export type RoomDTO = {
   id: number;
   name: string;
   location: string;
+  lat?: number | null;
+  lng?: number | null;
   capacity: number;
   available: boolean;
   createdAt: string;
@@ -21,8 +23,50 @@ export type CreateRoomDto = {
   // 이미지 업로드를 멀티파트로 처리할 계획이면 여기 대신 FormData 사용 권장
 };
 
-export const getRooms = () => api.get<RoomDTO[]>("/room").then((r) => r.data);
+export type RoomAvailability = {
+  available: boolean;
+  reason: "ROOM_NOT_AVAILABLE" | "TIME_CONFLICT" | null;
+};
 
-export const getRoomById = (id: number) => api.get<RoomDTO>(`/room/${id}`).then((r) => r.data);
+type ApiRoom = {
+  roomId: number;
+  name: string;
+  location: string;
+  lat?: number | null;
+  lng?: number | null;
+  capacity: number;
+  available: boolean;
+  createdAt: string;
+  updatedAt: string;
+  creatorId?: number | null;
+  imageUrls?: string[];
+};
 
-export const createRoom = (dto: CreateRoomDto) => api.post<RoomDTO>("/room", dto).then((r) => r.data);
+function mapApiRoom(r: ApiRoom): RoomDTO {
+  return {
+    id: r.roomId,
+    name: r.name,
+    location: r.location,
+    lat: r.lat ?? null,
+    lng: r.lng ?? null,
+    capacity: r.capacity,
+    available: r.available,
+    createdAt: r.createdAt,
+    updatedAt: r.updatedAt,
+    creatorId: r.creatorId ?? null,
+    imageUrls: r.imageUrls ?? [],
+  };
+}
+
+export const getRooms = () => api.get<ApiRoom[]>("/room").then((r) => r.data.map(mapApiRoom));
+
+export const getRoomById = (id: number) => api.get<ApiRoom>(`/room/${id}`).then((r) => mapApiRoom(r.data));
+
+export const createRoom = (dto: CreateRoomDto) => api.post<ApiRoom>("/room", dto).then((r) => mapApiRoom(r.data));
+
+export const checkRoomAvailability = (roomId: number, startTime: string, endTime: string) =>
+  api
+    .get<RoomAvailability>("/room-reservation/availability", {
+      params: { roomId, startTime, endTime },
+    })
+    .then((r) => r.data);
