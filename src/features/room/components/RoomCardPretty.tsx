@@ -22,11 +22,19 @@ function formatDateShort(iso: string) {
 type Props = {
   room: RoomDTO;
   className?: string;
-  /** 상세/예약 이동 경로 (푸터 버튼만 이동) */
+  /** 예약(이벤트 생성) 이동 경로 */
   to?: string;
+  reserveDisabled?: boolean;
+  reserveLabel?: string;
 };
 
-export default function RoomCardPretty({ room, className = "", to = `/rooms/reserve?roomId=${room.id}` }: Props) {
+export default function RoomCardPretty({
+  room,
+  className = "",
+  to = `/events/new?roomId=${room.id}`,
+  reserveDisabled,
+  reserveLabel = "예약",
+}: Props) {
   // coverUrl 또는 imageUrls[0] → 없으면 SVG 폴백
   const fallback =
     "data:image/svg+xml;utf8," +
@@ -124,23 +132,17 @@ export default function RoomCardPretty({ room, className = "", to = `/rooms/rese
 
       {/* ✅ 푸터만 이동: 버튼으로만 페이지 이동 */}
       <CardActions className="p-3 pt-0 sm:p-3 sm:pt-0">
-        <Stack direction="row" spacing={1} sx={{ width: "100%" }}>
-          <Button
-            variant="outlined"
-            color="inherit"
-            fullWidth
-            component={RouterLink}
-            to={`/rooms/reserve?roomId=${room.id}`}
-            disabled={!room.available}
-            size="small"
-            className="!h-9 sm:!h-11 text-xs sm:text-sm"
-          >
-            예약
-          </Button>
-          <Button variant="contained" fullWidth component={RouterLink} to={to} size="small" className="!h-9 sm:!h-11 text-xs sm:text-sm">
-            상세/예약
-          </Button>
-        </Stack>
+        <Button
+          variant="contained"
+          fullWidth
+          component={RouterLink}
+          to={to}
+          disabled={reserveDisabled ?? !room.available}
+          size="small"
+          className="!h-9 sm:!h-11 text-xs sm:text-sm"
+        >
+          {reserveLabel}
+        </Button>
       </CardActions>
     </Card>
   );

@@ -63,7 +63,7 @@ export function EventMyCard({ event, editable, onVisibilityChange, onOpen, onOpe
       className={`overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900 text-neutral-100 shadow-sm transition hover:border-neutral-700 hover:shadow-md ${clickable ? "cursor-pointer" : ""}`}
     >
       {/* 이미지 영역 */}
-      <div className="relative h-40 w-full bg-neutral-800">
+      <div className="relative h-36 w-full bg-neutral-800 sm:h-40">
         {/* eslint-disable-next-line jsx-a11y/alt-text */}
         {event.imageUrl ? (
           <img src={event.imageUrl} alt={event.title} className="h-full w-full object-cover" />
@@ -79,26 +79,34 @@ export function EventMyCard({ event, editable, onVisibilityChange, onOpen, onOpe
       </div>
 
       {/* 본문 */}
-      <div className="p-4">
+      <div className="p-3 sm:p-4">
         <div className="mb-1 flex items-center">
-          <span className="text-sm uppercase tracking-wide text-neutral-400">{event.type ? EVENT_TYPE_LABEL[event.type] : "Event"}</span>
+          <span className="text-xs uppercase tracking-wide text-neutral-400 sm:text-sm">{event.type ? EVENT_TYPE_LABEL[event.type] : "Event"}</span>
           <VisibilityBadge v={event.visibility} />
         </div>
-        <div className="text-base font-semibold text-neutral-100">{event.title}</div>
-        <div className="mt-1 text-sm text-neutral-300">{formatRange(event.startTime, event.endTime)}</div>
-        {event.location && <div className="mt-0.5 text-sm text-neutral-300">📍 {event.location}</div>}
+        <div className="text-sm font-semibold text-neutral-100 sm:text-base">{event.title}</div>
+        <div className="mt-1 text-xs text-neutral-300 sm:text-sm">{formatRange(event.startTime, event.endTime)}</div>
+        {event.location && <div className="mt-0.5 text-xs text-neutral-300 sm:text-sm">📍 {event.location}</div>}
 
         {/* 하단 액션 영역: 승인/참여자 + 티켓 + 채팅 */}
         {(onOpenManage || onOpenTicket || onOpenChat) && (
-          <div className="mt-3 flex items-center justify-end gap-2">
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
             {onOpenManage && (
-              <button type="button" onClick={handleManageClick} className="min-h-11 rounded-xl border border-neutral-700 px-3 py-2 text-xs font-medium hover:bg-neutral-800">
+              <button
+                type="button"
+                onClick={handleManageClick}
+                className="min-h-11 w-full rounded-xl border border-neutral-700 px-3 py-2 text-[11px] font-medium hover:bg-neutral-800 sm:w-auto sm:text-xs"
+              >
                 승인/참여자
               </button>
             )}
 
             {onOpenTicket && (
-              <button type="button" onClick={handleTicketClick} className="min-h-11 rounded-xl border border-neutral-700 px-3 py-2 text-xs font-medium hover:bg-neutral-800">
+              <button
+                type="button"
+                onClick={handleTicketClick}
+                className="min-h-11 w-full rounded-xl border border-neutral-700 px-3 py-2 text-[11px] font-medium hover:bg-neutral-800 sm:w-auto sm:text-xs"
+              >
                 입장 QR
               </button>
             )}
@@ -107,7 +115,7 @@ export function EventMyCard({ event, editable, onVisibilityChange, onOpen, onOpe
               <button
                 type="button"
                 onClick={handleChatClick}
-                className="min-h-11 rounded-xl bg-neutral-700 px-3 py-2 text-xs font-medium text-neutral-100 hover:bg-neutral-600"
+                className="min-h-11 w-full rounded-xl bg-neutral-700 px-3 py-2 text-[11px] font-medium text-neutral-100 hover:bg-neutral-600 sm:w-auto sm:text-xs"
               >
                 채팅
               </button>

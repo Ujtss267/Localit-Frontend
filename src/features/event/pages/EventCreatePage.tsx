@@ -89,6 +89,14 @@ function todayYmd() {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+function formatLocalDateTime(local: string) {
+  if (!local) return "";
+  const d = new Date(local);
+  if (isNaN(d.getTime())) return local;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 export default function EventCreatePage() {
   const navigate = useNavigate();
   const [sp] = useSearchParams();
@@ -175,7 +183,7 @@ export default function EventCreatePage() {
   };
 
   const availableRooms = React.useMemo(() => {
-    const base = (roomsData ?? []).filter((r) => r.available && r.creatorId === viewerId);
+    const base = (roomsData ?? []).filter((r) => r.available);
     if (!needsRoom) return base;
     if (typeof userPref?.lat !== "number" || typeof userPref?.lng !== "number") return base;
     return [...base].sort((a, b) => {
@@ -186,9 +194,10 @@ export default function EventCreatePage() {
   }, [roomsData, needsRoom, userPref?.lat, userPref?.lng]);
 
   const selectedRoom = selectedRoomId === "" ? null : availableRooms.find((r) => r.id === Number(selectedRoomId)) ?? null;
+  const hasValidTimeRange = Boolean(startLocal && endLocal && new Date(endLocal) > new Date(startLocal));
   const { data: availability } = useQuery({
     queryKey: ["room-availability", selectedRoom?.id, startLocal, endLocal],
-    enabled: Boolean(needsRoom && selectedRoom?.id && startLocal && endLocal),
+    enabled: Boolean(needsRoom && selectedRoom?.id && hasValidTimeRange),
     queryFn: () => checkRoomAvailability(selectedRoom!.id, toISO(startLocal), toISO(endLocal)),
   });
 
@@ -404,7 +413,7 @@ export default function EventCreatePage() {
                   </Select>
                 </FormControl>
 
-                <FormControl fullWidth size={isMobile ? "small" : "medium"} disabled={!needsRoom}>
+                <FormControl fullWidth size={isMobile ? "small" : "medium"} disabled={!needsRoom || !hasValidTimeRange}>
                   <InputLabel id="room-link-label">연결 공간(선택)</InputLabel>
                   <Select
                     labelId="room-link-label"
@@ -414,7 +423,7 @@ export default function EventCreatePage() {
                       const v = e.target.value;
                       setSelectedRoomId(v === "" ? "" : Number(v));
                     }}
-                    disabled={roomsLoading}
+                    disabled={roomsLoading || !hasValidTimeRange}
                   >
                     <MenuItem value="">공간 없이 진행</MenuItem>
                     {availableRooms.map((room) => (
@@ -432,9 +441,15 @@ export default function EventCreatePage() {
                     variant="outlined"
                     size={isMobile ? "small" : "medium"}
                     onClick={() => navigate(`/rooms?pickForEvent=1&startLocal=${encodeURIComponent(startLocal)}&endLocal=${encodeURIComponent(endLocal)}`)}
+                    disabled={!hasValidTimeRange}
                   >
-                    공간 목록에서 선택/등록
+                    {hasValidTimeRange ? "공간 목록에서 선택/등록" : "시간을 먼저 선택해 주세요"}
                   </MUIButton>
+                )}
+                {needsRoom && selectedRoom && hasValidTimeRange && (
+                  <Alert severity="info" variant="outlined">
+                    선택 공간: {selectedRoom.name} / 시작: {formatLocalDateTime(startLocal)} / 종료: {formatLocalDateTime(endLocal)}
+                  </Alert>
                 )}
                 <TextField
                   label="위치"
@@ -449,7 +464,9 @@ export default function EventCreatePage() {
                         ? availability?.available === false
                           ? "선택한 시간에는 이 공간 예약이 불가능합니다."
                           : `연결된 공간: ${selectedRoom.name}`
-                        : "내가 등록한 공간 중, 사용자 위치 기준 가까운 순으로 정렬됩니다."
+                        : hasValidTimeRange
+                          ? "사용자 위치 기준 가까운 순으로 정렬됩니다."
+                          : "이벤트 시작/종료 시간을 먼저 선택하면 공간 선택이 가능합니다."
                       : "공간을 선택하지 않으면 위치를 직접 입력하세요."
                   }
                   fullWidth

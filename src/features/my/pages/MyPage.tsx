@@ -7,8 +7,6 @@ import { useChat } from "@/app/providers/ChatProvider";
 
 // 이미 있는 컴포넌트
 import { EventMyCard } from "../components/EventMyCard";
-import { RoomMyCard } from "../components/RoomMyCard";
-import { ReservationMyCard } from "../components/ReservationMyCard";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { Tabs } from "@/components/ui";
 import { mobileText } from "@/components/ui/mobileTypography";
@@ -34,7 +32,6 @@ function canView(v: Visibility | undefined, isOwner: boolean, isFollower: boolea
 }
 
 type EventTab = "HOSTED" | "PARTICIPATING";
-type RoomTab = "MYROOMS" | "RESERVATIONS";
 
 export default function MyPage() {
   const { user } = useAuth(); // { id: number, ... } 라고 가정
@@ -49,7 +46,6 @@ export default function MyPage() {
 
   const [data, setData] = useState<MyPageDto>(initialData);
   const [eventTab, setEventTab] = useState<EventTab>("HOSTED");
-  const [roomTab, setRoomTab] = useState<RoomTab>("MYROOMS");
   const [searchId, setSearchId] = useState("");
 
   // URL 바뀔 때마다 해당 사용자로 갈아끼우기
@@ -57,7 +53,6 @@ export default function MyPage() {
     const next = sampleData.myPages[targetUserId] ?? sampleData.myPages[999];
     setData(next);
     setEventTab("HOSTED");
-    setRoomTab("MYROOMS");
     setSearchId("");
   }, [targetUserId]);
 
@@ -66,8 +61,6 @@ export default function MyPage() {
   // 가시성 필터
   const hostedEvents = sections.hostedEvents.filter((e) => canView(e.visibility, isOwner, isFollower));
   const participatingEvents = sections.participatingEvents.filter((e) => canView(e.visibility, isOwner, isFollower));
-  const myRooms = sections.myRooms.filter((r) => canView(r.visibility, isOwner, isFollower));
-  const reservations = sections.roomReservations.filter((x) => canView(x.room.visibility, isOwner, isFollower));
 
   // 이벤트 공개 범위 변경
   const updateEventVisibility = (eventId: number, v: Visibility) => {
@@ -76,17 +69,6 @@ export default function MyPage() {
       sections: {
         ...prev.sections,
         hostedEvents: prev.sections.hostedEvents.map((e) => (e.eventId === eventId ? { ...e, visibility: v } : e)),
-      },
-    }));
-  };
-
-  // 룸 공개 범위 변경
-  const updateRoomVisibility = (roomId: number, v: Visibility) => {
-    setData((prev) => ({
-      ...prev,
-      sections: {
-        ...prev.sections,
-        myRooms: prev.sections.myRooms.map((r) => (r.roomId === roomId ? { ...r, visibility: v } : r)),
       },
     }));
   };
@@ -229,15 +211,15 @@ export default function MyPage() {
       <div className="mt-6 sm:mt-8 space-y-4 sm:space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
           <div>
-            <div className="text-lg font-semibold">이벤트</div>
+            <div className="text-base font-semibold sm:text-lg">이벤트</div>
             <div className={`${mobileText.meta} text-neutral-400`}>내가 만든 이벤트와 참석 중인 이벤트</div>
           </div>
           <Tabs
             value={eventTab}
             onChange={setEventTab}
             tabs={[
-              { value: "HOSTED", label: "내가 만든 이벤트" },
-              { value: "PARTICIPATING", label: "참석 중인 이벤트" },
+              { value: "HOSTED", label: "개설 이벤트" },
+              { value: "PARTICIPATING", label: "참여 이벤트" },
             ]}
           />
         </div>
@@ -287,45 +269,6 @@ export default function MyPage() {
         </div>
       </div>
 
-      {/* ROOMS */}
-      <div className="mt-8 sm:mt-10 space-y-4 sm:space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
-          <div>
-            <div className="text-lg font-semibold">공간</div>
-            <div className={`${mobileText.meta} text-neutral-400`}>공간 등록 및 예약 정보</div>
-          </div>
-          <Tabs
-            value={roomTab}
-            onChange={setRoomTab}
-            tabs={[
-              { value: "MYROOMS", label: "내 공간" },
-              { value: "RESERVATIONS", label: "예약 내역" },
-            ]}
-          />
-        </div>
-
-        <div className="rounded-3xl border border-neutral-700 bg-neutral-900 p-3 sm:p-6">
-          {roomTab === "MYROOMS" ? (
-            myRooms.length ? (
-              <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {myRooms.map((r) => (
-                  <RoomMyCard key={r.roomId} room={r} editable={isOwner} onVisibilityChange={(v) => updateRoomVisibility(r.roomId, v)} />
-                ))}
-              </div>
-            ) : (
-              <EmptyState title="등록한 공간이 없습니다." hint="새 공간을 등록해 보세요." />
-            )
-          ) : reservations.length ? (
-            <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {reservations.map((x) => (
-                <ReservationMyCard key={x.roomReservationId} item={x} />
-              ))}
-            </div>
-          ) : (
-            <EmptyState title="예약 내역이 없습니다." hint="공간을 예약해 보세요." />
-          )}
-        </div>
-      </div>
     </div>
   );
 }

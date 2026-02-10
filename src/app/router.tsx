@@ -69,13 +69,11 @@ export const router = createBrowserRouter([
           { path: "chat/events/:eventId", element: <EventChatPage /> },
           { path: "ticket/events/:eventId", element: <EventTicketPage /> },
           { path: "m-demo", element: <MobileFirstDemo /> },
+          { path: "rooms/reserve", element: <RoomReservePage /> },
+          { path: "settings/account", element: <AccountSettingsPage /> },
           {
             element: <ProtectedRoute />,
-            children: [
-              { path: "style-demo", element: <StyleDemo /> },
-              { path: "rooms/reserve", element: <RoomReservePage /> },
-              { path: "settings/account", element: <AccountSettingsPage /> },
-            ],
+            children: [{ path: "style-demo", element: <StyleDemo /> }],
           },
         ],
       },

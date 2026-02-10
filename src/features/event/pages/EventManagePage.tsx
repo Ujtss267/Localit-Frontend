@@ -65,7 +65,7 @@ export default function EventManagePage() {
   const eventTitle = eventData?.title ?? `이벤트 #${id}`;
 
   return (
-    <div className="mx-auto max-w-5xl p-4 text-neutral-100 sm:p-6">
+    <div className="mx-auto max-w-5xl p-3 text-neutral-100 sm:p-6">
       <Header
         eventId={id}
         eventTitle={eventTitle}
@@ -111,23 +111,23 @@ function Header(props: {
   const confirmed = (participants ?? []).filter((p) => p.status === "CONFIRMED" || p.status === "ATTENDED").length;
 
   return (
-    <div className="mb-4 flex items-center justify-between gap-3">
+    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <button className={`mb-1 hidden ${mobileText.meta} text-neutral-400 hover:underline sm:inline-block`} onClick={onBack}>
           ← MyPage로 돌아가기
         </button>
-        <h1 className={`${mobileText.title} font-semibold`}>{eventTitle}</h1>
+        <h1 className="text-base font-semibold sm:text-xl">{eventTitle}</h1>
         <div className={`mt-1 flex flex-wrap items-center gap-2 ${mobileText.meta} text-neutral-400`}>
           <Badge tone="blue">신청 대기 {pendingApplications}명</Badge>
           <Badge tone="green">참여 확정 {confirmed}명</Badge>
         </div>
       </div>
 
-      <div className="flex gap-2">
-        <Button size="sm" variant="outline" onClick={onOpenChat}>
+      <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:flex">
+        <Button size="sm" variant="outline" onClick={onOpenChat} className="w-full">
           채팅 열기
         </Button>
-        <Button size="sm" onClick={onOpenDetail}>
+        <Button size="sm" onClick={onOpenDetail} className="w-full">
           이벤트 상세 보기
         </Button>
       </div>
@@ -163,30 +163,35 @@ function ApplicationsPanel({ eventId }: { eventId: number }) {
   };
 
   return (
-    <Card className="rounded-2xl border border-neutral-800 bg-neutral-900 p-4">
-      <h2 className="mb-3 text-lg font-semibold text-neutral-100">신청 목록</h2>
+    <Card className="rounded-2xl border border-neutral-800 bg-neutral-900 p-3 sm:p-4">
+      <h2 className="mb-3 text-base font-semibold text-neutral-100 sm:text-lg">신청 목록</h2>
 
       {isLoading && !USE_SAMPLE ? <div className={`${mobileText.body} text-neutral-400`}>불러오는 중...</div> : null}
 
       <div className="space-y-2">
-        {rows.length === 0 ? <div className="rounded-xl border border-neutral-800 px-3 py-6 text-center text-sm text-neutral-400">신청 내역이 없습니다.</div> : null}
+        {rows.length === 0 ? <div className="rounded-xl border border-neutral-800 px-3 py-6 text-center text-xs text-neutral-400 sm:text-sm">신청 내역이 없습니다.</div> : null}
 
         {rows.map((a) => (
-          <div key={a.eventApplicationId} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-neutral-800 bg-neutral-900/60 px-3 py-3 text-sm">
-            <div className="flex flex-col">
-              <span className="font-medium text-neutral-100">{a.userName}</span>
-              <span className={`${mobileText.meta} text-neutral-400`}>#{a.eventApplicationId}</span>
+          <div key={a.eventApplicationId} className="rounded-xl border border-neutral-800 bg-neutral-900/60 px-3 py-3 text-xs sm:text-sm">
+            <div className="mb-2 flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="truncate text-sm font-medium text-neutral-100">{a.userName}</div>
+                <div className={`${mobileText.meta} truncate text-neutral-400`}>
+                  #{a.eventApplicationId}
+                  {a.userEmail ? ` · ${a.userEmail}` : ""}
+                </div>
+              </div>
+              <Badge tone={appTone(a.status)}>{a.status}</Badge>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Badge tone={appTone(a.status)}>{a.status}</Badge>
-              <Button variant="outline" size="sm" onClick={() => onChangeStatus(a.eventApplicationId, "APPROVED")}>
+            <div className="grid grid-cols-3 gap-2">
+              <Button variant="outline" size="sm" onClick={() => onChangeStatus(a.eventApplicationId, "APPROVED")} className="w-full">
                 승인
               </Button>
-              <Button variant="outline" size="sm" onClick={() => onChangeStatus(a.eventApplicationId, "WAITLIST")}>
+              <Button variant="outline" size="sm" onClick={() => onChangeStatus(a.eventApplicationId, "WAITLIST")} className="w-full">
                 대기
               </Button>
-              <Button variant="outline" size="sm" onClick={() => onChangeStatus(a.eventApplicationId, "REJECTED")}>
+              <Button variant="outline" size="sm" onClick={() => onChangeStatus(a.eventApplicationId, "REJECTED")} className="w-full">
                 거절
               </Button>
             </div>
@@ -233,10 +238,10 @@ function ParticipantsPanel({ eventId }: { eventId: number }) {
   };
 
   return (
-    <Card className="rounded-2xl border border-neutral-800 bg-neutral-900 p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-neutral-100">참여자 목록</h2>
-        <Button size="sm" variant="outline" onClick={() => setScannerOpen(true)}>
+    <Card className="rounded-2xl border border-neutral-800 bg-neutral-900 p-3 sm:p-4">
+      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-base font-semibold text-neutral-100 sm:text-lg">참여자 목록</h2>
+        <Button size="sm" variant="outline" onClick={() => setScannerOpen(true)} className="w-full sm:w-auto">
           QR 스캔으로 출석 처리
         </Button>
       </div>
@@ -244,20 +249,26 @@ function ParticipantsPanel({ eventId }: { eventId: number }) {
       {isLoading && !USE_SAMPLE ? <div className={`${mobileText.body} text-neutral-400`}>불러오는 중...</div> : null}
 
       <div className="space-y-2">
-        {rows.length === 0 ? <div className="rounded-xl border border-neutral-800 px-3 py-6 text-center text-sm text-neutral-400">참여자가 없습니다.</div> : null}
+        {rows.length === 0 ? <div className="rounded-xl border border-neutral-800 px-3 py-6 text-center text-xs text-neutral-400 sm:text-sm">참여자가 없습니다.</div> : null}
 
         {rows.map((p) => (
-          <div key={p.eventRegistrationId} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-neutral-800 bg-neutral-900/60 px-3 py-3 text-sm">
-            <div className="flex flex-col">
-              <span className="font-medium text-neutral-100">{p.userName}</span>
-              <span className={`${mobileText.meta} text-neutral-400`}>#{p.eventRegistrationId}</span>
-            </div>
-            <div className="flex items-center gap-2">
+          <div key={p.eventRegistrationId} className="rounded-xl border border-neutral-800 bg-neutral-900/60 px-3 py-3 text-xs sm:text-sm">
+            <div className="mb-2 flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="truncate text-sm font-medium text-neutral-100">{p.userName}</div>
+                <div className={`${mobileText.meta} truncate text-neutral-400`}>
+                  #{p.eventRegistrationId}
+                  {p.userEmail ? ` · ${p.userEmail}` : ""}
+                </div>
+                {p.checkInAt ? <div className={`${mobileText.meta} text-emerald-300`}>체크인: {new Date(p.checkInAt).toLocaleString("ko-KR")}</div> : null}
+              </div>
               <Badge tone={regTone(p.status)}>{p.status}</Badge>
-              <Button variant="outline" size="sm" onClick={() => onChangeStatus(p.eventRegistrationId, "ATTENDED")}>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" size="sm" onClick={() => onChangeStatus(p.eventRegistrationId, "ATTENDED")} className="w-full">
                 출석 처리
               </Button>
-              <Button variant="outline" size="sm" onClick={() => onChangeStatus(p.eventRegistrationId, "NO_SHOW")}>
+              <Button variant="outline" size="sm" onClick={() => onChangeStatus(p.eventRegistrationId, "NO_SHOW")} className="w-full">
                 노쇼 처리
               </Button>
             </div>
@@ -302,7 +313,7 @@ function CheckinScannerModal({ eventId, onClose }: CheckinScannerModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="w-full max-w-sm rounded-2xl border border-neutral-700 bg-neutral-900 p-4 text-neutral-100">
+      <div className="w-full max-w-sm rounded-2xl border border-neutral-700 bg-neutral-900 p-4 text-neutral-100 mx-3">
         <div className="mb-2 flex items-center justify-between">
           <h3 className="text-base font-semibold">QR 체크인</h3>
           <button className="text-sm text-neutral-400 hover:text-neutral-100" onClick={onClose}>
