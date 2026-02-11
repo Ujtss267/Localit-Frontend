@@ -24,8 +24,12 @@ import RoomCreatePage from "@/features/room/pages/RoomCreatePage";
 import SubscriptionPage from "@/features/subscription/pages/SubscriptionPage";
 import EventEditPage from "@/features/event/pages/EventEditPage";
 import EventManagePage from "@/features/event/pages/EventManagePage";
+import SeriesListPage from "@/features/event/pages/SeriesListPage";
+import SeriesDetailPage from "@/features/event/pages/SeriesDetailPage";
 import ChatListPage from "@/features/chat/pages/ChatListPage";
 import EventChatPage from "@/features/chat/pages/EventChatPage";
+import GroupChatPage from "@/features/chat/pages/GroupChatPage";
+import DirectChatPage from "@/features/chat/pages/DirectChatPage";
 
 import { ChatProvider } from "./providers/ChatProvider";
 import EventTicketPage from "@/features/ticket/pages/EventTicketPage";
@@ -63,10 +67,14 @@ export const router = createBrowserRouter([
         children: [
           { path: "events/:id", element: <EventDetailPage /> },
           { path: "events/new", element: <EventCreatePage /> },
+          { path: "series", element: <SeriesListPage /> },
+          { path: "series/:seriesId", element: <SeriesDetailPage /> },
           { path: "events/:id/edit", element: <EventEditPage /> },
           { path: "events/:eventId/manage", element: <EventManagePage /> },
           { path: "rooms/new", element: <RoomCreatePage /> },
           { path: "chat/events/:eventId", element: <EventChatPage /> },
+          { path: "chat/groups/:groupId", element: <GroupChatPage /> },
+          { path: "chat/direct/:userId", element: <DirectChatPage /> },
           { path: "ticket/events/:eventId", element: <EventTicketPage /> },
           { path: "m-demo", element: <MobileFirstDemo /> },
           { path: "rooms/reserve", element: <RoomReservePage /> },

@@ -335,8 +335,10 @@ export default function RoomListPage() {
               const availabilityKnown = USE_SAMPLE || !pickForEvent || !reservationWindowValid || Boolean(availability);
               const canPickForEvent = reservationWindowValid && (USE_SAMPLE || availability?.available === true);
               const to = pickForEvent
-                ? `/events/new?roomId=${r.id}&startLocal=${encodeURIComponent(startLocalParam)}&endLocal=${encodeURIComponent(endLocalParam)}`
-                : `/events/new?roomId=${r.id}`;
+                ? `/events/new?roomId=${r.id}&roomName=${encodeURIComponent(r.name)}&roomLocation=${encodeURIComponent(
+                    r.location
+                  )}&startLocal=${encodeURIComponent(startLocalParam)}&endLocal=${encodeURIComponent(endLocalParam)}`
+                : `/events/new?roomId=${r.id}&roomName=${encodeURIComponent(r.name)}&roomLocation=${encodeURIComponent(r.location)}`;
               const reserveDisabled = pickForEvent ? !canPickForEvent : !r.available;
               const reserveLabel = pickForEvent
                 ? !reservationWindowValid

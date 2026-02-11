@@ -214,14 +214,23 @@ export default function MyPage() {
             <div className="text-base font-semibold sm:text-lg">이벤트</div>
             <div className={`${mobileText.meta} text-neutral-400`}>내가 만든 이벤트와 참석 중인 이벤트</div>
           </div>
-          <Tabs
-            value={eventTab}
-            onChange={setEventTab}
-            tabs={[
-              { value: "HOSTED", label: "개설 이벤트" },
-              { value: "PARTICIPATING", label: "참여 이벤트" },
-            ]}
-          />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => navigate("/series")}
+              className="min-h-11 rounded-xl border border-neutral-700 px-3 py-2 text-xs sm:text-sm hover:bg-neutral-800"
+            >
+              시리즈 관리
+            </button>
+            <Tabs
+              value={eventTab}
+              onChange={setEventTab}
+              tabs={[
+                { value: "HOSTED", label: "개설 이벤트" },
+                { value: "PARTICIPATING", label: "참여 이벤트" },
+              ]}
+            />
+          </div>
         </div>
 
         <div className="rounded-3xl border border-neutral-700 bg-neutral-900 p-3 sm:p-6">

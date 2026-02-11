@@ -57,6 +57,7 @@ type EventMode = "single" | "series";
 type CombinedError = { message?: string };
 
 const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
+const EVENT_CREATE_DRAFT_KEY = "localit:event-create-draft:v1";
 
 function toISO(local: string) {
   if (!local) return "";
@@ -96,6 +97,32 @@ function formatLocalDateTime(local: string) {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
+
+type EventCreateDraft = {
+  title: string;
+  desc: string;
+  location: string;
+  selectedRoomId: number | "";
+  eventDate: string;
+  startLocal: string;
+  endLocal: string;
+  capacity: number | "";
+  price: number | "";
+  type: EventType;
+  visibility: Visibility;
+  admissionPolicy: AdmissionPolicy;
+  paidToHost: boolean;
+  genderControl: {
+    maleLimit: boolean;
+    femaleLimit: boolean;
+    balanceRequired: boolean;
+  };
+  needsRoom: boolean;
+  mode: EventMode;
+  episodeNo: number | "";
+  seriesKeyword: string;
+  selectedSeries: SeriesOption | null;
+};
 
 export default function EventCreatePage() {
   const navigate = useNavigate();
@@ -144,6 +171,7 @@ export default function EventCreatePage() {
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkFrequency, setBulkFrequency] = useState<"DAILY" | "WEEKLY">("WEEKLY");
   const [bulkCount, setBulkCount] = useState<number>(4);
+  const [draftHydrated, setDraftHydrated] = useState(false);
 
   const seriesSearch = useSearchSeries();
   const seriesDetails = useFetchSeriesDetails(selectedSeries?.seriesId ?? null);
@@ -194,6 +222,8 @@ export default function EventCreatePage() {
   }, [roomsData, needsRoom, userPref?.lat, userPref?.lng]);
 
   const selectedRoom = selectedRoomId === "" ? null : availableRooms.find((r) => r.id === Number(selectedRoomId)) ?? null;
+  const selectedRoomName = selectedRoom?.name ?? sp.get("roomName") ?? "";
+  const selectedRoomLocation = selectedRoom?.location ?? sp.get("roomLocation") ?? "";
   const hasValidTimeRange = Boolean(startLocal && endLocal && new Date(endLocal) > new Date(startLocal));
   const { data: availability } = useQuery({
     queryKey: ["room-availability", selectedRoom?.id, startLocal, endLocal],
@@ -202,6 +232,93 @@ export default function EventCreatePage() {
   });
 
   const canEdit = Boolean(selectedSeries?.seriesId);
+
+  const buildDraft = (): EventCreateDraft => ({
+    title,
+    desc,
+    location,
+    selectedRoomId,
+    eventDate,
+    startLocal,
+    endLocal,
+    capacity,
+    price,
+    type,
+    visibility,
+    admissionPolicy,
+    paidToHost,
+    genderControl,
+    needsRoom,
+    mode,
+    episodeNo,
+    seriesKeyword,
+    selectedSeries,
+  });
+
+  const persistDraftNow = () => {
+    try {
+      window.sessionStorage.setItem(EVENT_CREATE_DRAFT_KEY, JSON.stringify(buildDraft()));
+    } catch {
+      // ignore storage errors
+    }
+  };
+
+  useEffect(() => {
+    try {
+      const raw = window.sessionStorage.getItem(EVENT_CREATE_DRAFT_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw) as Partial<EventCreateDraft>;
+      if (typeof draft.title === "string") setTitle(draft.title);
+      if (typeof draft.desc === "string") setDesc(draft.desc);
+      if (typeof draft.location === "string") setLocation(draft.location);
+      if (typeof draft.eventDate === "string") setEventDate(draft.eventDate);
+      if (typeof draft.startLocal === "string") setStartLocal(draft.startLocal);
+      if (typeof draft.endLocal === "string") setEndLocal(draft.endLocal);
+      if (typeof draft.capacity === "number" || draft.capacity === "") setCapacity(draft.capacity);
+      if (typeof draft.price === "number" || draft.price === "") setPrice(draft.price);
+      if (draft.type) setType(draft.type);
+      if (draft.visibility) setVisibility(draft.visibility);
+      if (draft.admissionPolicy) setAdmissionPolicy(draft.admissionPolicy);
+      if (typeof draft.paidToHost === "boolean") setPaidToHost(draft.paidToHost);
+      if (draft.genderControl) setGenderControl(draft.genderControl);
+      if (typeof draft.needsRoom === "boolean") setNeedsRoom(draft.needsRoom);
+      if (draft.mode) setMode(draft.mode);
+      if (typeof draft.episodeNo === "number" || draft.episodeNo === "") setEpisodeNo(draft.episodeNo);
+      if (typeof draft.seriesKeyword === "string") setSeriesKeyword(draft.seriesKeyword);
+      if (draft.selectedSeries && typeof draft.selectedSeries.seriesId === "number") setSelectedSeries(draft.selectedSeries);
+      if (typeof draft.selectedRoomId === "number" || draft.selectedRoomId === "") setSelectedRoomId(draft.selectedRoomId);
+    } catch {
+      // ignore corrupted draft
+    } finally {
+      setDraftHydrated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!draftHydrated) return;
+    persistDraftNow();
+  }, [
+    draftHydrated,
+    title,
+    desc,
+    location,
+    selectedRoomId,
+    eventDate,
+    startLocal,
+    endLocal,
+    capacity,
+    price,
+    type,
+    visibility,
+    admissionPolicy,
+    paidToHost,
+    genderControl,
+    needsRoom,
+    mode,
+    episodeNo,
+    seriesKeyword,
+    selectedSeries,
+  ]);
 
   useEffect(() => {
     if (!editSeriesOpen || !selectedSeries) return;
@@ -262,6 +379,7 @@ export default function EventCreatePage() {
 
     createMut.mutate(payload, {
       onSuccess: (res) => {
+        window.sessionStorage.removeItem(EVENT_CREATE_DRAFT_KEY);
         navigate(res?.id ? `/events/${res.id}` : "/events", { replace: true });
       },
     });
@@ -285,7 +403,21 @@ export default function EventCreatePage() {
     if (Number.isFinite(n)) {
       setNeedsRoom(true);
       setSelectedRoomId(n);
+      const roomLocationFromQuery = sp.get("roomLocation");
+      if (roomLocationFromQuery) {
+        setLocation(roomLocationFromQuery);
+      }
     }
+  }, [sp]);
+
+  useEffect(() => {
+    const seriesIdFromQuery = sp.get("seriesId");
+    if (!seriesIdFromQuery) return;
+    const n = Number(seriesIdFromQuery);
+    if (!Number.isFinite(n)) return;
+    const seriesTitleFromQuery = sp.get("seriesTitle") ?? `시리즈 #${n}`;
+    setMode("series");
+    setSelectedSeries({ seriesId: n, title: seriesTitleFromQuery });
   }, [sp]);
 
   useEffect(() => {
@@ -294,6 +426,21 @@ export default function EventCreatePage() {
     if (qsStart && !startLocal) setStartLocal(qsStart);
     if (qsEnd && !endLocal) setEndLocal(qsEnd);
   }, [sp, startLocal, endLocal]);
+
+  useEffect(() => {
+    if (!startLocal || !endLocal) {
+      setRange(null);
+      return;
+    }
+    const start = new Date(startLocal);
+    const end = new Date(endLocal);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      setRange(null);
+      return;
+    }
+    setRange({ start, end });
+    setDuration(Math.max(30, Math.round((end.getTime() - start.getTime()) / 60000)));
+  }, [startLocal, endLocal]);
 
   useEffect(() => {
     if (needsRoom) return;
@@ -400,57 +547,6 @@ export default function EventCreatePage() {
                   size={isMobile ? "small" : "medium"}
                   fullWidth
                 />
-                <FormControl fullWidth size={isMobile ? "small" : "medium"}>
-                  <InputLabel id="need-room-label">공간 연결</InputLabel>
-                  <Select
-                    labelId="need-room-label"
-                    value={needsRoom ? "yes" : "no"}
-                    label="공간 연결"
-                    onChange={(e) => setNeedsRoom(e.target.value === "yes")}
-                  >
-                    <MenuItem value="yes">공간 필요</MenuItem>
-                    <MenuItem value="no">공간 없이 진행</MenuItem>
-                  </Select>
-                </FormControl>
-
-                <FormControl fullWidth size={isMobile ? "small" : "medium"} disabled={!needsRoom || !hasValidTimeRange}>
-                  <InputLabel id="room-link-label">연결 공간(선택)</InputLabel>
-                  <Select
-                    labelId="room-link-label"
-                    value={selectedRoomId === "" ? "" : String(selectedRoomId)}
-                    label="연결 공간(선택)"
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setSelectedRoomId(v === "" ? "" : Number(v));
-                    }}
-                    disabled={roomsLoading || !hasValidTimeRange}
-                  >
-                    <MenuItem value="">공간 없이 진행</MenuItem>
-                    {availableRooms.map((room) => (
-                      <MenuItem key={room.id} value={room.id}>
-                        {room.name} · {room.location}
-                        {needsRoom && typeof userPref?.lat === "number" && typeof userPref?.lng === "number" && room.lat != null && room.lng != null
-                          ? ` (${distanceKm(userPref.lat, userPref.lng, room.lat, room.lng).toFixed(1)}km)`
-                          : ""}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                {needsRoom && (
-                  <MUIButton
-                    variant="outlined"
-                    size={isMobile ? "small" : "medium"}
-                    onClick={() => navigate(`/rooms?pickForEvent=1&startLocal=${encodeURIComponent(startLocal)}&endLocal=${encodeURIComponent(endLocal)}`)}
-                    disabled={!hasValidTimeRange}
-                  >
-                    {hasValidTimeRange ? "공간 목록에서 선택/등록" : "시간을 먼저 선택해 주세요"}
-                  </MUIButton>
-                )}
-                {needsRoom && selectedRoom && hasValidTimeRange && (
-                  <Alert severity="info" variant="outlined">
-                    선택 공간: {selectedRoom.name} / 시작: {formatLocalDateTime(startLocal)} / 종료: {formatLocalDateTime(endLocal)}
-                  </Alert>
-                )}
                 <TextField
                   label="위치"
                   placeholder={needsRoom && selectedRoom ? "선택한 공간의 위치가 자동 입력됩니다." : "예) 서울 마포"}
@@ -458,17 +554,7 @@ export default function EventCreatePage() {
                   onChange={(e) => setLocation(e.target.value)}
                   size={isMobile ? "small" : "medium"}
                   disabled={Boolean(needsRoom && selectedRoom)}
-                  helperText={
-                    needsRoom
-                      ? selectedRoom
-                        ? availability?.available === false
-                          ? "선택한 시간에는 이 공간 예약이 불가능합니다."
-                          : `연결된 공간: ${selectedRoom.name}`
-                        : hasValidTimeRange
-                          ? "사용자 위치 기준 가까운 순으로 정렬됩니다."
-                          : "이벤트 시작/종료 시간을 먼저 선택하면 공간 선택이 가능합니다."
-                      : "공간을 선택하지 않으면 위치를 직접 입력하세요."
-                  }
+                  helperText={needsRoom ? "공간을 선택하면 위치가 자동 입력됩니다." : "공간을 선택하지 않으면 위치를 직접 입력하세요."}
                   fullWidth
                 />
 
@@ -566,6 +652,92 @@ export default function EventCreatePage() {
                     setDuration(Math.max(30, Math.round((nextEnd.getTime() - nextStart.getTime()) / 60000)));
                   }}
                 />
+              </Stack>
+            </Box>
+
+            <Divider sx={{ my: { xs: 2, sm: 3 } }} />
+
+            <Box sx={{ mb: { xs: 2, sm: 3 } }}>
+              <Typography variant="h6" sx={{ mb: 1.25, fontSize: { xs: 15, sm: 18 } }}>
+                공간 예약
+              </Typography>
+              <Stack spacing={{ xs: 1.5, sm: 2 }}>
+                <FormControl fullWidth size={isMobile ? "small" : "medium"}>
+                  <InputLabel id="need-room-label">공간 연결</InputLabel>
+                  <Select
+                    labelId="need-room-label"
+                    value={needsRoom ? "yes" : "no"}
+                    label="공간 연결"
+                    onChange={(e) => setNeedsRoom(e.target.value === "yes")}
+                  >
+                    <MenuItem value="yes">공간 필요</MenuItem>
+                    <MenuItem value="no">공간 없이 진행</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <FormControl fullWidth size={isMobile ? "small" : "medium"} disabled={!needsRoom || !hasValidTimeRange}>
+                  <InputLabel id="room-link-label">연결 공간(선택)</InputLabel>
+                  <Select
+                    labelId="room-link-label"
+                    value={selectedRoomId === "" ? "" : String(selectedRoomId)}
+                    label="연결 공간(선택)"
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setSelectedRoomId(v === "" ? "" : Number(v));
+                    }}
+                    disabled={roomsLoading || !hasValidTimeRange}
+                  >
+                    <MenuItem value="">공간 없이 진행</MenuItem>
+                    {availableRooms.map((room) => (
+                      <MenuItem key={room.id} value={room.id}>
+                        {room.name} · {room.location}
+                        {needsRoom && typeof userPref?.lat === "number" && typeof userPref?.lng === "number" && room.lat != null && room.lng != null
+                          ? ` (${distanceKm(userPref.lat, userPref.lng, room.lat, room.lng).toFixed(1)}km)`
+                          : ""}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                {needsRoom && (
+                  <MUIButton
+                    variant="outlined"
+                    size={isMobile ? "small" : "medium"}
+                    onClick={() => {
+                      persistDraftNow();
+                      navigate(`/rooms?pickForEvent=1&startLocal=${encodeURIComponent(startLocal)}&endLocal=${encodeURIComponent(endLocal)}`);
+                    }}
+                    disabled={!hasValidTimeRange}
+                  >
+                    {hasValidTimeRange ? "공간 목록에서 선택/등록" : "시간을 먼저 선택해 주세요"}
+                  </MUIButton>
+                )}
+
+                {needsRoom && selectedRoomId !== "" && (
+                  <Box sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, p: { xs: 1.25, sm: 1.5 }, backgroundColor: "background.default" }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
+                      선택된 공간 정보
+                    </Typography>
+                    <Typography variant="body2">공간명: {selectedRoomName || "-"}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      주소: {selectedRoomLocation || "-"}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      예약 시간: {startLocal ? formatLocalDateTime(startLocal) : "-"} ~ {endLocal ? formatLocalDateTime(endLocal) : "-"}
+                    </Typography>
+                    {selectedRoom && availability?.available === false && (
+                      <Alert sx={{ mt: 1 }} severity="warning" variant="outlined">
+                        선택한 시간에는 이 공간 예약이 불가능합니다.
+                      </Alert>
+                    )}
+                  </Box>
+                )}
+
+                {needsRoom && !selectedRoom && hasValidTimeRange && (
+                  <Alert severity="info" variant="outlined">
+                    공간 목록에서 예약 버튼을 누르면 이 화면에 선택된 공간 정보가 표시됩니다.
+                  </Alert>
+                )}
               </Stack>
             </Box>
 

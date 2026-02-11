@@ -1,4 +1,5 @@
 import React from "react";
+import { Link as RouterLink } from "react-router-dom";
 import { Box, Typography, Stack, Autocomplete, TextField, Button as MUIButton } from "@mui/material";
 import type { SeriesConnectorProps } from "../api";
 
@@ -8,8 +9,6 @@ export default function SeriesConnector(props: SeriesConnectorProps) {
     setSelectedSeries,
     canEdit,
     seriesDetails,
-    setCreateSeriesOpen,
-    setEditSeriesOpen,
     setBulkOpen,
     seriesSearch,
     seriesKeyword,
@@ -37,20 +36,17 @@ export default function SeriesConnector(props: SeriesConnectorProps) {
               label="시리즈 검색/선택"
               placeholder="예) 영어회화 스터디"
               onChange={(e) => setSeriesKeyword(e.target.value)}
-              helperText="기존 시리즈를 검색하여 선택하거나, 새 시리즈를 만들어 연결하세요."
+              helperText="시리즈 생성/편집은 시리즈 관리 화면에서 진행하고, 여기서는 연결할 시리즈를 선택합니다."
             />
           )}
         />
 
         <Stack direction="row" spacing={1}>
-          <MUIButton variant="outlined" onClick={() => setCreateSeriesOpen(true)}>
-            새 시리즈 만들기
+          <MUIButton variant="outlined" component={RouterLink} to="/series?from=event-create" replace>
+            시리즈 관리
           </MUIButton>
           {selectedSeries && canEdit && (
             <>
-              <MUIButton variant="outlined" color="primary" onClick={() => setEditSeriesOpen(true)}>
-                시리즈 편집
-              </MUIButton>
               <MUIButton variant="outlined" color="secondary" onClick={() => setBulkOpen(true)}>
                 연속 회차 만들기
               </MUIButton>

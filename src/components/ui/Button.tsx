@@ -8,9 +8,10 @@ type Props = Omit<MuiButtonProps, "size" | "variant" | "color"> & {
   className?: string;
   /** 있으면 react-router Link로 렌더링 */
   to?: string;
+  replace?: boolean;
 };
 
-export default function CustomButton({ size = "md", variant = "primary", className = "", sx, to, children, ...muiProps }: Props) {
+export default function CustomButton({ size = "md", variant = "primary", className = "", sx, to, replace, children, ...muiProps }: Props) {
   const muiVariant: MuiButtonProps["variant"] = variant === "outline" ? "outlined" : variant === "ghost" ? "text" : "contained";
 
   const base =
@@ -72,7 +73,7 @@ export default function CustomButton({ size = "md", variant = "primary", classNa
   // to 있으면 Link로 렌더링
   if (to) {
     return (
-      <MuiButton component={RouterLink} to={to} {...common}>
+      <MuiButton component={RouterLink} to={to} replace={replace} {...common}>
         {children}
       </MuiButton>
     );

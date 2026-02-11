@@ -11,67 +11,71 @@ function formatTime(iso: string) {
   return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
 }
 
-export default function EventChatPage() {
-  const { eventId } = useParams<{ eventId: string }>();
+export default function DirectChatPage() {
+  const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
-  const { openEventChat, getMessages, sendMessage, markAsRead, openChats, getRoomMembers } = useChat();
+  const { openDirectChat, getMessages, sendMessage, markAsRead, getRoomMembers, directContacts, openChats } = useChat();
   const [text, setText] = useState("");
   const [showMembers, setShowMembers] = useState(false);
 
-  const id = Number(eventId);
+  const id = Number(userId);
   if (Number.isNaN(id)) {
-    return <div className="p-4 text-sm text-neutral-200">잘못된 이벤트 ID입니다.</div>;
+    return <div className="p-4 text-sm text-neutral-200">잘못된 사용자 ID입니다.</div>;
   }
 
-  const chatTitle = useMemo(() => openChats.find((c) => c.kind === "EVENT" && c.id === id)?.title ?? `이벤트 #${id}`, [openChats, id]);
-  const messages = getMessages("EVENT", id);
-  const members = getRoomMembers("EVENT", id);
-  const announcements = messages.filter((m) => m.isAnnouncement);
+  const contact = useMemo(() => directContacts.find((c) => c.userId === id), [directContacts, id]);
+  const opened = useMemo(() => openChats.find((c) => c.kind === "DIRECT" && c.id === id), [openChats, id]);
+  const title = opened?.title ?? contact?.name ?? `사용자 #${id}`;
+
+  const messages = getMessages("DIRECT", id);
+  const members = getRoomMembers("DIRECT", id);
 
   useEffect(() => {
-    openEventChat({ eventId: id, title: chatTitle });
-    markAsRead("EVENT", id);
-  }, [id, chatTitle, openEventChat, markAsRead]);
+    openDirectChat({ userId: id, name: title, avatarUrl: contact?.avatarUrl });
+    markAsRead("DIRECT", id);
+  }, [id, title, contact?.avatarUrl, openDirectChat, markAsRead]);
 
   const onSend = () => {
     const trimmed = text.trim();
     if (!trimmed) return;
-    sendMessage({ kind: "EVENT", id, text: trimmed, fromMe: true });
+    sendMessage({ kind: "DIRECT", id, text: trimmed, fromMe: true });
     setText("");
   };
 
   return (
     <div className="mx-auto max-w-3xl space-y-3 px-3 py-4 text-neutral-100 sm:px-4 sm:py-5">
       <div className="flex items-center justify-between gap-2">
-        <div>
-          <h1 className="text-sm font-semibold sm:text-base">{chatTitle}</h1>
-          <p className={`${mobileText.meta} mt-1 text-neutral-400`}>이벤트 그룹 채팅 · 참여 {members.length}명</p>
+        <div className="flex min-w-0 items-center gap-2">
+          <img
+            src={contact?.avatarUrl || opened?.counterpart?.avatarUrl || "https://i.pravatar.cc/80"}
+            alt={title}
+            className="h-10 w-10 rounded-full border border-neutral-700 object-cover"
+          />
+          <div className="min-w-0">
+            <h1 className="truncate text-sm font-semibold sm:text-base">{title}</h1>
+            <p className={`${mobileText.meta} mt-1 text-neutral-400`}>1:1 채팅</p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button size="sm" variant="outline" onClick={() => setShowMembers((v) => !v)}>
-            참여자
+            정보
           </Button>
           <Button size="sm" variant="outline" onClick={() => navigate("/chat")}>
             목록
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => navigate(`/events/${id}`)}>
-            상세
           </Button>
         </div>
       </div>
 
       {showMembers && (
         <Card className="rounded-2xl border border-neutral-800 bg-neutral-900 p-3">
-          <div className="mb-2 text-xs font-medium text-neutral-300 sm:text-sm">참여자 목록</div>
+          <div className="mb-2 text-xs font-medium text-neutral-300 sm:text-sm">대화 참여자</div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {members.map((member) => (
               <div key={member.userId} className="flex items-center gap-2 rounded-xl border border-neutral-800 px-2 py-2">
                 <img src={member.avatarUrl || "https://i.pravatar.cc/80"} alt={member.name} className="h-8 w-8 rounded-full border border-neutral-700 object-cover" />
                 <div className="min-w-0">
                   <div className="truncate text-xs text-neutral-100 sm:text-sm">{member.name}</div>
-                  <div className="text-[10px] text-neutral-500">
-                    {member.role || "MEMBER"} · {member.isOnline ? "온라인" : "오프라인"}
-                  </div>
+                  <div className="text-[10px] text-neutral-500">{member.isOnline ? "온라인" : "오프라인"}</div>
                 </div>
               </div>
             ))}
@@ -80,13 +84,6 @@ export default function EventChatPage() {
       )}
 
       <Card className="rounded-2xl border border-neutral-800 bg-neutral-900">
-        {announcements.length > 0 && (
-          <div className="border-b border-neutral-800 px-3 py-2">
-            <div className={`${mobileText.meta} font-medium text-amber-300`}>공지</div>
-            <div className={`${mobileText.meta} mt-1 truncate text-neutral-300`}>{announcements[announcements.length - 1].text}</div>
-          </div>
-        )}
-
         <div className="h-[58svh] space-y-2 overflow-y-auto px-3 py-3">
           {messages.map((m) => (
             <div key={m.id} className={`flex items-end gap-2 ${m.fromMe ? "justify-end" : "justify-start"}`}>

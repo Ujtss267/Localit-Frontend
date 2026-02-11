@@ -11,32 +11,33 @@ function formatTime(iso: string) {
   return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
 }
 
-export default function EventChatPage() {
-  const { eventId } = useParams<{ eventId: string }>();
+export default function GroupChatPage() {
+  const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
-  const { openEventChat, getMessages, sendMessage, markAsRead, openChats, getRoomMembers } = useChat();
+  const { openGroupChat, getMessages, sendMessage, markAsRead, openChats, getRoomMembers } = useChat();
   const [text, setText] = useState("");
   const [showMembers, setShowMembers] = useState(false);
+  const id = Number(groupId);
 
-  const id = Number(eventId);
   if (Number.isNaN(id)) {
-    return <div className="p-4 text-sm text-neutral-200">잘못된 이벤트 ID입니다.</div>;
+    return <div className="p-4 text-sm text-neutral-200">잘못된 그룹 ID입니다.</div>;
   }
 
-  const chatTitle = useMemo(() => openChats.find((c) => c.kind === "EVENT" && c.id === id)?.title ?? `이벤트 #${id}`, [openChats, id]);
-  const messages = getMessages("EVENT", id);
-  const members = getRoomMembers("EVENT", id);
+  const chatInfo = useMemo(() => openChats.find((c) => c.kind === "GROUP" && c.id === id), [openChats, id]);
+  const chatTitle = chatInfo?.title ?? `그룹 #${id}`;
+  const messages = getMessages("GROUP", id);
+  const members = getRoomMembers("GROUP", id);
   const announcements = messages.filter((m) => m.isAnnouncement);
 
   useEffect(() => {
-    openEventChat({ eventId: id, title: chatTitle });
-    markAsRead("EVENT", id);
-  }, [id, chatTitle, openEventChat, markAsRead]);
+    openGroupChat({ groupId: id, title: chatTitle, membersCount: chatInfo?.membersCount ?? (members.length || 0) });
+    markAsRead("GROUP", id);
+  }, [id, chatTitle, chatInfo?.membersCount, members.length, openGroupChat, markAsRead]);
 
   const onSend = () => {
     const trimmed = text.trim();
     if (!trimmed) return;
-    sendMessage({ kind: "EVENT", id, text: trimmed, fromMe: true });
+    sendMessage({ kind: "GROUP", id, text: trimmed, fromMe: true });
     setText("");
   };
 
@@ -45,7 +46,7 @@ export default function EventChatPage() {
       <div className="flex items-center justify-between gap-2">
         <div>
           <h1 className="text-sm font-semibold sm:text-base">{chatTitle}</h1>
-          <p className={`${mobileText.meta} mt-1 text-neutral-400`}>이벤트 그룹 채팅 · 참여 {members.length}명</p>
+          <p className={`${mobileText.meta} mt-1 text-neutral-400`}>그룹 채팅 · 참여 {members.length}명</p>
         </div>
         <div className="flex gap-2">
           <Button size="sm" variant="outline" onClick={() => setShowMembers((v) => !v)}>
@@ -53,9 +54,6 @@ export default function EventChatPage() {
           </Button>
           <Button size="sm" variant="outline" onClick={() => navigate("/chat")}>
             목록
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => navigate(`/events/${id}`)}>
-            상세
           </Button>
         </div>
       </div>
