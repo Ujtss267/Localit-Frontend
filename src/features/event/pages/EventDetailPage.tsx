@@ -75,6 +75,7 @@ export default function EventDetailPage() {
   const images = e.imageUrls ?? [];
   const mentorName = (e.mentor && ("name" in e.mentor ? (e.mentor as any).name : (e.mentor as any).email)) ?? null;
   const roomName = (e.room && ("name" in e.room ? (e.room as any).name : null)) ?? null;
+  const isPremiumHostEvent = Boolean((e as any)?.isPremiumHostEvent ?? (e as any)?.creator?.isPremiumHost);
 
   // ✅ 이벤트 안에 들어있는 주최자 정보에서 userId 뽑기
   const hostUserId: number | null = (e as any)?.creator?.id ?? (e as any)?.creator?.userId ?? null;
@@ -173,7 +174,19 @@ export default function EventDetailPage() {
         <div className="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-5">
           {/* 좌측 */}
           <div className="lg:col-span-2 space-y-5">
-            <CardUI className="p-5 bg-neutral-900/90 border border-neutral-800 shadow-sm backdrop-blur">
+            <CardUI
+              className={`relative p-5 bg-neutral-900/90 border border-neutral-800 shadow-sm backdrop-blur ${
+                isPremiumHostEvent ? "ring-1 ring-amber-300/35 shadow-[0_12px_32px_rgba(251,191,36,0.14)]" : ""
+              }`}
+            >
+              {isPremiumHostEvent ? (
+                <>
+                  <div className="pointer-events-none absolute -left-12 -top-12 h-28 w-28 rounded-full bg-amber-300/15 blur-2xl" />
+                  <div className="absolute right-4 top-4 rounded-full border border-amber-200/35 bg-amber-300/15 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-amber-100">
+                    Premium Host
+                  </div>
+                </>
+              ) : null}
               <div className="flex items-center gap-2 mb-2">
                 {e.seriesId != null ? (
                   <>
@@ -202,8 +215,18 @@ export default function EventDetailPage() {
               <div className="mt-4 flex items-center justify-between rounded-xl px-3 py-2.5 border border-neutral-800">
                 <div>
                   <div className="text-xs text-neutral-400">주최자</div>
-                  <div className="font-semibold text-neutral-100">
+                  <div className="font-semibold text-neutral-100 flex items-center gap-2">
                     {(e as any)?.creator?.name ?? (e as any)?.creator?.email ?? (hostUserId ? `User #${hostUserId}` : "주최자")}
+                    {isPremiumHostEvent ? (
+                      <span
+                        className="inline-flex items-center gap-1 rounded-full border border-amber-200/35 bg-amber-300/15 px-2 py-[1px] text-[10px] font-semibold tracking-wide text-amber-100"
+                        aria-label="유료 호스트 인증"
+                        title="Premium Host 멤버십"
+                      >
+                        <span aria-hidden>✦</span>
+                        <span>Premium Host</span>
+                      </span>
+                    ) : null}
                   </div>
                 </div>
                 <Button variant="outline" size="sm" onClick={goHostPage}>

@@ -169,6 +169,8 @@ export default function EventCardPretty({
 
   const isSeries = e.seriesId != null;
   const headerBadge = isSeries ? `시리즈 ${e.episodeNo ?? "-"}회차` : "단발형";
+  const isPremiumHostEvent = Boolean(e.isPremiumHostEvent ?? e.creator?.isPremiumHost);
+  const hostName = e.creator?.name ?? e.creator?.email ?? "호스트";
 
   const { badgeLabel, badgeTone, buttonText, buttonDisabled } = useMemo(() => getRegistrationUI(e, registerText), [e, registerText]);
 
@@ -193,8 +195,18 @@ export default function EventCardPretty({
 
   return (
     <Card
-      className={`group relative flex h-full flex-col overflow-hidden rounded-xl sm:rounded-2xl shadow-sm bg-neutral-900 border border-neutral-800 transition hover:border-neutral-700 hover:shadow-md [&_.MuiCardContent-root]:!p-0 [&_.MuiCardContent-root:last-child]:!pb-0 ${className}`}
+      className={`group relative flex h-full flex-col overflow-hidden rounded-xl sm:rounded-2xl shadow-sm bg-neutral-900 border border-neutral-800 transition hover:border-neutral-700 hover:shadow-md [&_.MuiCardContent-root]:!p-0 [&_.MuiCardContent-root:last-child]:!pb-0 ${
+        isPremiumHostEvent ? "ring-1 ring-amber-300/35 shadow-[0_8px_28px_rgba(251,191,36,0.14)]" : ""
+      } ${className}`}
     >
+      {isPremiumHostEvent ? (
+        <>
+          <div className="pointer-events-none absolute -left-10 -top-10 h-28 w-28 rounded-full bg-amber-300/15 blur-2xl" />
+          <div className="pointer-events-none absolute right-2 top-2 z-10 rounded-full border border-amber-200/40 bg-amber-300/20 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-amber-100">
+            Premium Host
+          </div>
+        </>
+      ) : null}
       {/* 이미지 영역 */}
       <div className="relative">
         {images.length > 1 ? (
@@ -234,6 +246,19 @@ export default function EventCardPretty({
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="truncate text-[15px] sm:text-lg font-semibold tracking-tight">{e.title}</h3>
+            <div className="mt-1 inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-neutral-300">
+              <span className="truncate max-w-[180px]">{hostName}</span>
+              {isPremiumHostEvent ? (
+                <span
+                  className="inline-flex items-center gap-1 rounded-full border border-amber-200/35 bg-amber-300/15 px-2 py-[1px] text-[10px] font-semibold tracking-wide text-amber-100"
+                  aria-label="유료 호스트 인증"
+                  title="Premium Host 멤버십"
+                >
+                  <span aria-hidden>✦</span>
+                  <span>Premium Host</span>
+                </span>
+              ) : null}
+            </div>
 
             {!hideMeta && (
               <div className="mt-1 flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-neutral-400">

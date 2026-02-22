@@ -133,9 +133,10 @@ export type EventDTO = {
 
   /** 관계형 (optional) */
   mentor?: { id: number; email: string; name?: string | null } | null;
-  creator?: { id: number; email: string; name?: string | null } | null;
+  creator?: { id?: number; userId?: number; email: string; name?: string | null; isPremiumHost?: boolean } | null;
   category?: { id: number; name: string } | null;
   room?: { id: number; name: string; location: string } | null;
+  isPremiumHostEvent?: boolean;
 
   /** 이미지 */
   imageUrls?: string[];

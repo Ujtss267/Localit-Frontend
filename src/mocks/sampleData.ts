@@ -132,6 +132,7 @@ export const samplePayments: SamplePayment[] = [
 ];
 
 const normalizeVisibility = (v?: Visibility): Visibility => v ?? "PUBLIC";
+const premiumHostIds = new Set<number>([1, 3]);
 
 const normalizedEvents = sampleEvents.map((event) => ({
   ...event,
@@ -142,6 +143,13 @@ const normalizedEvents = sampleEvents.map((event) => ({
   roomId: event.roomId ?? null,
   lat: event.lat ?? null,
   lng: event.lng ?? null,
+  isPremiumHostEvent: event.isPremiumHostEvent ?? premiumHostIds.has(event.creatorId ?? event.creator?.id ?? -1),
+  creator: event.creator
+    ? {
+        ...event.creator,
+        isPremiumHost: event.creator.isPremiumHost ?? premiumHostIds.has(event.creator.id ?? -1),
+      }
+    : event.creator,
 }));
 
 export const sampleData = {

@@ -3,7 +3,25 @@ import { useNavigate } from "react-router-dom";
 import { getMe, login as loginApi } from "@/features/auth/api";
 import { clearToken, getToken, setToken } from "@/lib/storage";
 
-type User = { id: number; email: string /* 필요시 확장 */ };
+type User = {
+  id: number;
+  userId?: number;
+  email: string;
+  name?: string | null;
+  nickname?: string | null;
+  role?: "USER" | "HOST" | "ADMIN" | "SUPERADMIN";
+  effectiveRole?: "USER" | "HOST" | "ADMIN" | "SUPERADMIN";
+  permissions?: {
+    canCreateEvent?: boolean;
+    canUseQrCheckin?: boolean;
+    canUsePaidHostFeatures?: boolean;
+  };
+  quota?: {
+    freeEventCreateMonthlyLimit?: number;
+    freeEventCreateUsedThisMonth?: number;
+    freeEventCreateRemainingThisMonth?: number;
+  };
+};
 
 type AuthContextValue = {
   user: User | null;
