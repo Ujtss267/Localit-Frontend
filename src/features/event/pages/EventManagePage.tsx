@@ -6,10 +6,12 @@ import Badge from "@/components/ui/Badge";
 import Tabs from "@/components/ui/Tabs";
 import { mobileText } from "@/components/ui/mobileTypography";
 import { useChat } from "@/app/providers/ChatProvider";
+import QRCode from "react-qr-code";
 import type { ApplicationStatus, RegistrationStatus } from "../api";
 import {
   useCheckinEvent,
   useEvent,
+  useEventCheckinToken,
   useEventApplications,
   useEventParticipants,
   useUpdateEventApplicationStatus,
@@ -239,6 +241,7 @@ function ParticipantsPanel({ eventId }: { eventId: number }) {
 
   return (
     <Card className="rounded-2xl border border-neutral-800 bg-neutral-900 p-3 sm:p-4">
+      <HostCheckinQrCard eventId={eventId} />
       <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-base font-semibold text-neutral-100 sm:text-lg">참여자 목록</h2>
         <Button size="sm" variant="outline" onClick={() => setScannerOpen(true)} className="w-full sm:w-auto">
@@ -337,6 +340,41 @@ function CheckinScannerModal({ eventId, onClose }: CheckinScannerModalProps) {
 
         {message ? <div className={`mt-2 ${mobileText.meta} text-neutral-300`}>{message}</div> : null}
       </div>
+    </div>
+  );
+}
+
+function HostCheckinQrCard({ eventId }: { eventId: number }) {
+  const { data, isLoading, error } = useEventCheckinToken(eventId, true);
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://localit.app";
+  const qrValue = data?.token ? `${baseUrl}/checkin/events/${eventId}?t=${data.token}` : null;
+
+  return (
+    <div className="mb-4 rounded-2xl border border-neutral-800 bg-neutral-950 p-4">
+      <div className="mb-2 text-base font-semibold text-neutral-100">호스트 체크인 QR</div>
+      <p className={`mb-3 ${mobileText.meta} text-neutral-400`}>
+        참석자가 앱의 참석 버튼을 누른 뒤 이 QR을 스캔하면 출석 처리됩니다.
+      </p>
+
+      <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4">
+        {isLoading ? (
+          <div className="flex h-[220px] items-center justify-center text-sm text-neutral-400">QR 생성 중...</div>
+        ) : qrValue ? (
+          <div className="mx-auto w-[220px] rounded-xl bg-white p-3">
+            <QRCode value={qrValue} size={196} style={{ height: "auto", maxWidth: "100%", width: "100%" }} />
+          </div>
+        ) : (
+          <div className="flex h-[220px] items-center justify-center text-sm text-rose-300">
+            {(error as any)?.response?.data?.message ?? "체크인 QR 생성에 실패했습니다."}
+          </div>
+        )}
+      </div>
+
+      {qrValue ? (
+        <div className={`mt-3 break-all rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-2 ${mobileText.meta} text-neutral-400`}>
+          {qrValue}
+        </div>
+      ) : null}
     </div>
   );
 }

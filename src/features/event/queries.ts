@@ -15,6 +15,7 @@ import {
 import {
   applyEvent,
   checkinEventByToken,
+  getEventCheckinToken,
   getEventApplications,
   getEventParticipants,
   getEventUsers,
@@ -29,6 +30,7 @@ export const qk = {
   eventUsers: (id: number) => ["eventUsers", id] as const,
   eventApplications: (id: number) => ["eventApplications", id] as const,
   eventParticipants: (id: number) => ["eventParticipants", id] as const,
+  eventCheckinToken: (id: number) => ["eventCheckinToken", id] as const,
   myEventRegistrations: () => ["event-registration", "me"] as const,
 };
 
@@ -134,6 +136,15 @@ export function useCheckinEvent(eventId: number) {
       qc.invalidateQueries({ queryKey: qk.eventParticipants(eventId) });
       qc.invalidateQueries({ queryKey: qk.event(eventId) });
     },
+  });
+}
+
+export function useEventCheckinToken(eventId: number, enabled = true) {
+  return useQuery({
+    queryKey: qk.eventCheckinToken(eventId),
+    queryFn: () => getEventCheckinToken(eventId),
+    enabled: enabled && Number.isFinite(eventId),
+    staleTime: 60_000,
   });
 }
 

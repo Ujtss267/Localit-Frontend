@@ -12,6 +12,18 @@ import EventCardPretty from "../components/EventCardPretty";
 import { sampleData } from "@/mocks/sampleData";
 import { mobileText } from "@/components/ui/mobileTypography";
 
+function toRadians(degree: number) {
+  return (degree * Math.PI) / 180;
+}
+
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371;
+  const dLat = toRadians(lat2 - lat1);
+  const dLon = toRadians(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 export default function EventListPage() {
   const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
   // TODO: 나중에 AuthContext나 useAuth()로 교체 예정
@@ -25,8 +37,10 @@ export default function EventListPage() {
   const [sort, setSort] = useState<"latest" | "popular" | "upcoming">("upcoming");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [myOnly, setMyOnly] = useState(false); // ✅ 내 이벤트만
+  const [nativeLocation, setNativeLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [sheetDragY, setSheetDragY] = useState(0);
   const dragStartYRef = useRef<number | null>(null);
+  const requestedLocationRef = useRef(false);
 
   const { data, isLoading, isFetching, isError, refetch } = useEvents(paramsRef);
   const baseItems: EventDTO[] = USE_SAMPLE ? sampleData.events : (data ?? []);
@@ -86,7 +100,27 @@ export default function EventListPage() {
 
   // ✅ 최종 리스트 (샘플 모드에선 클라 사이드에서만 필터)
   const items = USE_SAMPLE ? baseItems.filter((e) => !myOnly || e.creator?.id === me.userId) : baseItems;
-  const count = items.length;
+  const itemsWithDistance = useMemo(() => {
+    return items.map((item) => {
+      if (!nativeLocation || typeof item.lat !== "number" || typeof item.lng !== "number") return { item, distanceKm: null as number | null };
+      return {
+        item,
+        distanceKm: haversineKm(nativeLocation.latitude, nativeLocation.longitude, item.lat, item.lng),
+      };
+    });
+  }, [items, nativeLocation]);
+
+  const displayItems = useMemo(() => {
+    if (!nativeLocation) return itemsWithDistance;
+    return [...itemsWithDistance].sort((a, b) => {
+      if (a.distanceKm == null && b.distanceKm == null) return 0;
+      if (a.distanceKm == null) return 1;
+      if (b.distanceKm == null) return -1;
+      return a.distanceKm - b.distanceKm;
+    });
+  }, [itemsWithDistance, nativeLocation]);
+
+  const count = displayItems.length;
 
   const showLoading = !USE_SAMPLE && isLoading;
   const showError = !USE_SAMPLE && isError;
@@ -101,6 +135,28 @@ export default function EventListPage() {
     setSheetDragY(0);
     dragStartYRef.current = null;
   };
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { type?: string; data?: { latitude?: number; longitude?: number } };
+      if (detail?.type !== "LOCATION_RESULT") return;
+      const lat = detail?.data?.latitude;
+      const lng = detail?.data?.longitude;
+      if (typeof lat === "number" && typeof lng === "number") {
+        setNativeLocation({ latitude: lat, longitude: lng });
+      }
+    };
+
+    window.addEventListener("localit-native-message", handler as EventListener);
+    return () => window.removeEventListener("localit-native-message", handler as EventListener);
+  }, []);
+
+  useEffect(() => {
+    const rn = (window as any)?.ReactNativeWebView;
+    if (!rn?.postMessage || requestedLocationRef.current) return;
+    requestedLocationRef.current = true;
+    rn.postMessage(JSON.stringify({ type: "REQUEST_LOCATION" }));
+  }, []);
   const onSheetTouchStart = (e: React.TouchEvent) => {
     dragStartYRef.current = e.touches[0]?.clientY ?? null;
   };
@@ -270,8 +326,8 @@ export default function EventListPage() {
           <Empty title="검색 결과가 없습니다" desc="키워드/정렬 또는 고급 필터를 조정해 보세요." />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
-            {items.map((e) => (
-              <EventCardPretty key={e.id} e={e} canEdit={e.creator?.id === me.userId} />
+            {displayItems.map(({ item: e, distanceKm }) => (
+              <EventCardPretty key={e.id} e={e} distanceKm={distanceKm} canEdit={e.creator?.id === me.userId} />
             ))}
           </div>
         )}

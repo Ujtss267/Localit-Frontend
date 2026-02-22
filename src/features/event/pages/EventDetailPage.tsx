@@ -107,6 +107,11 @@ export default function EventDetailPage() {
       navigate(`/ticket/events/${eventId}`);
       return;
     }
+    const rn = (window as any)?.ReactNativeWebView;
+    if (rn?.postMessage) {
+      rn.postMessage(JSON.stringify({ type: "OPEN_QR_CHECKIN", eventId }));
+      return;
+    }
     try {
       if (admission === "REVIEW") {
         await applyMut.mutateAsync({ eventId });

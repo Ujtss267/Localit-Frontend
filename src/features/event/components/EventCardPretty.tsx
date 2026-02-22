@@ -16,6 +16,7 @@ type Props = {
   hideMeta?: boolean;
   registerText?: string;
   canEdit?: boolean;
+  distanceKm?: number | null;
 };
 
 // 한국형 날짜 출력
@@ -140,6 +141,7 @@ export default function EventCardPretty({
   hideMeta = false,
   registerText = "참가하기",
   canEdit = false,
+  distanceKm = null,
 }: Props) {
   const navigate = useNavigate();
   const date = useMemo(() => new Date(e.startTime), [e.startTime]);
@@ -237,6 +239,7 @@ export default function EventCardPretty({
               <div className="mt-1 flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-neutral-400">
                 <span>{formatKoreanDate(date)}</span>
                 <span className="inline-flex items-center gap-1">📍{e.location}</span>
+                {typeof distanceKm === "number" ? <span className="text-emerald-300">{distanceKm.toFixed(1)}km</span> : null}
                 <StarRating avg={e.ratingAvg} count={e.ratingCount} />
               </div>
             )}

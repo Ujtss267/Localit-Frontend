@@ -56,3 +56,12 @@ export const checkinEventByToken = (eventId: number, token: string) =>
   api.post<{ ok: boolean; registration?: EventParticipantItem; message?: string }>(`/event/${eventId}/checkin`, { token }).then((r) => r.data);
 
 export const applyEvent = (eventId: number, answers?: unknown) => api.post("/event-application", { eventId, answers }).then((r) => r.data);
+
+export type EventCheckinToken = {
+  eventId: number;
+  token: string;
+  rotatedAt: string;
+};
+
+export const getEventCheckinToken = (eventId: number) =>
+  api.get<EventCheckinToken>(`/event/${eventId}/checkin-token`).then((r) => r.data);

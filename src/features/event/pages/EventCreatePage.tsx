@@ -56,6 +56,15 @@ type EventMode = "single" | "series";
 
 type CombinedError = { message?: string };
 
+function getErrorMessage(err: unknown) {
+  const anyErr = err as any;
+  const fromResponse = anyErr?.response?.data?.message;
+  if (Array.isArray(fromResponse)) return fromResponse.join("\n");
+  if (typeof fromResponse === "string") return fromResponse;
+  if (typeof anyErr?.message === "string") return anyErr.message;
+  return "처리 중 오류가 발생했습니다.";
+}
+
 const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
 const EVENT_CREATE_DRAFT_KEY = "localit:event-create-draft:v1";
 
@@ -855,7 +864,7 @@ export default function EventCreatePage() {
 
             {combinedError && (
               <Alert severity="error" sx={{ mt: 2 }}>
-                {combinedError.message ?? "처리 중 오류가 발생했습니다."}
+                {getErrorMessage(combinedError)}
               </Alert>
             )}
           </CardContent>
