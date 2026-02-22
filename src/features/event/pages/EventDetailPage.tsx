@@ -95,13 +95,7 @@ export default function EventDetailPage() {
   const isAlreadyRegistered = myReg?.registrationStatus === "CONFIRMED" || myReg?.registrationStatus === "ATTENDED";
   const isAppliedOnly = myReg?.applicationStatus === "SUBMITTED" || myReg?.applicationStatus === "WAITLIST";
 
-  const ctaLabel = isAlreadyRegistered
-    ? "참가권 보기"
-    : isAppliedOnly
-      ? "신청 상태 보기"
-      : admission === "REVIEW"
-        ? "참가 신청"
-        : "바로 참가";
+  const ctaLabel = isAlreadyRegistered ? "참가권 보기" : isAppliedOnly ? "신청 상태 보기" : admission === "REVIEW" ? "참가 신청" : "바로 참가";
 
   const onAttend = async () => {
     if (isAlreadyRegistered || isAppliedOnly) {
