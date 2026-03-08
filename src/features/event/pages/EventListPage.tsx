@@ -52,7 +52,7 @@ export default function EventListPage() {
       Object.assign(paramsRef, p);
       if (!USE_SAMPLE) refetch();
     },
-    [paramsRef, refetch, USE_SAMPLE]
+    [paramsRef, refetch, USE_SAMPLE],
   );
 
   // 툴바: 키워드/정렬 적용
@@ -95,7 +95,7 @@ export default function EventListPage() {
     (p: EventListParams) => {
       mergeParamsAndRefetch(p);
     },
-    [mergeParamsAndRefetch]
+    [mergeParamsAndRefetch],
   );
 
   // ✅ 최종 리스트 (샘플 모드에선 클라 사이드에서만 필터)
@@ -176,7 +176,7 @@ export default function EventListPage() {
   };
 
   return (
-    <div className="min-h-[100svh] bg-gradient-to-b from-neutral-950 via-neutral-950 to-neutral-900 text-neutral-100 pb-20">
+    <div className="min-h-svh bg-linear-to-b from-neutral-950 via-neutral-950 to-neutral-900 text-neutral-100 pb-20">
       <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-5 space-y-3 sm:space-y-4">
         {/* 헤더 */}
         <div className="flex items-start justify-between gap-3">
@@ -190,7 +190,7 @@ export default function EventListPage() {
         </div>
 
         {/* ✅ 모바일 우선 필터 바 */}
-        <Card className="bg-neutral-900/80 border border-neutral-800 [&_.MuiCardContent-root]:!p-2.5 sm:[&_.MuiCardContent-root]:!p-3 [&_.MuiCardContent-root:last-child]:!pb-2.5 sm:[&_.MuiCardContent-root:last-child]:!pb-3">
+        <Card className="bg-neutral-900/80 border border-neutral-800 [&_.MuiCardContent-root]:p-2.5! sm:[&_.MuiCardContent-root]:p-3! [&_.MuiCardContent-root:last-child]:pb-2.5! sm:[&_.MuiCardContent-root:last-child]:pb-3!">
           <div className="space-y-2.5">
             <div className="flex w-full items-center gap-1.5 sm:gap-2">
               <input
@@ -201,16 +201,11 @@ export default function EventListPage() {
                 className="flex-1 h-10 sm:h-11 rounded-md border border-neutral-700 bg-neutral-900/80 px-2.5 sm:px-3 text-xs sm:text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-500"
               />
               {keyword && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setKeyword("")}
-                  className="!h-10 sm:!h-11 px-2 text-xs sm:text-sm whitespace-nowrap"
-                >
+                <Button variant="ghost" size="sm" onClick={() => setKeyword("")} className="h-10! sm:h-11! px-2 text-xs sm:text-sm whitespace-nowrap">
                   지우기
                 </Button>
               )}
-              <Button size="sm" onClick={applyToolbar} className="!h-10 sm:!h-11 px-2 sm:px-3 text-xs sm:text-sm">
+              <Button size="sm" onClick={applyToolbar} className="h-10! sm:h-11! px-2 sm:px-3 text-xs sm:text-sm">
                 적용
               </Button>
             </div>
@@ -235,16 +230,11 @@ export default function EventListPage() {
 
             <div className="flex flex-wrap items-center justify-between gap-2">
               <label className="inline-flex min-h-10 sm:min-h-11 items-center gap-2 text-xs sm:text-sm cursor-pointer select-none text-neutral-200">
-                <input type="checkbox" checked={myOnly} onChange={(e) => setMyOnly(e.target.checked)} className="h-4 w-4 accent-neutral-100" />
-                내 이벤트만
+                <input type="checkbox" checked={myOnly} onChange={(e) => setMyOnly(e.target.checked)} className="h-4 w-4 accent-neutral-100" />내
+                이벤트만
               </label>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowAdvanced((v) => !v)}
-                className="!h-10 sm:!h-11 px-2 sm:px-3 text-xs sm:text-sm"
-              >
+              <Button variant="ghost" size="sm" onClick={() => setShowAdvanced((v) => !v)} className="h-10! sm:h-11! px-2 sm:px-3 text-xs sm:text-sm">
                 {showAdvanced ? "상세 필터 닫기" : "상세 필터 열기"}
               </Button>
             </div>
@@ -252,7 +242,10 @@ export default function EventListPage() {
 
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
             {activeSummary.map((v) => (
-              <span key={v} className="inline-flex rounded-full border border-neutral-700 bg-neutral-900 px-2.5 py-1 text-[11px] sm:text-xs text-neutral-300">
+              <span
+                key={v}
+                className="inline-flex rounded-full border border-neutral-700 bg-neutral-900 px-2.5 py-1 text-[11px] sm:text-xs text-neutral-300"
+              >
                 {v}
               </span>
             ))}
@@ -269,12 +262,7 @@ export default function EventListPage() {
         {/* 모바일 상세 필터: Bottom Sheet */}
         {showAdvanced && (
           <div className="fixed inset-0 z-40 sm:hidden">
-            <button
-              type="button"
-              className="absolute inset-0 bg-black/55"
-              aria-label="상세 필터 닫기"
-              onClick={closeAdvanced}
-            />
+            <button type="button" className="absolute inset-0 bg-black/55" aria-label="상세 필터 닫기" onClick={closeAdvanced} />
             <div
               className="absolute bottom-0 left-0 right-0 rounded-t-2xl border-t border-neutral-700 bg-neutral-900 shadow-2xl transition-transform duration-150 ease-out"
               style={{ transform: `translateY(${sheetDragY}px)` }}
@@ -293,7 +281,7 @@ export default function EventListPage() {
                   <div className="text-[13px] font-semibold text-neutral-100">상세 필터</div>
                   <div className="text-[11px] text-neutral-400">카테고리/지역/기간을 세부 설정하세요.</div>
                 </div>
-                <Button variant="ghost" size="sm" onClick={closeAdvanced} className="!h-8 px-2 text-[11px]">
+                <Button variant="ghost" size="sm" onClick={closeAdvanced} className="h-8! px-2 text-[11px]">
                   닫기
                 </Button>
               </div>
