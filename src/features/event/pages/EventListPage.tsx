@@ -9,8 +9,8 @@ import EventFilter from "../components/EventFilter";
 import { useEvents } from "../queries";
 import type { EventDTO, EventListParams } from "../api";
 import EventCardPretty from "../components/EventCardPretty";
-import { sampleData } from "@/mocks/sampleData";
 import { mobileText } from "@/components/ui/mobileTypography";
+import { useAuth } from "@/app/providers/AuthProvider";
 
 function toRadians(degree: number) {
   return (degree * Math.PI) / 180;
@@ -25,9 +25,8 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number) {
 }
 
 export default function EventListPage() {
-  const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
-  // TODO: 나중에 AuthContext나 useAuth()로 교체 예정
-  const me = { userId: 1 }; // 로그인한 사용자 id
+  const { user } = useAuth();
+  const viewerId = user?.id ?? user?.userId ?? null;
 
   // 쿼리 파라미터 ref (react-query의 키 안정성)
   const paramsRef = useMemo(() => ({}) as EventListParams, []);
@@ -43,16 +42,16 @@ export default function EventListPage() {
   const requestedLocationRef = useRef(false);
 
   const { data, isLoading, isFetching, isError, refetch } = useEvents(paramsRef);
-  const baseItems: EventDTO[] = USE_SAMPLE ? sampleData.events : (data ?? []);
+  const baseItems: EventDTO[] = data ?? [];
 
   // 공통 병합 유틸
   const mergeParamsAndRefetch = useCallback(
     (p: Partial<EventListParams>) => {
       Object.keys(paramsRef).forEach((k) => delete (paramsRef as any)[k]);
       Object.assign(paramsRef, p);
-      if (!USE_SAMPLE) refetch();
+      refetch();
     },
-    [paramsRef, refetch, USE_SAMPLE],
+    [paramsRef, refetch],
   );
 
   // 툴바: 키워드/정렬 적용
@@ -61,20 +60,16 @@ export default function EventListPage() {
       ...(keyword.trim() ? { q: keyword.trim() } : { q: undefined }),
       sort,
       page: 1,
-      // ✅ 서버 모드에선 creatorId 파라미터로 필터링
-      ...(myOnly ? { creatorId: me.userId } : { creatorId: undefined }),
+      ...(myOnly && viewerId ? { creatorId: viewerId } : { creatorId: undefined }),
     });
-  }, [keyword, sort, myOnly, mergeParamsAndRefetch, me.userId]);
+  }, [keyword, sort, myOnly, mergeParamsAndRefetch, viewerId]);
 
-  // ✅ "내 이벤트만" 토글 시 즉시 적용 (서버 모드)
   useEffect(() => {
-    if (!USE_SAMPLE) {
-      mergeParamsAndRefetch({
-        ...(myOnly ? { creatorId: me.userId } : { creatorId: undefined }),
-        page: 1,
-      });
-    }
-  }, [myOnly, USE_SAMPLE, me.userId, mergeParamsAndRefetch]);
+    mergeParamsAndRefetch({
+      ...(myOnly && viewerId ? { creatorId: viewerId } : { creatorId: undefined }),
+      page: 1,
+    });
+  }, [myOnly, viewerId, mergeParamsAndRefetch]);
 
   // 모바일 상세필터 열림 시 배경 스크롤 잠금
   useEffect(() => {
@@ -98,8 +93,21 @@ export default function EventListPage() {
     [mergeParamsAndRefetch],
   );
 
-  // ✅ 최종 리스트 (샘플 모드에선 클라 사이드에서만 필터)
-  const items = USE_SAMPLE ? baseItems.filter((e) => !myOnly || e.creator?.id === me.userId) : baseItems;
+  const items = useMemo(() => {
+    const keywordLower = keyword.trim().toLowerCase();
+
+    return baseItems.filter((event) => {
+      const creatorId = event.creator?.id ?? event.creator?.userId ?? event.creatorId ?? null;
+      const matchesOwner = !myOnly || (viewerId != null && creatorId === viewerId);
+      const matchesKeyword =
+        !keywordLower ||
+        event.title.toLowerCase().includes(keywordLower) ||
+        event.description.toLowerCase().includes(keywordLower) ||
+        event.location.toLowerCase().includes(keywordLower);
+
+      return matchesOwner && matchesKeyword;
+    });
+  }, [baseItems, keyword, myOnly, viewerId]);
   const itemsWithDistance = useMemo(() => {
     return items.map((item) => {
       if (!nativeLocation || typeof item.lat !== "number" || typeof item.lng !== "number") return { item, distanceKm: null as number | null };
@@ -122,8 +130,8 @@ export default function EventListPage() {
 
   const count = displayItems.length;
 
-  const showLoading = !USE_SAMPLE && isLoading;
-  const showError = !USE_SAMPLE && isError;
+  const showLoading = isLoading;
+  const showError = isError;
   const sortLabel: Record<"latest" | "popular" | "upcoming", string> = {
     upcoming: "시작 임박순",
     latest: "최신 등록순",
@@ -294,7 +302,7 @@ export default function EventListPage() {
 
         {/* 상태 표시줄 */}
         <div className="flex items-center justify-between pt-1">
-          <div className={`${mobileText.meta} text-neutral-400`}>{!USE_SAMPLE && isFetching ? "필터 적용 중…" : <>총 {count}개</>}</div>
+          <div className={`${mobileText.meta} text-neutral-400`}>{isFetching ? "필터 적용 중…" : <>총 {count}개</>}</div>
           <div className="hidden sm:flex gap-2">
             <Button variant="ghost" disabled size="sm">
               이전
@@ -315,7 +323,12 @@ export default function EventListPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
             {displayItems.map(({ item: e, distanceKm }) => (
-              <EventCardPretty key={e.id} e={e} distanceKm={distanceKm} canEdit={e.creator?.id === me.userId} />
+              <EventCardPretty
+                key={e.id}
+                e={e}
+                distanceKm={distanceKm}
+                canEdit={(e.creator?.id ?? e.creator?.userId ?? e.creatorId ?? null) === viewerId}
+              />
             ))}
           </div>
         )}

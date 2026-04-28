@@ -5,13 +5,10 @@ import Button from "@/components/ui/Button";
 import Empty from "@/components/ui/Empty";
 import { mobileText } from "@/components/ui/mobileTypography";
 import { useAuth } from "@/app/providers/AuthProvider";
-import { sampleData } from "@/mocks/sampleData";
 import { createSeriesApi, searchSeries, type SeriesDTO } from "../api";
 import { useEvents } from "../queries";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Switch, TextField } from "@mui/material";
-
-const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
 
 function formatDate(iso?: string | null) {
   if (!iso) return "-";
@@ -22,7 +19,7 @@ function formatDate(iso?: string | null) {
 
 export default function SeriesListPage() {
   const { user } = useAuth();
-  const viewerId = user?.id ?? 1;
+  const viewerId = user?.id ?? user?.userId ?? 0;
   const navigate = useNavigate();
   const [sp] = useSearchParams();
   const fromEventCreate = sp.get("from") === "event-create";
@@ -33,33 +30,16 @@ export default function SeriesListPage() {
   const [newPublic, setNewPublic] = useState(true);
 
   const { data: events = [] } = useEvents();
-  const [sampleSeriesRows, setSampleSeriesRows] = useState<SeriesDTO[]>(sampleData.series);
   const seriesQuery = useQuery({
     queryKey: ["series-list"],
-    enabled: !USE_SAMPLE,
     queryFn: async () => {
       return searchSeries("");
     },
   });
   const createSeries = useMutation({
-    mutationFn: async (payload: { title: string; description?: string; isPublic?: boolean }) => {
-      if (USE_SAMPLE) {
-        const created: SeriesDTO = {
-          seriesId: Date.now(),
-          title: payload.title,
-          description: payload.description,
-          isPublic: payload.isPublic ?? true,
-          hostId: viewerId,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        setSampleSeriesRows((prev) => [created, ...prev]);
-        return created;
-      }
-      return createSeriesApi(payload);
-    },
+    mutationFn: async (payload: { title: string; description?: string; isPublic?: boolean }) => createSeriesApi(payload),
     onSuccess: (created) => {
-      if (!USE_SAMPLE) qc.invalidateQueries({ queryKey: ["series-list"] });
+      qc.invalidateQueries({ queryKey: ["series-list"] });
       setCreateOpen(false);
       setNewTitle("");
       setNewDescription("");
@@ -71,9 +51,9 @@ export default function SeriesListPage() {
   });
 
   const hostedSeries = useMemo(() => {
-    const rows = (USE_SAMPLE ? sampleSeriesRows : (seriesQuery.data ?? [])) as SeriesDTO[];
+    const rows = (seriesQuery.data ?? []) as SeriesDTO[];
     return rows.filter((s) => s.hostId === viewerId);
-  }, [seriesQuery.data, sampleSeriesRows, viewerId]);
+  }, [seriesQuery.data, viewerId]);
 
   const statsBySeriesId = useMemo(() => {
     const now = Date.now();

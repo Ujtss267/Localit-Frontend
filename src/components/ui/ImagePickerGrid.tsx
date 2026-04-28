@@ -1,5 +1,5 @@
 // src/features/room/components/ImagePickerGrid.tsx
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Box, Button, Typography } from "@mui/material";
 
 type Props = {
@@ -21,6 +21,8 @@ export default function ImagePickerGrid({
   height = 90,
   helperText = "최대 5장까지 업로드 가능합니다.",
 }: Props) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
   // ObjectURL 생성
   const previews = useMemo(() => value.map((f) => URL.createObjectURL(f)), [value]);
 
@@ -35,15 +37,16 @@ export default function ImagePickerGrid({
     const files = e.target.files ? Array.from(e.target.files) : [];
     const next = files.slice(0, max);
     onChange(next);
+    e.target.value = "";
   }
 
   return (
     <Box sx={{ display: "grid", gap: 1 }}>
       <Typography variant="subtitle2">이미지 (선택)</Typography>
 
-      <Button variant="outlined" component="label" color="inherit">
+      <input ref={inputRef} type="file" accept={accept} hidden multiple onChange={handlePick} />
+      <Button variant="outlined" color="inherit" onClick={() => inputRef.current?.click()}>
         이미지 선택
-        <input type="file" accept={accept} hidden multiple onChange={handlePick} />
       </Button>
 
       {previews.length > 0 ? (

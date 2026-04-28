@@ -208,6 +208,23 @@ export type ApiEvent = {
   visibility: Visibility;
   imageUrls?: string[];
   genderControl?: GenderControlDto;
+  creator?: {
+    userId: number;
+    email: string;
+    name?: string | null;
+    nickname?: string | null;
+    isPremiumHost?: boolean;
+  } | null;
+  room?: {
+    roomId: number;
+    name: string;
+    location: string;
+  } | null;
+  category?: {
+    categoryId: number;
+    name: string;
+  } | null;
+  isPremiumHostEvent?: boolean;
 };
 
 /** Mapper: ApiEvent -> EventDTO (UI) */
@@ -238,7 +255,29 @@ export function mapApiEventToEventDTO(e: ApiEvent): EventDTO {
     episodeNo: e.episodeNo ?? null,
     ratingAvg: e.ratingAvg == null ? null : typeof e.ratingAvg === "string" ? parseFloat(e.ratingAvg) : e.ratingAvg,
     ratingCount: e.ratingCount ?? null,
-    // Optional relations (creator/mentor/category/room) can be expanded in a richer mapper when API returns joins
+    creator: e.creator
+      ? {
+          id: e.creator.userId,
+          userId: e.creator.userId,
+          email: e.creator.email,
+          name: e.creator.name ?? e.creator.nickname ?? null,
+          isPremiumHost: e.creator.isPremiumHost ?? false,
+        }
+      : null,
+    room: e.room
+      ? {
+          id: e.room.roomId,
+          name: e.room.name,
+          location: e.room.location,
+        }
+      : null,
+    category: e.category
+      ? {
+          id: e.category.categoryId,
+          name: e.category.name,
+        }
+      : null,
+    isPremiumHostEvent: e.isPremiumHostEvent ?? false,
     genderControl: e.genderControl ?? null,
   } as EventDTO;
 }
@@ -288,6 +327,7 @@ export type CreateEventDto = {
   seriesId?: number; // 있으면 회차형
   episodeNo?: number; // 선택 (표시/정렬용)
   genderControl?: GenderControlDto;
+  imageUrls?: string[];
 };
 
 export type UpdateEventDto = Partial<CreateEventDto>;
@@ -295,14 +335,15 @@ export type UpdateEventDto = Partial<CreateEventDto>;
 /* ──────────────────────────────
  * API
  * ────────────────────────────── */
-export const getEvents = (params?: EventListParams) => api.get<EventDTO[]>("/event", { params }).then((r) => r.data);
+export const getEvents = (params?: EventListParams) =>
+  api.get<ApiEvent[]>("/event", { params }).then((r) => r.data.map(mapApiEventToEventDTO));
 
-export const getEventById = (id: number) => api.get<EventDTO>(`/event/${id}`).then((r) => r.data);
+export const getEventById = (id: number) => api.get<ApiEvent>(`/event/${id}`).then((r) => mapApiEventToEventDTO(r.data));
 
-export const createEvent = (dto: CreateEventDto) => api.post<EventDTO>("/event/create", dto).then((r) => r.data);
+export const createEvent = (dto: CreateEventDto) => api.post<ApiEvent>("/event/create", dto).then((r) => mapApiEventToEventDTO(r.data));
 
 /** ✅ 이벤트 수정 API */
-export const updateEvent = (id: number, dto: UpdateEventDto) => api.put<EventDTO>(`/event/${id}`, dto).then((r) => r.data);
+export const updateEvent = (id: number, dto: UpdateEventDto) => api.put<ApiEvent>(`/event/${id}`, dto).then((r) => mapApiEventToEventDTO(r.data));
 
 /* ──────────────────────────────
  * Series API

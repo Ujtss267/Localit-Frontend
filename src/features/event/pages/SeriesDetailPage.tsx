@@ -5,13 +5,11 @@ import Button from "@/components/ui/Button";
 import Tabs from "@/components/ui/Tabs";
 import Empty from "@/components/ui/Empty";
 import { mobileText } from "@/components/ui/mobileTypography";
-import { sampleData } from "@/mocks/sampleData";
 import { getSeriesById, type EventDTO } from "../api";
 import { useEvents } from "../queries";
 import { useQuery } from "@tanstack/react-query";
 
 type DetailTab = "EPISODES" | "ATTENDANCE";
-const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
 
 function formatDateTime(iso?: string | null) {
   if (!iso) return "-";
@@ -31,10 +29,7 @@ export default function SeriesDetailPage() {
   const seriesQuery = useQuery({
     queryKey: ["series", id],
     enabled: Number.isFinite(id),
-    queryFn: async () => {
-      if (USE_SAMPLE) return sampleData.series.find((s) => s.seriesId === id) ?? null;
-      return getSeriesById(id);
-    },
+    queryFn: async () => getSeriesById(id),
   });
 
   const episodes = useMemo(() => {
@@ -47,14 +42,7 @@ export default function SeriesDetailPage() {
   }, [events]);
 
   const attendanceRows = useMemo(() => {
-    if (!USE_SAMPLE) return episodes.map((e) => ({ event: e, confirmed: null as number | null, attended: null as number | null, noShow: null as number | null }));
-    return episodes.map((e) => {
-      const regs = sampleData.registrations.filter((r) => r.eventId === e.id);
-      const confirmed = regs.filter((r) => r.registrationStatus === "CONFIRMED").length;
-      const attended = regs.filter((r) => r.registrationStatus === "ATTENDED").length;
-      const noShow = regs.filter((r) => r.registrationStatus === "NO_SHOW").length;
-      return { event: e, confirmed, attended, noShow };
-    });
+    return episodes.map((e) => ({ event: e, confirmed: null as number | null, attended: null as number | null, noShow: null as number | null }));
   }, [episodes]);
 
   if (!Number.isFinite(id)) {

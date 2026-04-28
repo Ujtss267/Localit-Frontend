@@ -47,9 +47,9 @@ import CreateSeriesDialog from "../components/CreateSeriesDialog";
 import EditSeriesDialog from "../components/EditSeriesDialog";
 import BulkCreateDialog from "../components/BulkCreateDialog";
 import { useRooms } from "@/features/room/queries";
-import { useAuth } from "@/app/providers/AuthProvider";
-import { sampleData } from "@/mocks/sampleData";
 import { checkRoomAvailability } from "@/features/room/api";
+import { useGeolocation } from "@/hooks/useGeolocation";
+import { uploadImage } from "@/features/storage/api";
 
 type SeriesOption = { seriesId: number; title: string };
 type EventMode = "single" | "series";
@@ -65,7 +65,6 @@ function getErrorMessage(err: unknown) {
   return "처리 중 오류가 발생했습니다.";
 }
 
-const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
 const EVENT_CREATE_DRAFT_KEY = "localit:event-create-draft:v1";
 
 function toISO(local: string) {
@@ -139,10 +138,10 @@ export default function EventCreatePage() {
   const createMut = useCreateEvent();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const { user } = useAuth();
 
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
+  const [images, setImages] = useState<File[]>([]);
   const [location, setLocation] = useState("");
   const [selectedRoomId, setSelectedRoomId] = useState<number | "">("");
   const [eventDate, setEventDate] = useState(todayYmd());
@@ -181,6 +180,7 @@ export default function EventCreatePage() {
   const [bulkFrequency, setBulkFrequency] = useState<"DAILY" | "WEEKLY">("WEEKLY");
   const [bulkCount, setBulkCount] = useState<number>(4);
   const [draftHydrated, setDraftHydrated] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const seriesSearch = useSearchSeries();
   const seriesDetails = useFetchSeriesDetails(selectedSeries?.seriesId ?? null);
@@ -195,9 +195,6 @@ export default function EventCreatePage() {
 
   const bulkCreate = useMutation({
     mutationFn: async (payloads: Array<CreateEventDto & { seriesId: number; episodeNo?: number }>) => {
-      if (USE_SAMPLE) {
-        return { created: payloads.length };
-      }
       const rows = await Promise.all(payloads.map((p) => createEvent(p)));
       return { created: rows.length };
     },
@@ -206,9 +203,8 @@ export default function EventCreatePage() {
   const [range, setRange] = useState<{ start: Date; end: Date } | null>(null);
   const [duration, setDuration] = useState(60);
   const { data: roomsData, isLoading: roomsLoading } = useRooms();
-  const viewerId = user?.id ?? 1;
-  const userPref = sampleData.userPreferences[viewerId];
-  const [needsRoom, setNeedsRoom] = useState(Boolean(userPref?.needsRoom));
+  const { pos, getOnce } = useGeolocation();
+  const [needsRoom, setNeedsRoom] = useState(false);
 
   const distanceKm = (lat1: number, lng1: number, lat2: number, lng2: number) => {
     const toRad = (deg: number) => (deg * Math.PI) / 180;
@@ -222,13 +218,13 @@ export default function EventCreatePage() {
   const availableRooms = React.useMemo(() => {
     const base = (roomsData ?? []).filter((r) => r.available);
     if (!needsRoom) return base;
-    if (typeof userPref?.lat !== "number" || typeof userPref?.lng !== "number") return base;
+    if (typeof pos?.lat !== "number" || typeof pos?.lng !== "number") return base;
     return [...base].sort((a, b) => {
       if (a.lat == null || a.lng == null) return 1;
       if (b.lat == null || b.lng == null) return -1;
-      return distanceKm(userPref.lat!, userPref.lng!, a.lat, a.lng) - distanceKm(userPref.lat!, userPref.lng!, b.lat, b.lng);
+      return distanceKm(pos.lat, pos.lng, a.lat, a.lng) - distanceKm(pos.lat, pos.lng, b.lat, b.lng);
     });
-  }, [roomsData, needsRoom, userPref?.lat, userPref?.lng]);
+  }, [roomsData, needsRoom, pos?.lat, pos?.lng]);
 
   const selectedRoom = selectedRoomId === "" ? null : availableRooms.find((r) => r.id === Number(selectedRoomId)) ?? null;
   const selectedRoomName = selectedRoom?.name ?? sp.get("roomName") ?? "";
@@ -361,11 +357,23 @@ export default function EventCreatePage() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!valid) return;
+    setSubmitError(null);
 
     let seriesId: number | undefined;
     if (mode === "series") {
       if (!selectedSeries) return;
       seriesId = selectedSeries.seriesId;
+    }
+
+    let uploadedImageUrls: string[] | undefined;
+    if (images.length > 0) {
+      try {
+        const uploaded = await Promise.all(images.map((file) => uploadImage(file, "events")));
+        uploadedImageUrls = uploaded.map((item) => item.imageUrl);
+      } catch (error) {
+        setSubmitError(getErrorMessage(error));
+        return;
+      }
     }
 
     const payload: CreateEventDto & { seriesId?: number; episodeNo?: number } = {
@@ -381,6 +389,7 @@ export default function EventCreatePage() {
       admissionPolicy,
       paidToHost,
       genderControl,
+      ...(uploadedImageUrls && uploadedImageUrls.length > 0 ? { imageUrls: uploadedImageUrls } : {}),
       ...(selectedRoom ? { roomId: selectedRoom.id } : {}),
       ...(seriesId ? { seriesId } : {}),
       ...(episodeNo !== "" ? { episodeNo: Number(episodeNo) } : {}),
@@ -456,8 +465,14 @@ export default function EventCreatePage() {
     setSelectedRoomId("");
   }, [needsRoom]);
 
-  const lat = 35.2277;
-  const lng = 128.6812;
+  useEffect(() => {
+    if (!needsRoom) return;
+    getOnce();
+  }, [needsRoom, getOnce]);
+
+  const mapLat = selectedRoom?.lat ?? pos?.lat ?? 37.5665;
+  const mapLng = selectedRoom?.lng ?? pos?.lng ?? 126.978;
+  const mapTitle = selectedRoom ? `${selectedRoom.name} 위치` : location.trim() ? location.trim() : "이벤트 위치";
 
   const isPending = createMut.isPending || createSeries.isPending || updateSeries.isPending || bulkCreate.isPending;
   const combinedError =
@@ -700,8 +715,8 @@ export default function EventCreatePage() {
                     {availableRooms.map((room) => (
                       <MenuItem key={room.id} value={room.id}>
                         {room.name} · {room.location}
-                        {needsRoom && typeof userPref?.lat === "number" && typeof userPref?.lng === "number" && room.lat != null && room.lng != null
-                          ? ` (${distanceKm(userPref.lat, userPref.lng, room.lat, room.lng).toFixed(1)}km)`
+                        {needsRoom && typeof pos?.lat === "number" && typeof pos?.lng === "number" && room.lat != null && room.lng != null
+                          ? ` (${distanceKm(pos.lat, pos.lng, room.lat, room.lng).toFixed(1)}km)`
                           : ""}
                       </MenuItem>
                     ))}
@@ -805,13 +820,13 @@ export default function EventCreatePage() {
               </Typography>
               <Stack spacing={{ xs: 1.5, sm: 2 }}>
                 <ImagePickerGrid
-                  value={[]}
-                  onChange={() => {}}
+                  value={images}
+                  onChange={setImages}
                   max={5}
                   columns={isMobile ? 2 : 3}
-                  helperText="최대 5장까지 업로드 가능합니다. (실제 업로드 연동은 추후 진행)"
+                  helperText="최대 5장까지 업로드 가능합니다. 등록 시 MinIO로 업로드됩니다."
                 />
-                <LocationMap title="로컬잇 밋업 @ 사림동" lat={lat} lng={lng} zoom={3} height={isMobile ? 260 : 380} />
+                <LocationMap title={mapTitle} lat={mapLat} lng={mapLng} zoom={3} height={isMobile ? 260 : 380} />
               </Stack>
             </Box>
 
@@ -862,9 +877,9 @@ export default function EventCreatePage() {
               episodeNo={episodeNo}
             />
 
-            {combinedError && (
+            {(submitError || combinedError) && (
               <Alert severity="error" sx={{ mt: 2 }}>
-                {getErrorMessage(combinedError)}
+                {submitError ?? getErrorMessage(combinedError)}
               </Alert>
             )}
           </CardContent>

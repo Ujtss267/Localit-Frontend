@@ -1,13 +1,11 @@
 // src/features/event/pages/EventDetailPage.tsx
 import * as React from "react";
-import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Typography, Dialog, DialogContent, Divider, Chip, IconButton } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import Button from "@/components/ui/Button";
 import CardUI from "@/components/ui/Card";
 import EventMeta from "../components/EventMeta";
-import { sampleData } from "@/mocks/sampleData";
 import type { EventDTO } from "../api";
 import { useApplyEvent, useEvent, useJoinEvent } from "../queries";
 
@@ -20,7 +18,6 @@ export default function EventDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
   const eventId = Number(id);
   const safeEventId = Number.isNaN(eventId) ? 0 : eventId;
 
@@ -35,8 +32,7 @@ export default function EventDetailPage() {
   const { data: serverEvent, isFetching } = useEvent(safeEventId);
   const joinMut = useJoinEvent();
   const applyMut = useApplyEvent();
-  const sample = useMemo(() => sampleData.events.find((e) => e.id === eventId), [eventId]);
-  const e: EventDTO | undefined = USE_SAMPLE ? sample : (serverEvent ?? sample);
+  const e: EventDTO | undefined = serverEvent;
 
   if (Number.isNaN(eventId)) {
     return (

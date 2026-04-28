@@ -1,11 +1,6 @@
-// Localit UI Kit — single-file drop-in demo
-// How to use:
-// 1) Save as src/pages/StyleDemo.tsx (or anywhere) and route to it.
-// 2) Copy any component into your project (Button, Input, Card, etc.).
-// 3) Tailwind v4 with @tailwindcss/vite is assumed. No extra deps.
-
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useEvents } from "@/features/event/queries";
 
 // =============== Primitives ===============
 export function Button({
@@ -199,34 +194,18 @@ function FilterBar({ onChange }: { onChange: (p: Record<string, string>) => void
 // =============== Page (Preview) ===============
 export default function StyleDemo() {
   const [filters, setFilters] = useState<Record<string, string>>({});
-  const sample = useMemo(
-    () => [
-      {
-        id: 1,
-        title: "로컬 스터디 모임",
-        description: "프론트엔드 입문자 대상 로컬 스터디. 리액트/타입스크립트 기초.",
-        location: "서울 마포",
-        startTime: new Date().toISOString(),
-        capacity: 20,
-      },
-      {
-        id: 2,
-        title: "주말 농구 번개",
-        description: "초급~중급 레벨 환영. 체육관 대관 완료.",
-        location: "부산 진구",
-        startTime: new Date().toISOString(),
-        capacity: 12,
-      },
-      {
-        id: 3,
-        title: "주말 버스킹 공연",
-        description: "지역 아마추어 뮤지션들과 함께하는 소규모 공연.",
-        location: "대구 동성로",
-        startTime: new Date().toISOString(),
-        capacity: 60,
-      },
-    ],
-    []
+  const { data = [] } = useEvents();
+  const rows = useMemo(
+    () =>
+      data.map((event) => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        location: event.location,
+        startTime: event.startTime,
+        capacity: event.capacity,
+      })),
+    [data],
   );
 
   return (
@@ -249,13 +228,13 @@ export default function StyleDemo() {
         )}
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {sample.map((e) => (
+          {rows.map((e) => (
             <EventCardPretty key={e.id} e={e} />
           ))}
         </div>
 
         <div className="flex items-center justify-between pt-4">
-          <div className="text-sm text-neutral-500">총 {sample.length}개</div>
+          <div className="text-sm text-neutral-500">총 {rows.length}개</div>
           <div className="flex gap-2">
             <Button variant="ghost">이전</Button>
             <Button variant="ghost">다음</Button>

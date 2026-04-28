@@ -4,7 +4,6 @@ import { useQueries } from "@tanstack/react-query";
 import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import { useRooms } from "../queries";
 import { checkRoomAvailability, type RoomAvailability, type RoomDTO } from "../api";
-import { sampleData } from "@/mocks/sampleData";
 import RoomCardPretty from "../components/RoomCardPretty";
 import type { RoomSortKey } from "../components/RoomFilter";
 import { useAuth } from "@/app/providers/AuthProvider";
@@ -38,11 +37,9 @@ function distanceKm(lat1: number, lng1: number, lat2: number, lng2: number) {
 }
 
 export default function RoomListPage() {
-  const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
   const { data, isLoading, isError, error, refetch, isFetching } = useRooms();
   const { user } = useAuth();
-  const viewerId = user?.id ?? 1;
-  const userPref = sampleData.userPreferences[viewerId];
+  const viewerId = user?.id ?? user?.userId ?? 0;
   const { pos, getOnce } = useGeolocation();
   const [sp, setSp] = useSearchParams();
   const pickForEvent = sp.get("pickForEvent") === "1";
@@ -50,10 +47,10 @@ export default function RoomListPage() {
   const endLocalParam = sp.get("endLocal") ?? "";
 
   // 샘플/실데이터 스위치
-  const allRooms: RoomDTO[] = USE_SAMPLE ? sampleData.rooms : (data ?? []);
+  const allRooms: RoomDTO[] = data ?? [];
   const rawRooms: RoomDTO[] = pickForEvent ? allRooms : allRooms.filter((r) => r.creatorId === viewerId);
-  const showLoading = !USE_SAMPLE && isLoading;
-  const showError = !USE_SAMPLE && isError;
+  const showLoading = isLoading;
+  const showError = isError;
 
   // URL 쿼리 동기화
   const [q, setQ] = useState(sp.get("q") ?? "");
@@ -76,15 +73,12 @@ export default function RoomListPage() {
     if (typeof pos?.lat === "number" && typeof pos?.lng === "number") {
       return { lat: pos.lat, lng: pos.lng, label: "현재 위치" };
     }
-    if (typeof userPref?.lat === "number" && typeof userPref?.lng === "number") {
-      return { lat: userPref.lat, lng: userPref.lng, label: "기본 위치" };
-    }
     return null;
-  }, [pos?.lat, pos?.lng, userPref?.lat, userPref?.lng]);
+  }, [pos?.lat, pos?.lng]);
 
   const availabilityQueries = useQueries({
     queries:
-      pickForEvent && reservationWindowValid && !USE_SAMPLE
+      pickForEvent && reservationWindowValid
         ? rawRooms.map((room) => ({
             queryKey: ["room-availability", room.id, startLocalParam, endLocalParam],
             queryFn: () => checkRoomAvailability(room.id, toISO(startLocalParam), toISO(endLocalParam)),
@@ -128,8 +122,8 @@ export default function RoomListPage() {
       avail: onlyAvailable ? "1" : "",
       sort: sortKey,
     });
-    if (!USE_SAMPLE) refetch();
-  }, [q, onlyAvailable, sortKey, syncSearchParams, refetch, USE_SAMPLE]);
+    refetch();
+  }, [q, onlyAvailable, sortKey, syncSearchParams, refetch]);
 
   // 클라이언트 측 간단 필터/정렬(샘플 또는 API 데이터에 적용)
   const filtered = useMemo(() => {
@@ -218,7 +212,7 @@ export default function RoomListPage() {
             </Button>
             <Button
               variant="ghost"
-              disabled={USE_SAMPLE || isFetching}
+              disabled={isFetching}
               onClick={() => refetch()}
               startIcon={<RefreshIcon fontSize="small" />}
               className="!h-8 sm:!h-10 px-2 sm:px-3 text-[11px] sm:text-xs min-w-0"
@@ -274,7 +268,7 @@ export default function RoomListPage() {
               <input
                 type="checkbox"
                 checked={onlyAvailable || pickForEvent}
-                disabled={pickForEvent}
+              disabled={pickForEvent}
                 onChange={(e) => setOnlyAvailable(e.target.checked)}
                 className="h-4 w-4 accent-neutral-100"
               />
@@ -295,7 +289,7 @@ export default function RoomListPage() {
                 setOnlyAvailable(false);
                 setSortKey("created");
                 syncSearchParams({ q: "", avail: "", sort: "created" });
-                if (!USE_SAMPLE) refetch();
+                refetch();
               }}
               className="inline-flex rounded-full border border-neutral-600 px-2.5 py-1 text-[11px] sm:text-xs text-neutral-300 hover:bg-neutral-800"
             >
@@ -309,7 +303,7 @@ export default function RoomListPage() {
           {showError ? (
             <span className="text-sm text-red-400">공간 목록을 불러오지 못했습니다. {(error as any)?.message ?? ""}</span>
           ) : (
-            <div className={`${mobileText.meta} text-neutral-400`}>{!USE_SAMPLE && isFetching ? "필터 적용 중…" : <>총 {count}개</>}</div>
+            <div className={`${mobileText.meta} text-neutral-400`}>{isFetching ? "필터 적용 중…" : <>총 {count}개</>}</div>
           )}
           <div className="hidden sm:flex gap-2">
             <Button variant="ghost" disabled size="sm">
@@ -332,8 +326,8 @@ export default function RoomListPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
             {filtered.map((r) => {
               const availability = availabilityByRoomId.get(r.id);
-              const availabilityKnown = USE_SAMPLE || !pickForEvent || !reservationWindowValid || Boolean(availability);
-              const canPickForEvent = reservationWindowValid && (USE_SAMPLE || availability?.available === true);
+              const availabilityKnown = !pickForEvent || !reservationWindowValid || Boolean(availability);
+              const canPickForEvent = reservationWindowValid && availability?.available === true;
               const to = pickForEvent
                 ? `/events/new?roomId=${r.id}&roomName=${encodeURIComponent(r.name)}&roomLocation=${encodeURIComponent(
                     r.location

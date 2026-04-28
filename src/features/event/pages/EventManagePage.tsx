@@ -35,8 +35,6 @@ type SimpleParticipant = {
   checkInAt?: string | null;
 };
 
-const USE_SAMPLE = import.meta.env.VITE_USE_SAMPLE === "true";
-
 function appTone(s: ApplicationStatus) {
   if (s === "APPROVED") return "green" as const;
   if (s === "REJECTED") return "rose" as const;
@@ -141,26 +139,16 @@ function ApplicationsPanel({ eventId }: { eventId: number }) {
   const { data, isLoading } = useEventApplications(eventId);
   const updateStatus = useUpdateEventApplicationStatus(eventId);
 
-  const [sampleRows, setSampleRows] = useState<SimpleApplication[]>([
-    { eventApplicationId: 1, userName: "Anna", userEmail: "anna@example.com", status: "SUBMITTED" },
-    { eventApplicationId: 2, userName: "Brian", userEmail: "brian@example.com", status: "WAITLIST" },
-  ]);
-
   const rows = useMemo<SimpleApplication[]>(() => {
-    if (USE_SAMPLE) return sampleRows;
     return (data ?? []).map((a) => ({
       eventApplicationId: a.eventApplicationId,
       userName: a.user?.name ?? a.user?.nickname ?? a.user?.email ?? `User #${a.userId}`,
       userEmail: a.user?.email ?? undefined,
       status: a.status,
     }));
-  }, [data, sampleRows]);
+  }, [data]);
 
   const onChangeStatus = async (applicationId: number, status: ApplicationStatus) => {
-    if (USE_SAMPLE) {
-      setSampleRows((prev) => prev.map((r) => (r.eventApplicationId === applicationId ? { ...r, status } : r)));
-      return;
-    }
     await updateStatus.mutateAsync({ eventApplicationId: applicationId, status });
   };
 
@@ -168,7 +156,7 @@ function ApplicationsPanel({ eventId }: { eventId: number }) {
     <Card className="rounded-2xl border border-neutral-800 bg-neutral-900 p-3 sm:p-4">
       <h2 className="mb-3 text-base font-semibold text-neutral-100 sm:text-lg">신청 목록</h2>
 
-      {isLoading && !USE_SAMPLE ? <div className={`${mobileText.body} text-neutral-400`}>불러오는 중...</div> : null}
+      {isLoading ? <div className={`${mobileText.body} text-neutral-400`}>불러오는 중...</div> : null}
 
       <div className="space-y-2">
         {rows.length === 0 ? <div className="rounded-xl border border-neutral-800 px-3 py-6 text-center text-xs text-neutral-400 sm:text-sm">신청 내역이 없습니다.</div> : null}
@@ -209,13 +197,7 @@ function ParticipantsPanel({ eventId }: { eventId: number }) {
   const { data, isLoading } = useEventParticipants(eventId);
   const updateStatus = useUpdateEventParticipantStatus(eventId);
 
-  const [sampleRows, setSampleRows] = useState<SimpleParticipant[]>([
-    { eventRegistrationId: 1, userName: "Anna", userEmail: "anna@example.com", status: "CONFIRMED" },
-    { eventRegistrationId: 2, userName: "Brian", userEmail: "brian@example.com", status: "ATTENDED", checkInAt: new Date().toISOString() },
-  ]);
-
   const rows = useMemo<SimpleParticipant[]>(() => {
-    if (USE_SAMPLE) return sampleRows;
     return (data ?? []).map((p) => ({
       eventRegistrationId: p.eventRegistrationId,
       userName: p.user?.name ?? p.user?.nickname ?? p.user?.email ?? `User #${p.userId}`,
@@ -223,19 +205,9 @@ function ParticipantsPanel({ eventId }: { eventId: number }) {
       status: p.status,
       checkInAt: p.checkInAt,
     }));
-  }, [data, sampleRows]);
+  }, [data]);
 
   const onChangeStatus = async (eventRegistrationId: number, status: RegistrationStatus) => {
-    if (USE_SAMPLE) {
-      setSampleRows((prev) =>
-        prev.map((r) =>
-          r.eventRegistrationId === eventRegistrationId
-            ? { ...r, status, checkInAt: status === "ATTENDED" ? new Date().toISOString() : r.checkInAt }
-            : r
-        )
-      );
-      return;
-    }
     await updateStatus.mutateAsync({ eventRegistrationId, status });
   };
 
@@ -249,7 +221,7 @@ function ParticipantsPanel({ eventId }: { eventId: number }) {
         </Button>
       </div>
 
-      {isLoading && !USE_SAMPLE ? <div className={`${mobileText.body} text-neutral-400`}>불러오는 중...</div> : null}
+      {isLoading ? <div className={`${mobileText.body} text-neutral-400`}>불러오는 중...</div> : null}
 
       <div className="space-y-2">
         {rows.length === 0 ? <div className="rounded-xl border border-neutral-800 px-3 py-6 text-center text-xs text-neutral-400 sm:text-sm">참여자가 없습니다.</div> : null}
@@ -300,12 +272,6 @@ function CheckinScannerModal({ eventId, onClose }: CheckinScannerModalProps) {
 
     try {
       setMessage(null);
-      if (USE_SAMPLE) {
-        setMessage("샘플 모드: 출석이 정상 처리되었습니다.");
-        setToken("");
-        return;
-      }
-
       const res = await checkin.mutateAsync(token);
       setMessage(res?.message ?? "출석이 정상 처리되었습니다.");
       setToken("");

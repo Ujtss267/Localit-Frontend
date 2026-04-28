@@ -1,7 +1,3 @@
-// Localit Mobile‑First UI Kit — responsive, touch‑friendly components
-// Assumes Tailwind v4 with @tailwindcss/vite. No external deps.
-// Save as: src/pages/MobileFirstDemo.tsx and route to "/m-demo" for a live preview.
-
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Button from "@/components/ui/Button";
@@ -9,7 +5,7 @@ import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
-import Empty from "@/components/ui/Empty";
+import { useEvents } from "@/features/event/queries";
 
 
 /* ───────────────────── Event UI ───────────────────── */
@@ -96,34 +92,18 @@ function FilterBar({ onChange }: { onChange: (p: Record<string, string>) => void
 /* ───────────────────── Page (Preview) ───────────────────── */
 export default function MobileFirstDemo() {
   const [filters, setFilters] = useState<Record<string, string>>({});
-  const sample = useMemo(
-    () => [
-      {
-        id: 1,
-        title: "로컬 스터디 모임",
-        description: "프론트엔드 입문자 대상 로컬 스터디. 리액트/타입스크립트 기초.",
-        location: "서울 마포",
-        startTime: new Date().toISOString(),
-        capacity: 20,
-      },
-      {
-        id: 2,
-        title: "주말 농구 번개",
-        description: "초급~중급 레벨 환영. 체육관 대관 완료.",
-        location: "부산 진구",
-        startTime: new Date().toISOString(),
-        capacity: 12,
-      },
-      {
-        id: 3,
-        title: "주말 버스킹 공연",
-        description: "지역 아마추어 뮤지션들과 함께하는 소규모 공연.",
-        location: "대구 동성로",
-        startTime: new Date().toISOString(),
-        capacity: 60,
-      },
-    ],
-    []
+  const { data = [] } = useEvents();
+  const rows = useMemo(
+    () =>
+      data.map((event) => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        location: event.location,
+        startTime: event.startTime,
+        capacity: event.capacity,
+      })),
+    [data],
   );
 
   return (
@@ -146,13 +126,13 @@ export default function MobileFirstDemo() {
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-          {sample.map((e) => (
+          {rows.map((e) => (
             <EventCardPretty key={e.id} e={e} />
           ))}
         </div>
 
         <div className="flex items-center justify-between pt-2">
-          <div className="text-[13px] sm:text-sm text-neutral-500">총 {sample.length}개</div>
+          <div className="text-[13px] sm:text-sm text-neutral-500">총 {rows.length}개</div>
           <div className="flex gap-2">
             <Button variant="ghost">이전</Button>
             <Button variant="ghost">다음</Button>
